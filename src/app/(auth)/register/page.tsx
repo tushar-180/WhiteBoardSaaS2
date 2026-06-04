@@ -1,3 +1,7 @@
-export default function RegisterPage() {
-  return <div>Register</div>;
-}
+import { redirect } from "next/navigation";
+
+const Page = () => {
+  redirect("/login");
+};
+
+export default Page;
