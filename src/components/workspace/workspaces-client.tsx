@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { LogOut, Plus } from "lucide-react";
+import { LogOut, Plus, ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "./empty-state";
@@ -15,9 +15,10 @@ import { signOutAction } from "@/actions/auth";
 interface WorkspacesClientProps {
   initialWorkspaces: Workspace[];
   userEmail?: string;
+  userName?: string;
 }
 
-export function WorkspacesClient({ initialWorkspaces, userEmail }: WorkspacesClientProps) {
+export function WorkspacesClient({ initialWorkspaces, userEmail, userName }: WorkspacesClientProps) {
   const [open, setOpen] = useState(false);
   const [workspaces, setWorkspaces] = useState<Workspace[]>(initialWorkspaces);
 
@@ -71,13 +72,23 @@ export function WorkspacesClient({ initialWorkspaces, userEmail }: WorkspacesCli
 
       {/* Dashboard Main Workspace View */}
       <main className="flex-1 container mx-auto px-6 py-10 max-w-6xl">
-        <div className="flex flex-col gap-6 mb-8">
+        <div className="flex flex-col gap-4 mb-8">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs mb-5 font-semibold text-muted-foreground hover:text-foreground transition-all w-fit hover:-translate-x-0.5 duration-200"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to Home
+          </Link>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-                Workspaces
+              <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl mb-2">
+                Welcome back, <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent font-extrabold">{userName || "User"}</span>!
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <h2 className="text-base font-semibold text-muted-foreground">
+                Workspaces
+              </h2>
+              <p className="text-xs sm:text-sm text-muted-foreground/80 leading-relaxed">
                 Collaborative environments where you store and share whiteboard canvases.
               </p>
             </div>

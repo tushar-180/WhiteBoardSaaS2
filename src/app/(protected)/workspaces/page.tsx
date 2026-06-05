@@ -20,10 +20,13 @@ export default async function WorkspacesPage() {
   // Fetch all workspaces owned by the authenticated user
   const workspaces = await fetchWorkspacesByOwner(user.id);
 
+  const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "User";
+
   return (
     <WorkspacesClient
       initialWorkspaces={workspaces}
       userEmail={user.email}
+      userName={displayName}
     />
   );
 }
