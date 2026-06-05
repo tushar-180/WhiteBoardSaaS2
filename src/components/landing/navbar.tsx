@@ -20,6 +20,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
             width={42}
             height={42}
             className="object-contain rounded-xl shadow-sm"
+            style={{ height: "auto" }}
           />
           <span className="font-black tracking-tight text-foreground">Zentrox</span>
         </Link>

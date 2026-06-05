@@ -1,228 +1,121 @@
-# Project Lifecycle: Phases of Creation
+# Project Lifecycle: Practical Build Phases
 
-This document outlines the step-by-step development phases for building the **AI-Powered Collaborative Whiteboard SaaS**. It consolidates the product roadmap from [README.md](file:///home/empiric/Desktop/practice01/projects/whiteboard/README.md) with the technical schema specifications from [DATABASE.md](file:///home/empiric/Desktop/practice01/projects/whiteboard/docs/DATABASE.md) to provide a clear build workflow.
+This document defines the current build phases for Zentrox. It replaces the older deep roadmap with a smaller, realistic plan focused on the app being built now.
 
----
-
-## 🏗️ Project Architecture & Tech Stack
-
-Before diving into the phases, here is the technology layout:
-- **Frontend:** Next.js (App Router), TypeScript, Tailwind CSS, Shadcn UI, Redux Toolkit (State Management), `tldraw` (Canvas SDK)
-- **Backend:** Next.js Route Handlers & Server Actions, Supabase SDK, Supabase (PostgreSQL)
-- **Realtime Infrastructure:** Supabase Realtime & Presence
-- **AI Engine:** Gemini API (Structured Outputs / JSON mode for layout generation)
-- **Scale Infrastructure:** Redis, Docker (Phase 11)
+Reference docs:
+- [README.md](../README.md)
+- [DATABASE.md](DATABASE.md)
 
 ---
 
-## 📈 Recommended Build Sequence
+## Current Tech Stack
+
+- **Frontend:** Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, shadcn/ui, Radix primitives, lucide-react, Sonner
+- **State, Forms, Validation:** Zustand, React Hook Form, Zod, `@hookform/resolvers`
+- **Backend:** Next.js Server Actions, Route Handlers, Supabase SSR SDK
+- **Database:** Supabase PostgreSQL
+- **Canvas:** Planned whiteboard canvas stored in `boards.canvas_data`
+
+Not in the current scope: comments, AI diagram generation, AI chat, or a large realtime architecture.
+
+---
+
+## Build Sequence
 
 ```mermaid
 graph TD
-    P1[Phase 1: Foundation] --> P2[Phase 2: Canvas Core]
-    P2 --> P3[Phase 3: Persistence]
-    P3 --> P4[Phase 4: Collaboration]
-    P4 --> P5[Phase 5: Realtime Sync]
-    P5 --> P6[Phase 6: Live Cursors]
-    P6 --> P7[Phase 7: Comments]
-    P7 --> P8[Phase 8: AI Diagram Gen]
-    P8 --> P9[Phase 9: AI Refiner]
-    P9 --> P10[Phase 10: AI Chat]
-    P10 --> P11[Phase 11: Prod Scale]
+    P1[Phase 1: Auth + Profiles] --> P2[Phase 2: Workspaces]
+    P2 --> P3[Phase 3: Members + Invites]
+    P3 --> P4[Phase 4: Boards]
+    P4 --> P5[Phase 5: Canvas Persistence]
+    P5 --> P6[Phase 6: Polish + Deploy]
 ```
 
 ---
 
-## 🛡️ Database Entity Relationships
-
-All tables are implemented in **Supabase (PostgreSQL)** using `UUID` identifiers.
+## Database Entity Relationships
 
 ```mermaid
 erDiagram
-    auth_users ||--o{ workspaces : "owns"
-    auth_users ||--o{ workspace_members : "belongs to"
-    auth_users ||--o{ workspace_invites : "sends/receives"
-    auth_users ||--o{ boards : "creates"
-    auth_users ||--o{ nodes : "places"
-    auth_users ||--o{ edges : "connects"
-    auth_users ||--o{ comments : "writes"
-    auth_users ||--o{ ai_generations : "triggers"
+    auth_users ||--|| profiles : "syncs to"
+    profiles ||--o{ workspaces : "owns"
+    profiles ||--o{ workspace_members : "joins"
+    profiles ||--o{ workspace_invites : "creates or accepts"
+    profiles ||--o{ boards : "creates"
 
-    workspaces ||--o{ workspace_members : "contains"
-    workspaces ||--o{ workspace_invites : "emits"
-    workspaces ||--o{ boards : "groups"
-
-    boards ||--o{ nodes : "contains"
-    boards ||--o{ edges : "contains"
-    boards ||--o{ ai_generations : "logs"
-    boards ||--o{ comments : "discusses"
-
-    nodes ||--o{ edges : "connected by (source/target)"
-    nodes ||--o{ comments : "annotated by"
+    workspaces ||--o{ workspace_members : "has"
+    workspaces ||--o{ workspace_invites : "has"
+    workspaces ||--o{ boards : "has"
 ```
 
 ---
 
-## 🏁 Phase-by-Phase Breakdown
+## Phase 1: Auth and Profiles
 
-### Phase 1: Foundation (Auth, Workspaces, and Boards)
-**Goal:** Establish user management, multi-tenancy, and high-level routing boundaries.
+**Goal:** Users can register, log in, log out, and have a public profile row.
 
-* **Key Features:**
-  - Secure registration, login, logout, and protected routes (using Supabase Auth).
-  - Workspace management (Multi-tenant containment of work environments e.g., Netflix, Google, Personal).
-  - Board listing and workspace-scoped dashboard CRUD actions.
-* **Database Setup (V1 Minimum Tables):**
-  - **`profiles`**
-    | Column | Type | Constraints | Purpose |
-    | :--- | :--- | :--- | :--- |
-    | `id` | `UUID` | Primary Key, FK `auth.users.id` (Cascade) | User profile identity |
-    | `email` | `TEXT` | NOT NULL | User email address |
-    | `name` | `TEXT` | NULL | Display name |
-    | `avatar_url` | `TEXT` | NULL | Profile image link |
-    | `created_at` | `TIMESTAMPTZ` | DEFAULT `now()` | Timestamp |
-    | `updated_at` | `TIMESTAMPTZ` | DEFAULT `now()` | Timestamp |
-  - **`workspaces`**
-    | Column | Type | Constraints | Purpose |
-    | :--- | :--- | :--- | :--- |
-    | `id` | `UUID` | Primary Key | Unique ID |
-    | `name` | `TEXT` | NOT NULL | User-visible workspace name |
-    | `slug` | `TEXT` | UNIQUE | URL-friendly identifier |
-    | `owner_id` | `UUID` | FK `profiles.id` | Owner reference |
-    | `created_at` | `TIMESTAMPTZ` | DEFAULT `now()` | Timestamp |
-    | `updated_at` | `TIMESTAMPTZ` | DEFAULT `now()` | Timestamp |
-  - **`boards`**
-    | Column | Type | Constraints | Purpose |
-    | :--- | :--- | :--- | :--- |
-    | `id` | `UUID` | Primary Key | Unique ID |
-    | `workspace_id`| `UUID` | FK `workspaces.id` (Cascade) | Parent workspace scope |
-    | `name` | `TEXT` | NOT NULL | Board name |
-    | `description` | `TEXT` | NULL | Board description |
-    | `created_by` | `UUID` | FK `profiles.id` | Creator |
-    | `created_at` | `TIMESTAMPTZ` | DEFAULT `now()` | Timestamp |
-    | `updated_at` | `TIMESTAMPTZ` | DEFAULT `now()` | Timestamp |
+- Supabase email/password auth
+- GitHub OAuth callback flow
+- Protected routes through `src/proxy.ts`
+- `profiles` table sync from `auth.users`
+- Auth form validation with React Hook Form and Zod
 
----
+## Phase 2: Workspaces
 
-### Phase 2: Whiteboard Core (Canvas & Elements)
-**Goal:** Provide an interactive, responsive canvas that allows users to place, resize, and connect drawing components.
+**Goal:** Users can create, list, and delete owned workspaces.
 
-* **Key Features:**
-  - Embedded canvas workspace with full Pan, Zoom, Selection, Resize, Undo, and Redo operations (powered by `tldraw` SDK).
-  - Rich node library (Rectangles, Circles, Diamonds, Text blocks) and connection engine.
-  - State serialized and stored as a JSON document in `boards.canvas_data`.
+- `/workspaces` dashboard
+- Workspace create/delete dialogs
+- Workspace service layer and Server Actions
+- Zustand store for hydrated workspace/user state
+- Creator automatically gets an `owner` row in `workspace_members`
 
----
+## Phase 3: Members and Invites
 
-### Phase 3: Persistence (Auto-Save and Load)
-**Goal:** Enable automatic state saving and restoration of canvas diagrams.
+**Goal:** Workspaces can support collaborators using existing database tables.
 
-* **Key Features:**
-  - Auto-saving logic (debounce canvas change events and submit state to database ~5 seconds after modifications).
-  - Board restoration (retrieve `canvas_data` JSON when a user logs in and loads a board).
+- Member list for each workspace
+- Invite creation using `workspace_invites`
+- Invite acceptance by token
+- Workspace role handling with `WorkspaceRole`
+- Access checks before showing workspace or board data
 
----
+## Phase 4: Boards
 
-### Phase 4: Collaboration Setup (Members and Invites)
-**Goal:** Establish user management tables and authorization layers for workspace sharing.
+**Goal:** Users can create and manage boards inside a workspace.
 
-* **Key Features:**
-  - Workspace membership list (Owner, Admin, Editor, Viewer roles).
-  - Invite system (generating tokens and invite links that can be shared or emailed).
-* **Database Setup (V2 Collaboration Tables):**
-  - **`workspace_members`**
-    | Column | Type | Constraints | Purpose |
-    | :--- | :--- | :--- | :--- |
-    | `id` | `UUID` | Primary Key | Unique ID |
-    | `workspace_id`| `UUID` | FK `workspaces.id` (Cascade) | Workspace membership |
-    | `user_id` | `UUID` | FK `profiles.id` (Cascade) | User membership |
-    | `role` | `ENUM` | DEFAULT 'viewer' | WorkspaceRole enum: 'owner', 'admin', 'editor', 'viewer' |
-    | `joined_at` | `TIMESTAMPTZ` | DEFAULT `now()` | Timestamp |
-  - **`workspace_invites`**
-    | Column | Type | Constraints | Purpose |
-    | :--- | :--- | :--- | :--- |
-    | `id` | `UUID` | Primary Key | Unique ID |
-    | `workspace_id`| `UUID` | FK `workspaces.id` (Cascade) | Workspace invitation |
-    | `email` | `TEXT` | NOT NULL | Recipient email |
-    | `role` | `ENUM` | DEFAULT 'editor' | WorkspaceRole enum: 'editor', 'viewer' |
-    | `token` | `TEXT` | UNIQUE, NOT NULL | Secret invitation token |
-    | `status` | `TEXT` | DEFAULT 'pending' | Status: 'pending', 'accepted', 'expired', 'revoked' |
-    | `created_by` | `UUID` | FK `profiles.id` | Inviter |
-    | `accepted_by` | `UUID` | FK `profiles.id`, NULL | User who accepted the invite |
+- Board list inside `/workspaces/[workspaceId]`
+- Board create/edit/delete actions
+- Board detail route at `/board/[boardId]`
+- Board ownership/access checks through workspace membership
+
+## Phase 5: Canvas Persistence
+
+**Goal:** Users can open a board, draw, save, and reload their canvas.
+
+- Canvas component in `/board/[boardId]`
+- Load board `canvas_data`
+- Save board `canvas_data`
+- Basic save status and error handling
+
+## Phase 6: Polish and Deployment Readiness
+
+**Goal:** Make the core app stable enough to deploy.
+
+- Not-found and empty states
+- Loading states
+- Form/server error consistency
+- Environment variable docs
+- `npm run lint` and `npm run build`
 
 ---
 
-### Phase 5: Realtime Sync (Multiplayer Canvas)
-**Goal:** Sync changes instantly to all users active on the same board, mimicking Google Docs collaboration.
+## Later / Optional
 
-* **Key Features:**
-  - Realtime canvas event broadcasting (Node modifications, deletions, and creations propagate immediately).
-  - Active user presence indicator (Avatars in header displaying online members).
-* **Technology:** Supabase Realtime Channels (`broadcast` and `presence`).
+These features can be revisited after the core product is working:
 
----
-
-### Phase 6: Live Cursors
-**Goal:** Display real-time mouse movement of other users on the whiteboard.
-
-* **Key Features:**
-  - Multiplayer visual cursors matching username, color, and coordinates.
-  - Coordinate broadcasting on client pointer-move triggers.
-* **Technology:** Supabase Realtime Presence state updates under `board:<board_id>` channel using payload format:
-  ```json
-  {
-    "x": 400,
-    "y": 200,
-    "name": "Tushar"
-  }
-  ```
-
----
-
-### Phase 7: Comments (Review System)
-**Goal:** Support review cycles, annotations, and in-context conversation on diagrams.
-
-* **Key Features:**
-  - Pin comment cards directly to canvas coordinates or link them directly to specific shapes/nodes.
-  - Comments and discussion threads are stored within the board's JSON canvas data.
-  - Reply threads and status resolutions (Open/Resolved).
-
----
-
-### Phase 8: AI Diagram Generator (Text-to-Diagram)
-**Goal:** Auto-generate complete structural canvas architectures from natural language prompts.
-
-* **Key Features:**
-  - Prompt input (e.g., "Generate Netflix Payment Architecture").
-  - Structured Gemini API prompt formatting (returning compliant tldraw layout JSON formats).
-  - Save the generated layout directly to the board's JSON canvas data and render on screen.
-
----
-
-### Phase 9: AI Refiner (Diagram Auditing)
-**Goal:** Enhance and optimize existing drawn architectures.
-
-* **Key Features:**
-  - AI reads full canvas nodes/edges snapshot.
-  - Proposes improvements (e.g. suggesting adding Redis caches, message queues, or load balancers).
-  - Automatically inserts connections or fixes naming inconsistencies.
-
----
-
-### Phase 10: AI Chat Assistant (Board Context Q&A)
-**Goal:** Introduce a sidebar agent that answers detailed architectural questions using the canvas as context.
-
-* **Key Features:**
-  - Chat interface that reads and understands active whiteboard nodes and connections.
-  - Answers complex prompts like: "What happens when a user requests a payment?" or "Find single points of failure in this layout".
-
----
-
-### Phase 11: Production Scaling
-**Goal:** Performance and latency optimizations to support concurrent active users at scale.
-
-* **Key Features:**
-  - Implement Redis caching for quick state syncs and high-frequency pointer movements.
-  - Docker deployment packages.
-  - Comprehensive logging, tracking, CI/CD pipeline automation, and system monitoring.
-  - (Optional/Scale dependent): Transition high-load elements to Kafka/RabbitMQ message brokers or microservices.
+- Supabase Realtime presence
+- Multiplayer canvas sync
+- Comments
+- AI features
+- Advanced scaling infrastructure

@@ -1,107 +1,170 @@
-# Zentrox - Developer & Agent Documentation
+# Zentrox Agent Guide
 
-Welcome to the Zentrox repository. This document serves as the guide for developers and AI agents working on the codebase. It details the project architecture, tech stack, folder structure, and the **mandatory logging workflow** for code modifications.
+This file is the first stop for any developer or coding agent working in this repository. Its purpose is to help the agent understand the codebase before changing it, avoid duplicate patterns, and keep the roadmap docs updated.
 
----
-
-## ⚠️ Mandatory Pre-Flight & Update Checks
-- **Read the Docs FIRST**: Before making *any* changes, developers and AI agents **MUST read this document (`AGENT.md`)** to align on structural routing, proxy logic, and tech stack conventions.
-- **Keep AGENT.md Updated**: If your changes alter the codebase's directory structure, proxy rules, database schemas, or authentication handlers, you **MUST update this `AGENT.md` file** accordingly. Keeping this document accurate and reflective of the current codebase state is a first-class requirement.
+No per-change log files are required anymore. Do not create new files in `logs/` for normal work. When work changes the project state, update the docs and task checklists directly.
 
 ---
 
-## 🚀 Architecture & Tech Stack
+## Read First
 
-Zentrox is an infinite multiplayer whiteboard canvas built using a modern Next.js 16 + Supabase stack:
+Before making code changes, read these files in this order:
 
-1. **Framework**: Next.js 16 (App Router) powered by Turbopack.
-2. **Database & Auth**: Supabase SSR (Server-Side Rendering) for authentication, session synchronization, and real-time canvas storage.
-3. **Styling**: Tailwind CSS v4 utilizing HSL/OKLCH color system variables.
-4. **UI Components**: shadcn/ui primitives.
+1. `AGENT.md` - this guide.
+2. `README.md` - short project overview and active scope.
+3. `docs/PHASES.md` - current build phases.
+4. `docs/timestamp.md` - task checklist and progress.
+5. `docs/DATABASE.md` - current Supabase schema.
+6. Relevant source files for the feature being changed.
 
-### Centralized Authentication Flow
-- **Route Guarding (`src/proxy.ts`)**: An edge middleware proxy that intercepts all incoming requests. 
-  - Redirects unauthenticated users trying to access protected paths (`/board` and `/workspaces`) to `/login?next=<original_path>`.
-  - Redirects authenticated users attempting to load `/login` back to their intended target (via `next`) or `/workspaces`.
-- **Unified Auth Form (`src/app/(auth)/login/login-form.tsx`)**: Consolidates both login and registration forms client-side using an animated segmented slider control.
-  - Supports email/password registration with validation checks (e.g., password length validator).
-  - Supports GitHub OAuth login with dynamic redirects.
-- **Code Exchange Callback (`src/app/auth/callback/route.ts`)**: Listens for the temporary authorization `code` returned by Supabase OAuth providers, exchanges it for a persistent session cookie on the server side, and redirects the user back to the application.
-- **Logout Action (`src/actions/auth.ts`)**: A Next.js Server Action (`signOutAction`) to securely clear authentication cookies and redirect to the landing page.
+Do not assume old plans are still active. The current app scope is auth, workspaces, members/invites, boards, and canvas persistence.
 
 ---
 
-## 📁 Folder Structure
+## Current Stack
 
-```
-whiteboard-canvas/
-├── public/                 # Static brand assets (logo, banner)
-├── src/
-│   ├── actions/            # Next.js Server Actions (e.g., signOutAction)
-│   ├── app/
-│   │   ├── (auth)/         # Grouped authentication routing pages
-│   │   │   ├── login/      # Sign-in page router (page.tsx)
-│   │   │   └── register/   # Redirects to /login router (page.tsx)
-│   │   ├── (protected)/    # Route group requiring active session cookies
-│   │   │   ├── board/      # Whiteboard canvas route
-│   │   │   └── workspaces/ # Workspaces dashboard route
-│   │   ├── auth/callback/  # OAuth callback route for session exchange
-│   │   ├── globals.css     # Global Tailwind variables and base styles
-│   │   ├── layout.tsx      # App wrapper root layout
-│   │   └── page.tsx        # Server-rendered home/landing page
-│   ├── components/
-│   │   ├── auth/           # Authentication UI components (login-form.tsx, auth-decorations.tsx, github-icon.tsx)
-│   │   ├── landing/        # Landing page UI components (Navbar, Hero, Features, Footer)
-│   │   ├── ui/             # Core UI components (button, input, etc.)
-│   │   └── workspace/      # Workspace components
-│   ├── types/              # Type schemas and Zod validators
-│   ├── utils/              # Client & Server Supabase instantiations
-│   └── proxy.ts            # Next.js edge middleware file
-├── logs/                   # Mandatory logs folder documenting changes
-└── AGENT.md                # This file (Agent guide)
+- **Framework:** Next.js 16 App Router, React 19, TypeScript
+- **Styling:** Tailwind CSS v4, shadcn/ui, Radix primitives
+- **Icons / Feedback:** lucide-react, Sonner
+- **State:** Zustand
+- **Forms / Validation:** React Hook Form, Zod, `@hookform/resolvers`
+- **Backend:** Next.js Server Actions and Route Handlers
+- **Database / Auth:** Supabase SSR SDK and Supabase PostgreSQL
+
+Redux Toolkit is not part of this codebase anymore.
+
+---
+
+## Current Product Scope
+
+The product flow is:
+
+```txt
+Login / Register
+  -> Workspaces
+  -> Members / Invites
+  -> Boards
+  -> Whiteboard canvas
+  -> Save/load boards.canvas_data
 ```
 
+AI, comments, large realtime collaboration, and advanced scaling are later ideas only. Do not design around them unless the user explicitly asks.
+
 ---
 
-## 📝 Mandatory Agent Logging Workflow
+## Codebase Map
 
-To maintain repository transparency and trace code modifications:
-> [!IMPORTANT]
-> **Every single modification** made to this codebase by an AI agent must be documented in a new markdown log file under the `logs/` directory in the project root.
-
-### Log File Naming Convention
-Name the log files using the date and a brief descriptor:
-`logs/YYYY-MM-DD-descriptor-summary.md` (e.g., `logs/2026-06-04-add-name-field-and-github-oauth.md`).
-
-### Log File Markdown Template
-Every log file created must adhere to the following structure:
-```markdown
-# Modification Log: [Brief Description]
-
-**Date**: YYYY-MM-DD
-**Agent**: Antigravity
-
-## 1. Objective
-A brief summary of what the user requested and the goal of the changes.
-
-## 2. Proposed Changes
-Explain the architectural rationale and files modified:
-- **`[MODIFY]` [filename](file:///absolute/path/to/modifiedfile)**: Detail what changed and why.
-- **`[NEW]` [filename](file:///absolute/path/to/newfile)**: Describe the purpose of the new file.
-
-## 3. Detailed File Diffs
-If helpful, paste brief markdown diff blocks showing the core lines changed.
-
-## 4. Verification & Compilation Status
-Provide details of the commands run to test the code (e.g., `npm run build`) and show the logs showing success.
+```txt
+src/
+├── actions/              # Server Actions
+├── app/                  # Next.js App Router pages and route handlers
+│   ├── (auth)/           # login/register routes
+│   ├── (protected)/      # protected workspace and board routes
+│   └── auth/callback/    # Supabase OAuth callback
+├── components/
+│   ├── auth/             # Auth UI
+│   ├── landing/          # Landing page UI
+│   ├── ui/               # shadcn/ui components
+│   └── workspace/        # Workspace dashboard UI
+├── hooks/                # Custom React hooks (e.g. hooks/auth/)
+├── lib/                  # Shared utilities
+├── services/             # Supabase data access
+├── store/                # Zustand stores
+├── types/                # TypeScript types and Zod schemas
+├── utils/supabase/       # Supabase browser/server clients
+└── proxy.ts              # Auth route guard
 ```
 
 ---
 
-## 🛠️ Developer Verification Guide
+## Existing Patterns
 
-Always run a full build before completing a change to ensure compiler and type safety:
+### Supabase
+
+- Client Components use `src/utils/supabase/client.ts`.
+- Server Components, Server Actions, and Route Handlers use `src/utils/supabase/server.ts`.
+- `src/proxy.ts` uses `createMiddlewareClient` from `src/utils/supabase/server.ts`.
+
+### Server Work
+
+- Put database reads/writes in `src/services/`.
+- Put authenticated mutations and route revalidation in `src/actions/`.
+- Keep actions small: validate auth, validate input, call service, revalidate/redirect if needed.
+
+### Types and Validation
+
+- Put shared TypeScript models and Zod schemas in `src/types/`.
+- Use React Hook Form with `zodResolver` for client forms.
+- Do not duplicate validation rules inside components if a schema already exists.
+
+### Client State
+
+- Use Zustand stores in `src/store/`.
+- Keep server-fetched data authoritative; hydrate Zustand only for interactive client UI.
+- Do not add Redux providers, slices, or RTK Query.
+
+### React Hooks
+
+- Put reusable UI state and logic wrappers in `src/hooks/`.
+- Group related hooks under feature-based subdirectories (e.g., `src/hooks/auth/`).
+
+### UI
+
+- Use existing shadcn/ui components from `src/components/ui/`.
+- Use lucide-react icons where icons are needed.
+- Use Sonner for user-facing toast feedback.
+- Keep UI patterns consistent with existing auth and workspace components.
+
+---
+
+## Avoid Duplicates
+
+Before adding a file, component, action, service, type, or schema:
+
+1. Search the repo with `rg`.
+2. Check the matching folder for an existing pattern.
+3. Extend the existing module when it is the natural owner.
+4. Add a new file only when it introduces a genuinely new area.
+
+Examples:
+
+- Workspace DB logic belongs in `src/services/workspace.ts`.
+- Workspace mutations belong in `src/actions/workspace.ts`.
+- Workspace types and schemas belong in `src/types/workspace.ts`.
+- Workspace UI belongs in `src/components/workspace/`.
+
+---
+
+## Documentation Updates
+
+Do not create log files for normal changes.
+
+Instead, update the relevant docs:
+
+- Update `docs/timestamp.md` when a task is completed, added, removed, or moved.
+- Update `docs/PHASES.md` when the roadmap or phase order changes.
+- Update `docs/DATABASE.md` when tables, columns, relationships, or database behavior changes.
+- Update `docs/Whiteboard.md` when architecture or runtime flow changes.
+- Update `README.md` only for high-level project scope, setup, or structure changes.
+- Update this `AGENT.md` when codebase conventions change.
+
+Keep docs short and practical. They should say what exists, what is next, and where code lives.
+
+---
+
+## Verification
+
+For code changes, run the smallest useful verification first:
+
 ```bash
+npm run lint
 npm run build
 ```
-The output must show successful Turbopack page generation, TypeScript type-checking (`tsc --noEmit`), and middleware/proxy validation.
+
+For documentation-only changes:
+
+```bash
+git diff --check -- README.md AGENT.md docs
+```
+
+If verification cannot be run, say why in the final response.
