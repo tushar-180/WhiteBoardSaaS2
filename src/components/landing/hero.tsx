@@ -24,7 +24,7 @@ export default function Hero({ isLoggedIn }: HeroProps) {
           <span className="text-muted-foreground">Introducing Zentrox 1.0</span>
           <span className="text-muted-foreground/40">|</span>
           <Link href="#features" className="flex items-center gap-0.5 hover:text-primary transition-colors">
-            See what's new <ArrowRight className="h-3 w-3" />
+            See what&apos;s new <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
 
