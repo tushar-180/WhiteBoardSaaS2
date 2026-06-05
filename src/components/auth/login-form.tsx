@@ -28,7 +28,8 @@ import { authSchema, type AuthFormData } from "@/types/auth";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [githubLoading, setGithubLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -44,11 +45,13 @@ export default function LoginPage() {
   const passwordValue = form.watch("password") || "";
   const isPasswordValid = passwordValue.length >= 6;
   const handleGithubAuth = async () => {
+    setGithubLoading(true);
+    form.clearErrors();
     try {
       const searchParams = new URLSearchParams(window.location.search);
-      console.log(window.location.origin,"window.location.origin")
-      console.log(window.location.search,"window.location.search")
-      console.log(searchParams,"searchParams")
+      console.log(window.location.origin, "window.location.origin");
+      console.log(window.location.search, "window.location.search");
+      console.log(searchParams, "searchParams");
       const next = searchParams.get("next") || "/";
       const callbackUrl = new URL("/auth/callback", window.location.origin);
       callbackUrl.searchParams.set("next", next);
@@ -65,16 +68,18 @@ export default function LoginPage() {
         form.setError("root", {
           message: error.message,
         });
+        setGithubLoading(false);
       }
     } catch {
       form.setError("root", {
         message: "Failed to connect with GitHub. Please try again.",
       });
+      setGithubLoading(false);
     }
   };
 
   const handleAuth = async (data: AuthFormData) => {
-    setLoading(true);
+    setEmailLoading(true);
     form.clearErrors();
 
     try {
@@ -85,7 +90,7 @@ export default function LoginPage() {
           form.setError("name", {
             message: "Please enter your full name (minimum 2 characters)",
           });
-          setLoading(false);
+          setEmailLoading(false);
           return;
         }
 
@@ -120,14 +125,14 @@ export default function LoginPage() {
       }
 
       const searchParams = new URLSearchParams(window.location.search);
-      const next = searchParams.get("next") || "/workspaces";
+      const next = searchParams.get("next") || isSignUp ? "/" : "/workspaces";
       router.push(next);
     } catch {
       form.setError("root", {
         message: "Something went wrong. Please try again.",
       });
     } finally {
-      setLoading(false);
+      setEmailLoading(false);
     }
   };
 
@@ -212,9 +217,9 @@ export default function LoginPage() {
             className="w-full h-10 gap-2 border-border/80 hover:bg-muted font-semibold transition-colors active:scale-[0.99]"
             type="button"
             onClick={handleGithubAuth}
-            disabled={loading}
+            disabled={emailLoading || githubLoading}
           >
-            {loading ? (
+            {githubLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <GithubIcon className="h-4 w-4" />
@@ -342,9 +347,9 @@ export default function LoginPage() {
           <Button
             type="submit"
             className="w-full h-11 rounded-xl shadow-md font-semibold active:scale-[0.99] transition-all duration-200 bg-primary text-primary-foreground hover:opacity-95 mt-4 group"
-            disabled={loading}
+            disabled={emailLoading || githubLoading}
           >
-            {loading ? (
+            {emailLoading ? (
               <div className="flex items-center justify-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>
