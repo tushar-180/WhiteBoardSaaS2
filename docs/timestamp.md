@@ -40,7 +40,7 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 - [x] Create `/workspaces` dashboard route.
 - [x] Hydrate workspace/user state with Zustand through `src/store/use-workspace-store.ts`.
 - [x] Add workspace create/delete UI with shadcn dialog components, React Hook Form, Zod, and Sonner toasts.
-- [ ] Finish `/workspaces/[workspaceId]` detail page.
+- [x] Finish `/workspaces/[workspaceId]` detail page.
 
 ## Stage 3: Workspace Members and Invites
 
@@ -56,11 +56,11 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 
 **Goal:** Let users manage boards inside a workspace.
 
-- [ ] Add board service functions for create/read/update/delete.
-- [ ] Add board Server Actions.
-- [ ] Show board list inside `/workspaces/[workspaceId]`.
-- [ ] Add create/edit/delete board UI.
-- [ ] Route users to `/board/[boardId]` when opening a board.
+- [x] Add board service functions for create/read/update/delete.
+- [x] Add board Server Actions.
+- [x] Show board list inside `/workspaces/[workspaceId]`.
+- [x] Add create/edit/delete board UI.
+- [x] Route users to `/board/[boardId]` when opening a board.
 
 ## Stage 5: Whiteboard Canvas and Persistence
 
