@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { fetchWorkspacesByOwner } from "@/services/workspace";
+import { fetchProfileById } from "@/services/profile";
 import { WorkspacesClient } from "@/components/workspace/workspaces-client";
 
 // Ensure the page fetches dynamic data on every request
@@ -17,15 +18,19 @@ export default async function WorkspacesPage() {
     redirect("/login");
   }
 
-  // Fetch all workspaces owned by the authenticated user
-  const workspaces = await fetchWorkspacesByOwner(user.id);
+  // Fetch all workspaces owned by the authenticated user and user profile details from DB in parallel
+  const [workspaces, profile] = await Promise.all([
+    fetchWorkspacesByOwner(user.id),
+    fetchProfileById(user.id),
+  ]);
 
-  const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "User";
+  const displayName = profile?.name || profile?.email?.split("@")[0] || user.email?.split("@")[0] || "User";
+  const displayEmail = profile?.email || user.email || "";
 
   return (
     <WorkspacesClient
       initialWorkspaces={workspaces}
-      userEmail={user.email}
+      userEmail={displayEmail}
       userName={displayName}
     />
   );

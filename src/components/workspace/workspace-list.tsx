@@ -3,15 +3,14 @@
 import { Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { WorkspaceCard } from "./workspace-card";
-import { type Workspace } from "@/types/workspace";
+import { useWorkspaceStore } from "@/store/use-workspace-store";
 
 interface WorkspaceListProps {
-  workspaces: Workspace[];
   onCreateClick: () => void;
-  onDeleteSuccess: (id: string) => void;
 }
 
-export function WorkspaceList({ workspaces, onCreateClick, onDeleteSuccess }: WorkspaceListProps) {
+export function WorkspaceList({ onCreateClick }: WorkspaceListProps) {
+  const workspaces = useWorkspaceStore((state) => state.workspaces);
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       {/* Create New Workspace Action Card */}
@@ -34,7 +33,6 @@ export function WorkspaceList({ workspaces, onCreateClick, onDeleteSuccess }: Wo
         <WorkspaceCard
           key={workspace.id}
           workspace={workspace}
-          onDeleteSuccess={onDeleteSuccess}
         />
       ))}
     </div>

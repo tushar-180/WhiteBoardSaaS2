@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -14,13 +13,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { deleteWorkspaceAction } from "@/actions/workspace";
+import { useWorkspaceStore } from "@/store/use-workspace-store";
 
 interface DeleteWorkspaceDialogProps {
   workspaceId: string;
   workspaceName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onDeleteSuccess: (id: string) => void;
 }
 
 export function DeleteWorkspaceDialog({
@@ -28,22 +27,23 @@ export function DeleteWorkspaceDialog({
   workspaceName,
   open,
   onOpenChange,
-  onDeleteSuccess,
 }: DeleteWorkspaceDialogProps) {
-  const [deleting, setDeleting] = useState(false);
+  const deleteWorkspace = useWorkspaceStore((state) => state.deleteWorkspace);
+  const isLoading = useWorkspaceStore((state) => state.isLoading);
+  const setLoading = useWorkspaceStore((state) => state.setLoading);
 
   const handleConfirmDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setDeleting(true);
+    setLoading(true);
     try {
       await deleteWorkspaceAction(workspaceId);
       toast.success(`Workspace "${workspaceName}" deleted successfully!`);
-      onDeleteSuccess(workspaceId);
+      deleteWorkspace(workspaceId);
     } catch (error: unknown) {
       toast.error((error as Error).message || "Failed to delete workspace. Please try again.");
     } finally {
-      setDeleting(false);
+      setLoading(false);
       onOpenChange(false);
     }
   };
@@ -71,7 +71,7 @@ export function DeleteWorkspaceDialog({
               e.stopPropagation();
               onOpenChange(false);
             }}
-            disabled={deleting}
+            disabled={isLoading}
             className="h-10 rounded-xl"
           >
             Cancel
@@ -80,10 +80,10 @@ export function DeleteWorkspaceDialog({
             type="button"
             variant="destructive"
             onClick={handleConfirmDelete}
-            disabled={deleting}
+            disabled={isLoading}
             className="h-10 rounded-xl px-4 font-semibold"
           >
-            {deleting ? (
+            {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Deleting...

@@ -9,10 +9,9 @@ import { DeleteWorkspaceDialog } from "./delete-workspace-dialog";
 
 interface WorkspaceCardProps {
   workspace: Workspace;
-  onDeleteSuccess: (id: string) => void;
 }
 
-export function WorkspaceCard({ workspace, onDeleteSuccess }: WorkspaceCardProps) {
+export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
   const [open, setOpen] = useState(false);
 
   const formattedDate = new Date(workspace.created_at).toLocaleDateString(undefined, {
@@ -77,7 +76,6 @@ export function WorkspaceCard({ workspace, onDeleteSuccess }: WorkspaceCardProps
         workspaceName={workspace.name}
         open={open}
         onOpenChange={setOpen}
-        onDeleteSuccess={onDeleteSuccess}
       />
     </>
   );

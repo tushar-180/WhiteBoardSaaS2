@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { LogOut, Plus, ArrowLeft } from "lucide-react";
@@ -11,6 +11,8 @@ import { WorkspaceList } from "./workspace-list";
 import { CreateWorkspaceDialog } from "./create-workspace-dialog";
 import { type Workspace } from "@/types/workspace";
 import { signOutAction } from "@/actions/auth";
+import { useWorkspaceStore } from "@/store/use-workspace-store";
+import RootLoading from "@/app/loading";
 
 interface WorkspacesClientProps {
   initialWorkspaces: Workspace[];
@@ -20,11 +22,22 @@ interface WorkspacesClientProps {
 
 export function WorkspacesClient({ initialWorkspaces, userEmail, userName }: WorkspacesClientProps) {
   const [open, setOpen] = useState(false);
-  const [workspaces, setWorkspaces] = useState<Workspace[]>(initialWorkspaces);
+  const [isMounted, setIsMounted] = useState(false);
 
-  const handleDeleteSuccess = (id: string) => {
-    setWorkspaces((prev) => prev.filter((w) => w.id !== id));
-  };
+  // Sync server data with client-side store on mount
+  useEffect(() => {
+    useWorkspaceStore.setState({
+      workspaces: initialWorkspaces,
+      user: userEmail ? { email: userEmail, name: userName || "" } : null,
+    });
+    setIsMounted(true);
+  }, [initialWorkspaces, userEmail, userName]);
+  const workspaces = useWorkspaceStore((state) => state.workspaces);
+  const user = useWorkspaceStore((state) => state.user);
+
+  if (!isMounted) {
+    return <RootLoading />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background relative overflow-hidden">
@@ -50,9 +63,9 @@ export function WorkspacesClient({ initialWorkspaces, userEmail, userName }: Wor
           </Link>
 
           <div className="flex items-center gap-4">
-            {userEmail && (
+            {user?.email && (
               <span className="text-xs text-muted-foreground hidden sm:inline-block font-medium">
-                {userEmail}
+                {user.email}
               </span>
             )}
             <form action={signOutAction}>
@@ -83,7 +96,7 @@ export function WorkspacesClient({ initialWorkspaces, userEmail, userName }: Wor
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl mb-2">
-                Welcome back, <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent font-extrabold">{userName || "User"}</span>!
+                Welcome back, <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent font-extrabold">{user?.name || "User"}</span>!
               </h1>
               <h2 className="text-base font-semibold text-muted-foreground">
                 Workspaces
@@ -108,11 +121,7 @@ export function WorkspacesClient({ initialWorkspaces, userEmail, userName }: Wor
         {workspaces.length === 0 ? (
           <EmptyState onCreateClick={() => setOpen(true)} />
         ) : (
-          <WorkspaceList
-            workspaces={workspaces}
-            onCreateClick={() => setOpen(true)}
-            onDeleteSuccess={handleDeleteSuccess}
-          />
+          <WorkspaceList onCreateClick={() => setOpen(true)} />
         )}
 
         {/* Modal Dialog for creating workspaces */}

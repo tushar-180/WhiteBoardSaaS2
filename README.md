@@ -1,671 +1,126 @@
-# Project: AI-Powered Collaborative Whiteboard SaaS
+# Zentrox Whiteboard
 
-Think of it as:
+Zentrox is a workspace-based whiteboard app. The current build focuses on authentication, workspaces, members/invites, boards, and saving canvas state to Supabase.
 
-```txt
-Miro
-+
-Excalidraw
-+
-Figma Collaboration
-+
-AI Architecture Assistant
-```
-
-But we'll build it gradually.
+The roadmap is intentionally practical. AI features, comments, and deep realtime collaboration are future ideas, not current build requirements.
 
 ---
 
-## 📂 Documentation & Reference Guides
+## Documentation
 
-Detailed technical specifications, database diagrams, development lifecycles, and timelines are stored in the [docs](docs/) directory:
-
-*   **Architecture Blueprint:** [Whiteboard.md](docs/Whiteboard.md) – Core design system, rendering loops, and user flows.
-*   **Database Design:** [DATABASE.md](docs/DATABASE.md) – Detailed PostgreSQL tables, foreign key constraints, and Supabase trigger scripts.
-*   **Development Phases:** [PHASES.md](docs/PHASES.md) – The 11 development build milestones.
-*   **15-Day Work timeline:** [timestamp.md](docs/timestamp.md) – Day-by-day checklist task logs.
+- [Architecture](docs/Whiteboard.md)
+- [Database Design](docs/DATABASE.md)
+- [Build Phases](docs/PHASES.md)
+- [Timeline / Tasks](docs/timestamp.md)
+- [Agent Guide](AGENT.md)
 
 ---
 
-# Final Product Vision
-
-A user can:
+## Current Product Flow
 
 ```txt
-Login
- ↓
-Create Workspace
- ↓
-Create Boards
- ↓
-Draw Diagrams
- ↓
-Connect Shapes
- ↓
-Invite Team Members
- ↓
-Collaborate Live
- ↓
-Ask AI to Generate Diagrams
- ↓
-Ask AI to Improve Designs
-```
-
-Example:
-
-```txt
-Workspace: Netflix
-
-Boards:
-├── Payment Architecture
-├── User Service Design
-├── Database Design
-└── Microservice Diagram
+Login / Register
+  ↓
+Create or open Workspace
+  ↓
+Manage workspace members and invites
+  ↓
+Create or open Board
+  ↓
+Draw on whiteboard
+  ↓
+Save and restore board canvas_data
 ```
 
 ---
 
-# Tech Stack
+## Tech Stack
 
-## Frontend
+### Frontend
 
 ```txt
-Next.js
+Next.js 16 App Router
+React 19
 TypeScript
-Tailwind
-Shadcn UI
-Redux Toolkit
+Tailwind CSS v4
+shadcn/ui + Radix primitives
+lucide-react icons
+Sonner toasts
 ```
 
----
-
-## Backend
+### State, Forms, and Validation
 
 ```txt
+Zustand
+React Hook Form
+Zod
+@hookform/resolvers
+```
+
+Redux Toolkit is not part of the current architecture.
+
+### Backend and Database
+
+```txt
+Next.js Server Actions
 Next.js Route Handlers
-Server Actions
-Supabase SDK
-Supabase (PostgreSQL)
+Supabase SSR SDK (@supabase/ssr)
+Supabase PostgreSQL
 ```
 
 ---
 
-## Canvas
+## Current Database Tables
 
-Recommended:
+- `profiles`
+- `workspaces`
+- `workspace_members`
+- `workspace_invites`
+- `boards`
 
-```txt
-tldraw
-```
-
-Why?
-
-```txt
-Nodes
-Edges
-Zoom
-Pan
-Selection
-Resize
-Undo
-Redo
-```
-
-already solved.
+Board drawing data is stored in `boards.canvas_data` as `jsonb`.
 
 ---
 
-## Future
+## Current Project Structure
 
 ```txt
-Supabase Realtime
-Gemini API
-Redis
-Docker
+src/
+├── actions/              # Server Actions
+├── app/                  # Next.js App Router pages and route handlers
+├── components/
+│   ├── auth/             # Login/register UI
+│   ├── landing/          # Landing page UI
+│   ├── ui/               # shadcn/ui components
+│   └── workspace/        # Workspace dashboard UI
+├── lib/                  # Shared utilities
+├── services/             # Supabase data access
+├── store/                # Zustand stores
+├── types/                # TypeScript types and Zod schemas
+├── utils/supabase/       # Supabase browser/server clients
+└── proxy.ts              # Auth route guard
 ```
 
 ---
 
-# PHASE 1 - Foundation
+## Scripts
 
-Goal:
-
-```txt
-Authentication
-Workspace CRUD
-Board CRUD
+```bash
+npm run dev
+npm run lint
+npm run build
+npm run start
 ```
 
 ---
 
-## Features
-
-### Authentication
+## Current Roadmap
 
 ```txt
-Register
-Login
-Logout
-Protected Routes
+Phase 1 -> Auth and profiles
+Phase 2 -> Workspaces
+Phase 3 -> Workspace members and invites
+Phase 4 -> Boards
+Phase 5 -> Canvas persistence through boards.canvas_data
+Phase 6 -> Polish and deployment readiness
 ```
-
----
-
-### Workspaces
-
-```txt
-Create Workspace
-List Workspaces
-Delete Workspace
-```
-
-Example:
-
-```txt
-Netflix
-Google
-Personal
-```
-
----
-
-### Boards
-
-Inside workspace:
-
-```txt
-Payment Board
-Database Board
-Auth Board
-```
-
-User can:
-
-```txt
-Create
-Open
-Delete
-```
-
----
-
-## Database
-
-### workspaces
-
-```sql
-id
-name
-user_id
-created_at
-```
-
----
-
-### boards
-
-```sql
-id
-workspace_id
-name
-created_at
-```
-
----
-
-# PHASE 2 - Whiteboard Core
-
-Goal:
-
-```txt
-Canvas
-Nodes
-Edges
-```
-
----
-
-## Features
-
-### Create Node
-
-Examples:
-
-```txt
-Rectangle
-Circle
-Diamond
-Text
-```
-
----
-
-### Drag Node
-
-```txt
-Move node
-Resize node
-Delete node
-```
-
----
-
-### Connect Nodes
-
-Example:
-
-```txt
-Client
- ↓
-API
- ↓
-Database
-```
-
----
-
-## Database
-
-No separate `nodes` and `edges` tables are used. Instead, the serialized canvas document elements and connections are stored as a JSON document in:
-- `boards.canvas_data`
-
----
-
-# PHASE 3 - Persistence
-
-Goal:
-
-```txt
-Everything saves automatically
-```
-
----
-
-## Features
-
-### Auto Save
-
-User moves shape.
-
-```txt
-5 seconds later
- ↓
-Save
-```
-
-No save button.
-
----
-
-### Board Loading
-
-Open board.
-
-```txt
-Fetch Board (canvas_data)
-Render Canvas
-```
-
-
-
-# PHASE 4 - Collaboration
-
-Goal:
-
-```txt
-Multiple Users
-```
-
----
-
-## Features
-
-### Workspace Members
-
-```txt
-Owner
-Editor
-Viewer
-```
-
----
-
-### Invite Users
-
-```txt
-Invite Link
-```
-
-Later:
-
-```txt
-Email Invite
-```
-
----
-
-## Database
-
-### workspace_members
-
-```sql
-id
-workspace_id
-user_id
-role
-```
-
----
-
-### workspace_invites
-
-```sql
-id
-workspace_id
-token
-status
-created_by
-accepted_by
-```
-
----
-
-# PHASE 5 - Realtime
-
-Goal:
-
-```txt
-Google Docs style collaboration
-```
-
----
-
-## Features
-
-### Live Shape Updates
-
-```txt
-User A moves shape
- ↓
-User B sees instantly
-```
-
----
-
-### Live Board Updates
-
-```txt
-Create Shape
-Delete Shape
-Resize Shape
-```
-
-all realtime.
-
----
-
-### Presence
-
-```txt
-3 users online
-```
-
-display avatars.
-
----
-
-## Technology
-
-```txt
-Supabase Realtime
-```
-
----
-
-# PHASE 6 - Live Cursors
-
-Goal:
-
-```txt
-Figma style cursors
-```
-
----
-
-## Features
-
-```txt
-Tushar Cursor
-Rahul Cursor
-Amit Cursor
-```
-
-moving live.
-
----
-
-### Presence Channel
-
-```txt
-board:123
-```
-
-Users join.
-
----
-
-### Data
-
-```json
-{
-  "x":400,
-  "y":200,
-  "name":"Tushar"
-}
-```
-
----
-
-# PHASE 7 - Comments
-
-Goal:
-
-```txt
-Review System
-```
-
----
-
-## Features
-
-Click node.
-
-```txt
-Add Comment
-```
-
-Example:
-
-```txt
-Move DB to separate service
-```
-
----
-
-## Database
-
-Comments and review threads are stored directly within the board's JSON canvas data.
-
----
-
-# PHASE 8 - AI Diagram Generator
-
-Goal:
-
-```txt
-Prompt → Diagram
-```
-
----
-
-User:
-
-```txt
-Create Netflix Payment Architecture
-```
-
-AI returns:
-
-```txt
-Client
- ↓
-API Gateway
- ↓
-Payment Service
- ↓
-PostgreSQL
-```
-
-Canvas generated automatically.
-
----
-
-## Database
-
-AI generated canvas layouts are saved directly into the board's JSON canvas data.
-
----
-
-# PHASE 9 - AI Refiner
-
-Goal:
-
-```txt
-Analyze Existing Diagram
-```
-
----
-
-User:
-
-```txt
-Improve this architecture
-```
-
-AI reads:
-
-```txt
-Nodes
-Edges
-```
-
-and suggests:
-
-```txt
-Add Redis
-Add Queue
-Add Load Balancer
-```
-
----
-
-AI can also:
-
-```txt
-Generate Missing Connections
-Fix Naming
-Suggest Improvements
-```
-
----
-
-# PHASE 10 - AI Chat Assistant
-
-Goal:
-
-```txt
-Chat With Board
-```
-
----
-
-User:
-
-```txt
-Explain this architecture
-```
-
-AI analyzes nodes and edges.
-
-Response:
-
-```txt
-This system contains:
-- API Gateway
-- Auth Service
-- Payment Service
-- Database
-```
-
----
-
-# PHASE 11 - Production Scaling
-
-Only when you have real users.
-
-Add:
-
-```txt
-Redis
-Docker
-CI/CD
-Monitoring
-```
-
-Later:
-
-```txt
-Kafka
-RabbitMQ
-Microservices
-```
-
-if truly needed.
-
----
-
-# Database Structure (Final)
-
-```txt
-auth.users
-  └── profiles (Public replica)
-
-workspaces
-workspace_members
-workspace_invites (Tracks status/accept audits)
-
-boards (stores canvas_data as JSON)
-```
-
----
-
-# Recommended Build Order
-
-Do **not** jump to AI or collaboration first.
-
-Build in this exact order:
-
-```txt
-Phase 1  → Auth + Workspace + Boards
-Phase 2  → Canvas Core (tldraw)
-Phase 3  → Save/Load (JSON)
-Phase 4  → Collaboration Tables
-Phase 5  → Realtime Sync
-Phase 6  → Live Cursors
-Phase 7  → Comments (within JSON canvas)
-Phase 8  → AI Diagram Generation
-Phase 9  → AI Refinement
-Phase 10 → AI Chat
-```
-
-If you finish through Phase 3, you'll already have a usable whiteboard product. Everything after that becomes an enhancement rather than a rewrite.
