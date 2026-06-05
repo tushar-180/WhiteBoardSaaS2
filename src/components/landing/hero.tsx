@@ -23,8 +23,8 @@ export default function Hero({ isLoggedIn }: HeroProps) {
           <span className="flex h-2 w-2 rounded-full bg-purple-600" />
           <span className="text-muted-foreground">Introducing Zentrox 1.0</span>
           <span className="text-muted-foreground/40">|</span>
-          <Link href="#features" className="flex items-center gap-0.5 hover:text-primary transition-colors">
-            See what&apos;s new <ArrowRight className="h-3 w-3" />
+          <Link href="#features" className="flex items-center gap-0.5 hover:text-primary transition-colors group">
+            See what&apos;s new <ArrowRight className="h-3 w-3 rotate-90 transition-transform duration-200 group-hover:translate-y-0.5" />
           </Link>
         </div>
 
@@ -120,24 +120,24 @@ export default function Hero({ isLoggedIn }: HeroProps) {
             {/* SVGs representing sketchy, hand-drawn vector art */}
             <svg className="absolute inset-0 h-full w-full pointer-events-none">
               <g className="stroke-foreground/90" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                {/* Handdrawn styled Rectangle 1 */}
-                <path d="M 120 180 L 260 180 Q 262 181 260 183 L 260 250 Q 259 252 258 250 L 120 250 Q 118 249 120 248 L 120 182" className="stroke-primary" />
+                {/* Handdrawn styled Rectangle 1 (React Frontend - Moved to top center) */}
+                <path d="M 240 110 L 380 110 Q 382 111 380 113 L 380 180 Q 379 182 378 180 L 240 180 Q 238 179 240 178 L 240 112" className="stroke-primary" />
                 {/* Handdrawn double-strike effect */}
-                <path d="M 122 179 L 258 181 L 259 248 L 121 249 L 122 181" className="stroke-primary/40" strokeWidth="1.5" />
+                <path d="M 242 109 L 378 111 L 379 178 L 239 179 L 240 111" className="stroke-primary/40" strokeWidth="1.5" />
 
-                {/* Handdrawn Circle 1 */}
-                <path d="M 440 215 C 440 180, 500 180, 500 215 C 500 250, 440 250, 440 215 Z" className="stroke-purple-500" />
-                <path d="M 439 216 C 441 182, 498 178, 501 214 C 499 252, 438 248, 439 216 Z" className="stroke-purple-500/40" strokeWidth="1.5" />
+                {/* Handdrawn Circle 1 (Next.js API - Moved to bottom center) */}
+                <path d="M 275 320 C 275 285, 345 285, 345 320 C 345 355, 275 355, 275 320 Z" className="stroke-purple-500" />
+                <path d="M 274 321 C 276 287, 343 283, 346 319 C 344 357, 273 353, 274 321 Z" className="stroke-purple-500/40" strokeWidth="1.5" />
 
-                {/* Sketchy Arrow connecting them */}
-                <path d="M 270 215 L 420 215" className="stroke-muted-foreground/60" strokeDasharray="3 3" />
-                {/* Arrow Head */}
-                <path d="M 410 208 L 420 215 L 410 222" className="stroke-muted-foreground/60" />
+                {/* Sketchy Arrow pointing down connecting them */}
+                <path d="M 310 195 L 310 270" className="stroke-muted-foreground/60" strokeDasharray="3 3" />
+                {/* Arrow Head pointing down */}
+                <path d="M 303 260 L 310 270 L 317 260" className="stroke-muted-foreground/60" />
               </g>
 
               {/* Text inside shapes */}
-              <text x="145" y="218" className="fill-foreground font-semibold text-xs tracking-wide">React Frontend</text>
-              <text x="452" y="218" className="fill-foreground font-semibold text-xs tracking-wide">Next.js API</text>
+              <text x="265" y="148" className="fill-foreground font-semibold text-xs tracking-wide">React Frontend</text>
+              <text x="277" y="324" className="fill-foreground font-semibold text-xs tracking-wide">Next.js API</text>
             </svg>
 
             {/* Hand-drawn Mock Sticky Note */}
@@ -154,7 +154,7 @@ export default function Hero({ isLoggedIn }: HeroProps) {
 
             {/* Collaborative Cursor 1 */}
             <div className="absolute top-[52%] left-[28%] flex items-center gap-1.5 animate-bounce" style={{ animationDuration: '6s' }}>
-              <MousePointer className="h-5 w-5 text-indigo-500 fill-indigo-500 transform -rotate-90 filter drop-shadow-sm" />
+              <MousePointer className="h-5 w-5 text-indigo-500 fill-indigo-500 transform -rotate-15 filter drop-shadow-sm" />
               <div className="rounded-lg bg-indigo-500 px-2 py-1 text-[10px] font-bold text-white shadow-md border border-indigo-400/20">
                 Sarah (Drawing...)
               </div>
@@ -162,7 +162,7 @@ export default function Hero({ isLoggedIn }: HeroProps) {
 
             {/* Collaborative Cursor 2 */}
             <div className="absolute bottom-[35%] left-[54%] flex items-center gap-1.5">
-              <MousePointer className="h-5 w-5 text-emerald-500 fill-emerald-500 transform -rotate-90 filter drop-shadow-sm" />
+              <MousePointer className="h-5 w-5 text-emerald-500 fill-emerald-500 transform -rotate-15 filter drop-shadow-sm" />
               <div className="rounded-lg bg-emerald-500 px-2 py-1 text-[10px] font-bold text-white shadow-md border border-emerald-400/20">
                 Alex (Typing...)
               </div>

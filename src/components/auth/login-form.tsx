@@ -150,7 +150,8 @@ export default function LoginPage() {
           alt="Zentrox Logo"
           width={96}
           height={96}
-          className="object-contain h-auto"
+          className="object-contain"
+          style={{ height: "auto" }}
           priority
         />
       </Link>

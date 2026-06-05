@@ -14,7 +14,8 @@ export default function Footer() {
             alt="Zentrox Logo"
             width={20}
             height={20}
-            className="object-contain h-auto rounded"
+            className="object-contain rounded"
+            style={{ height: "auto" }}
           />
           <span>Zentrox</span>
         </div>

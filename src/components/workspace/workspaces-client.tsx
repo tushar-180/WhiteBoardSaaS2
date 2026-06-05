@@ -40,7 +40,8 @@ export function WorkspacesClient({ initialWorkspaces, userEmail }: WorkspacesCli
               alt="Zentrox Logo"
               width={32}
               height={32}
-              className="object-contain h-auto"
+              className="object-contain"
+              style={{ height: "auto" }}
             />
             <span className="font-black tracking-tight text-lg text-foreground">
               Zentrox

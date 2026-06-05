@@ -19,7 +19,8 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
             alt="Zentrox Logo"
             width={42}
             height={42}
-            className="object-contain h-auto rounded-xl shadow-sm"
+            className="object-contain rounded-xl shadow-sm"
+            style={{ height: "auto" }}
           />
           <span className="font-black tracking-tight text-foreground">Zentrox</span>
         </Link>
