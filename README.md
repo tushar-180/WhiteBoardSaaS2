@@ -1,126 +1,134 @@
-# Zentrox Whiteboard
+# 🎨 Zentrox Whiteboard
 
-Zentrox is a workspace-based whiteboard app. The current build focuses on authentication, workspaces, members/invites, boards, and saving canvas state to Supabase.
-
-The roadmap is intentionally practical. AI features, comments, and deep realtime collaboration are future ideas, not current build requirements.
+Zentrox is a high-performance, collaborative workspace-based whiteboard application built on Next.js 16 App Router, React 19, and Supabase. It features real-time workspace collaboration, granular workspace membership and invite flows, whiteboard canvas sketching, and automated database persistence.
 
 ---
 
-## Documentation
+## 📂 Repository Documentation
 
-- [Architecture](docs/Whiteboard.md)
-- [Database Design](docs/DATABASE.md)
-- [Build Phases](docs/PHASES.md)
-- [Timeline / Tasks](docs/timestamp.md)
-- [Agent Guide](AGENT.md)
+Detailed system architecture and database documentation can be found in the `docs/` folder:
 
----
-
-## Current Product Flow
-
-```txt
-Login / Register
-  ↓
-Create or open Workspace
-  ↓
-Manage workspace members and invites
-  ↓
-Create or open Board
-  ↓
-Draw on whiteboard
-  ↓
-Save and restore board canvas_data
-```
+*   **[System Architecture](docs/Whiteboard.md):** Client runtime flow, persistence layers, and state handling.
+*   **[Database Design](docs/DATABASE.md):** Complete schema diagrams, relations, triggers, and migrations.
+*   **[Build Phases & Roadmap](docs/PHASES.md):** Overview of core milestones.
+*   **[Timeline Tasks Log](docs/timestamp.md):** Progress tracking of milestones.
+*   **[Developer & Agent Guide](AGENT.md):** Guidelines for codebase patterns, file placement, and naming conventions.
 
 ---
 
-## Tech Stack
+## 🚀 Key Features
 
-### Frontend
-
-```txt
-Next.js 16 App Router
-React 19
-TypeScript
-Tailwind CSS v4
-shadcn/ui + Radix primitives
-lucide-react icons
-Sonner toasts
-```
-
-### State, Forms, and Validation
-
-```txt
-Zustand
-React Hook Form
-Zod
-@hookform/resolvers
-```
-
-Redux Toolkit is not part of the current architecture.
-
-### Backend and Database
-
-```txt
-Next.js Server Actions
-Next.js Route Handlers
-Supabase SSR SDK (@supabase/ssr)
-Supabase PostgreSQL
-```
+*   **🔐 Multi-Tenant Authentication:** Built on Supabase SSR with secure session validation and public profile syncing.
+*   **🏢 Workspace Isolation:** Isolated spaces for boards and team management, preventing data bleeding.
+*   **👥 Real-Time Collaborators (Stage 3):** Manage team roles (Owner, Admin, Editor, Viewer) with secure token-based workspace invitation flows.
+*   **📋 Board CRUD (Stage 4):** Create, edit, and delete multiple boards per workspace.
+*   **✏️ Vector Sketch Canvas (Stage 5):** Embed dynamic infinite drawing boards with shapes, arrows, text, and vector freehands.
+*   **💾 State Persistence (Stage 5):** Automatic JSONB serialization of whiteboard canvas data directly to Supabase PostgreSQL.
 
 ---
 
-## Current Database Tables
+## 🛠️ Technology Stack
 
-- `profiles`
-- `workspaces`
-- `workspace_members`
-- `workspace_invites`
-- `boards`
-
-Board drawing data is stored in `boards.canvas_data` as `jsonb`.
+| Layer | Technologies |
+| :--- | :--- |
+| **Core Framework** | Next.js 16 (App Router, Turbopack), React 19, TypeScript |
+| **Styling & UI** | Tailwind CSS v4, shadcn/ui, Radix UI Primitives, Lucide Icons, Sonner |
+| **State Management** | Zustand (Client State), Next.js Server Actions & Route Handlers (Server State) |
+| **Database & Auth** | Supabase SSR SDK, Supabase Auth, PostgreSQL |
+| **Forms & Validation** | React Hook Form, Zod, `@hookform/resolvers` |
 
 ---
 
-## Current Project Structure
+## 🏗️ Codebase Structure
 
 ```txt
 src/
-├── actions/              # Server Actions
-├── app/                  # Next.js App Router pages and route handlers
-├── components/
-│   ├── auth/             # Login/register UI
-│   ├── landing/          # Landing page UI
-│   ├── ui/               # shadcn/ui components
-│   └── workspace/        # Workspace dashboard UI
-├── lib/                  # Shared utilities
-├── services/             # Supabase data access
-├── store/                # Zustand stores
-├── types/                # TypeScript types and Zod schemas
-├── utils/supabase/       # Supabase browser/server clients
-└── proxy.ts              # Auth route guard
+├── actions/             # Server Actions for authenticated mutations & cache revalidations
+├── api/                 # Next.js API Route Handlers
+├── app/                 # Next.js App Router (Layouts, pages, route segments)
+│   ├── (auth)/          # Authenticated route groups (Login, Register)
+│   ├── (protected)/     # Protected route groups (Workspaces, Boards)
+│   └── auth/callback/   # Supabase OAuth callbacks
+├── components/          # React components
+│   ├── auth/            # Auth forms & layouts
+│   ├── board/           # Board cards, lists, and form dialogs
+│   ├── landing/         # Marketing landing page sections
+│   ├── ui/              # Reusable shadcn/ui components
+│   └── workspace/       # Workspace dashboard layouts & list views
+├── hooks/               # Custom reusable React hooks
+├── lib/                 # Shared utilities, helper libraries (e.g. cn tailwind-merge)
+├── services/            # Direct Supabase PostgreSQL data-access layer
+├── store/               # Zustand global client-side stores (Workspaces, Boards)
+├── types/               # Shared TypeScript models and Zod schemas
+├── utils/supabase/      # Supabase server, client, and middleware clients
+└── proxy.ts             # Auth middleware route protection and redirects
 ```
 
 ---
 
-## Scripts
+## 📊 Database Relationships
 
+Zentrox maps workspaces, members, invitations, and boards to Supabase Auth profiles:
+
+```mermaid
+erDiagram
+    auth_users ||--|| profiles : "syncs to via triggers"
+    profiles ||--o{ workspaces : "owns"
+    profiles ||--o{ workspace_members : "joins"
+    profiles ||--o{ workspace_invites : "creates / accepts"
+    profiles ||--o{ boards : "creates"
+
+    workspaces ||--o{ workspace_members : "hosts"
+    workspaces ||--o{ workspace_invites : "hosts"
+    workspaces ||--o{ boards : "hosts"
+```
+
+---
+
+## 💻 Local Development Setup
+
+Follow these steps to run the application locally:
+
+### 1. Prerequisites
+Ensure you have **Node.js 18+** and **npm** installed.
+
+### 2. Clone the Repository
+```bash
+git clone <repository-url>
+cd whiteboard-canvas
+```
+
+### 3. Install Dependencies
+```bash
+npm install
+```
+
+### 4. Configure Environment Variables
+Create a `.env.local` file in the root directory and populate it with your Supabase credentials:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-supabase-anon-key
+```
+
+### 5. Start the Development Server
 ```bash
 npm run dev
-npm run lint
-npm run build
-npm run start
 ```
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 ---
 
-## Current Roadmap
+## 📦 Build & Deployment
 
-```txt
-Phase 1 -> Auth and profiles
-Phase 2 -> Workspaces
-Phase 3 -> Workspace members and invites
-Phase 4 -> Boards
-Phase 5 -> Canvas persistence through boards.canvas_data
-Phase 6 -> Polish and deployment readiness
+### Build Scripts
+*   `npm run dev`: Starts the Next.js development server with Turbopack.
+*   `npm run build`: Generates an optimized production bundle, checking typescript and linting.
+*   `npm run lint`: Analyzes codebase structure using ESLint and Next.js compiler checks.
+*   `npm run start`: Starts the Next.js build bundle in production mode.
+
+### Production Build Command
+To compile the production build, run:
+```bash
+npm run build
 ```
+The output directory will be created at `.next/`.

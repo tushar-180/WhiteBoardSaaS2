@@ -1,17 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { LogOut, Plus, ArrowLeft } from "lucide-react";
+import { Plus, ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "./empty-state";
 import { WorkspaceList } from "./workspace-list";
 import { CreateWorkspaceDialog } from "./create-workspace-dialog";
 import { type Workspace } from "@/types/workspace";
-import { signOutAction } from "@/actions/auth";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
+import { WorkspaceNav } from "./workspace-nav";
 import RootLoading from "@/app/loading";
 
 interface WorkspacesClientProps {
@@ -30,7 +29,9 @@ export function WorkspacesClient({ initialWorkspaces, userEmail, userName }: Wor
       workspaces: initialWorkspaces,
       user: userEmail ? { email: userEmail, name: userName || "" } : null,
     });
-    setIsMounted(true);
+    setTimeout(() => {
+      setIsMounted(true);
+    }, 0);
   }, [initialWorkspaces, userEmail, userName]);
   const workspaces = useWorkspaceStore((state) => state.workspaces);
   const user = useWorkspaceStore((state) => state.user);
@@ -46,42 +47,7 @@ export function WorkspacesClient({ initialWorkspaces, userEmail, userName }: Wor
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-3xl -z-10" />
 
       {/* Navigation Header */}
-      <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-            <Image
-              src="/logo.png"
-              alt="Zentrox Logo"
-              width={32}
-              height={32}
-              className="object-contain"
-              style={{ height: "auto" }}
-            />
-            <span className="font-black tracking-tight text-lg text-foreground">
-              Zentrox
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-4">
-            {user?.email && (
-              <span className="text-xs text-muted-foreground hidden sm:inline-block font-medium">
-                {user.email}
-              </span>
-            )}
-            <form action={signOutAction}>
-              <Button
-                variant="ghost"
-                size="sm"
-                type="submit"
-                className="rounded-xl text-muted-foreground hover:text-foreground gap-1.5 h-9 cursor-pointer"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </Button>
-            </form>
-          </div>
-        </div>
-      </header>
+      <WorkspaceNav userEmail={user?.email} logoHref="/" />
 
       {/* Dashboard Main Workspace View */}
       <main className="flex-1 container mx-auto px-6 py-10 max-w-6xl">

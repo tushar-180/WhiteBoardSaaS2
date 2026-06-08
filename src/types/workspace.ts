@@ -49,3 +49,19 @@ export const workspaceSchema = z.object({
 });
 
 export type WorkspaceFormData = z.infer<typeof workspaceSchema>;
+
+export const boardSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Board name must be at least 2 characters")
+    .max(50, "Board name must be under 50 characters"),
+  description: z
+    .string()
+    .max(200, "Description must be under 200 characters")
+    .optional()
+    .nullable()
+    .or(z.literal("")), // Accept empty string as well
+});
+
+export type BoardFormData = z.infer<typeof boardSchema>;
+

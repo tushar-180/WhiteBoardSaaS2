@@ -38,7 +38,7 @@ export function useAuthForm() {
     form.clearErrors();
     try {
       const searchParams = new URLSearchParams(window.location.search);
-      const next = searchParams.get("next") || "/";
+      const next = searchParams.get("next") || "/workspaces";
       const callbackUrl = new URL("/auth/callback", window.location.origin);
       callbackUrl.searchParams.set("next", next);
 
