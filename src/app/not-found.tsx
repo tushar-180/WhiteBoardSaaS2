@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/lib/constants";
 
 export default function NotFound() {
   return (
@@ -23,7 +24,7 @@ export default function NotFound() {
 
         <div>
           <Button asChild className="rounded-xl font-semibold shadow-xs transition-all cursor-pointer">
-            <Link href="/workspaces">
+            <Link href={ROUTES.WORKSPACES}>
               Back to Dashboard
             </Link>
           </Button>

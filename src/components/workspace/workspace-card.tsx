@@ -6,6 +6,7 @@ import { Folder, ArrowRight, Trash2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { type Workspace } from "@/types/workspace";
 import { DeleteWorkspaceDialog } from "./delete-workspace-dialog";
+import { ROUTES } from "@/lib/constants";
 
 interface WorkspaceCardProps {
   workspace: Workspace;
@@ -28,7 +29,7 @@ export function WorkspaceCard({ workspace }: WorkspaceCardProps) {
 
   return (
     <>
-      <Link href={`/workspaces/${workspace.id}`} className="block group">
+      <Link href={`${ROUTES.WORKSPACES}/${workspace.id}`} className="block group">
         <Card className="h-full border border-border/60 bg-card/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-5 gap-0 ring-0">
           {/* Decorative corner shape */}
           <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full translate-x-4 -translate-y-4 group-hover:scale-125 transition-transform duration-300" />

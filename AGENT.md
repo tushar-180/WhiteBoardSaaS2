@@ -15,7 +15,8 @@ Before making code changes, read these files in this order:
 3. `docs/PHASES.md` - current build phases.
 4. `docs/timestamp.md` - task checklist and progress.
 5. `docs/DATABASE.md` - current Supabase schema.
-6. Relevant source files for the feature being changed.
+6. `docs/DEPLOYMENT.md` - Vercel deployment and Supabase configuration.
+7. Relevant source files for the feature being changed.
 
 Do not assume old plans are still active. The current app scope is auth, workspaces, members/invites, boards, and canvas persistence.
 
@@ -63,11 +64,12 @@ src/
 │   └── auth/callback/    # Supabase OAuth callback
 ├── components/
 │   ├── auth/             # Auth UI
+│   ├── board/            # Board cards, lists, and form dialogs
 │   ├── landing/          # Landing page UI
 │   ├── ui/               # shadcn/ui components
 │   └── workspace/        # Workspace dashboard UI
 ├── hooks/                # Custom React hooks (e.g. hooks/auth/)
-├── lib/                  # Shared utilities
+├── lib/                  # Shared utilities (e.g. constants.ts)
 ├── services/             # Supabase data access
 ├── store/                # Zustand stores
 ├── types/                # TypeScript types and Zod schemas
@@ -79,37 +81,44 @@ src/
 
 ## Existing Patterns
 
-### Supabase
-
+### Supabase & Auth
 - Client Components use `src/utils/supabase/client.ts`.
 - Server Components, Server Actions, and Route Handlers use `src/utils/supabase/server.ts`.
+- **Reusable Auth Helpers:** Do not call `createClient()` and `supabase.auth.getUser()` manually to check authorization. Use the exported helper functions from `src/utils/supabase/server.ts`:
+  - `getCurrentUser()`: Fetches the Supabase client and authenticated user (no throws or redirects).
+  - `requireAuth(redirectTo)`: Used in Server Components (pages); redirects if not logged in.
+  - `requireActionAuth(errorMessage)`: Used in Server Actions; throws an error if not logged in.
 - `src/proxy.ts` uses `createMiddlewareClient` from `src/utils/supabase/server.ts`.
 
-### Server Work
+### Constants & Routes
+- Do **NOT** use hardcoded route strings (e.g., `"/login"`, `"/workspaces"`) or logo paths (`"/logo.png"`).
+- Always use the `ROUTES`, `ASSETS`, and `DEFAULT_REDIRECTS` objects exported from `src/lib/constants.ts` for consistency.
 
+### Common Layouts
+- Workspace routes `/workspaces` and `/workspaces/[workspaceId]` are wrapped by the shared `src/app/(protected)/workspaces/layout.tsx`.
+- Workspace Client Components (e.g. `WorkspacesClient`, `WorkspaceDetailsClient`) must not render their own `WorkspaceNav`, background blur gradients, or page wrappers. These are inherited from the layout.
+
+### Server Work
 - Put database reads/writes in `src/services/`.
 - Put authenticated mutations and route revalidation in `src/actions/`.
 - Keep actions small: validate auth, validate input, call service, revalidate/redirect if needed.
 
 ### Types and Validation
-
 - Put shared TypeScript models and Zod schemas in `src/types/`.
 - Use React Hook Form with `zodResolver` for client forms.
 - Do not duplicate validation rules inside components if a schema already exists.
 
-### Client State
-
-- Use Zustand stores in `src/store/`.
+### Client State & Hydration
+- Use Zustand stores in `src/store/` (`useWorkspaceStore`, `useBoardStore`, `useWhiteboardStore`).
 - Keep server-fetched data authoritative; hydrate Zustand only for interactive client UI.
+- When loading a parent page, hydrate the Zustand store via `useWorkspaceStore.setState(...)` or `useBoardStore.setState(...)` inside an effect or component mount phase. Do not recreate independent react state for fetched lists or user auth details.
 - Do not add Redux providers, slices, or RTK Query.
 
 ### React Hooks
-
 - Put reusable UI state and logic wrappers in `src/hooks/`.
 - Group related hooks under feature-based subdirectories (e.g., `src/hooks/auth/`).
 
 ### UI
-
 - Use existing shadcn/ui components from `src/components/ui/`.
 - Use lucide-react icons where icons are needed.
 - Use Sonner for user-facing toast feedback.
@@ -132,6 +141,9 @@ Examples:
 - Workspace mutations belong in `src/actions/workspace.ts`.
 - Workspace types and schemas belong in `src/types/workspace.ts`.
 - Workspace UI belongs in `src/components/workspace/`.
+- Board DB logic belongs in `src/services/board.ts`.
+- Board mutations belong in `src/actions/board.ts`.
+- Board UI belongs in `src/components/board/`.
 
 ---
 
@@ -144,6 +156,7 @@ Instead, update the relevant docs:
 - Update `docs/timestamp.md` when a task is completed, added, removed, or moved.
 - Update `docs/PHASES.md` when the roadmap or phase order changes.
 - Update `docs/DATABASE.md` when tables, columns, relationships, or database behavior changes.
+- Update `docs/DEPLOYMENT.md` when deployment flows, environment variables, or config changes.
 - Update `docs/Whiteboard.md` when architecture or runtime flow changes.
 - Update `README.md` only for high-level project scope, setup, or structure changes.
 - Update this `AGENT.md` when codebase conventions change.

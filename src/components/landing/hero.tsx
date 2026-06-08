@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Play, Sparkles, MousePointer, PenTool, Type, Square, Circle, Eraser, Download, HelpCircle, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/lib/constants";
 
 interface HeroProps {
   isLoggedIn: boolean;
@@ -49,7 +50,7 @@ export default function Hero({ isLoggedIn }: HeroProps) {
         {/* Actions */}
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button asChild size="lg" className="h-12 px-8 text-sm font-semibold w-full sm:w-auto shadow-md rounded-xl active:scale-98 transition-transform">
-            <Link href="/workspaces">
+            <Link href={ROUTES.WORKSPACES}>
               {isLoggedIn ? "Open Workspaces" : "Start Drawing Now"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>

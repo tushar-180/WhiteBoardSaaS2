@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { requireAuth } from "@/utils/supabase/server";
 import { fetchWorkspaceById, hasWorkspaceAccess } from "@/services/workspace";
+import { ROUTES } from "@/lib/constants";
 import { fetchProfileById } from "@/services/profile";
 import { fetchBoardsByWorkspace } from "@/services/board";
 import { WorkspaceDetailsClient } from "@/components/workspace/workspace-details-client";
@@ -15,15 +16,7 @@ interface PageProps {
 
 export default async function WorkspaceDetailPage({ params }: PageProps) {
   const { workspaceId } = await params;
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { user } = await requireAuth();
 
   // 1. Fetch workspace details and check accessibility
   const workspace = await fetchWorkspaceById(workspaceId);
@@ -34,7 +27,7 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
 
   const hasAccess = await hasWorkspaceAccess(workspaceId, user.id);
   if (!hasAccess) {
-    redirect("/workspaces");
+    redirect(ROUTES.WORKSPACES);
   }
 
   // 2. Fetch boards and profile details in parallel

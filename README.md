@@ -13,6 +13,7 @@ Detailed system architecture and database documentation can be found in the `doc
 *   **[Build Phases & Roadmap](docs/PHASES.md):** Overview of core milestones.
 *   **[Timeline Tasks Log](docs/timestamp.md):** Progress tracking of milestones.
 *   **[Developer & Agent Guide](AGENT.md):** Guidelines for codebase patterns, file placement, and naming conventions.
+*   **[Vercel Deployment Guide](docs/DEPLOYMENT.md):** Detailed guide to deploying the app to Vercel and configuring Supabase URL/Redirects.
 
 ---
 
@@ -119,6 +120,8 @@ Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 ---
 
 ## 📦 Build & Deployment
+
+For a full walkthrough on production deployment, see the **[Vercel Deployment Guide](docs/DEPLOYMENT.md)**.
 
 ### Build Scripts
 *   `npm run dev`: Starts the Next.js development server with Turbopack.

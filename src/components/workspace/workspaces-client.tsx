@@ -10,7 +10,6 @@ import { WorkspaceList } from "./workspace-list";
 import { CreateWorkspaceDialog } from "./create-workspace-dialog";
 import { type Workspace } from "@/types/workspace";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
-import { WorkspaceNav } from "./workspace-nav";
 import RootLoading from "@/app/loading";
 
 interface WorkspacesClientProps {
@@ -41,14 +40,7 @@ export function WorkspacesClient({ initialWorkspaces, userEmail, userName }: Wor
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background relative overflow-hidden">
-      {/* Decorative gradient backgrounds */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -z-10" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-3xl -z-10" />
-
-      {/* Navigation Header */}
-      <WorkspaceNav userEmail={user?.email} logoHref="/" />
-
+    <>
       {/* Dashboard Main Workspace View */}
       <main className="flex-1 container mx-auto px-6 py-10 max-w-6xl">
         <div className="flex flex-col gap-4 mb-8">
@@ -93,6 +85,6 @@ export function WorkspacesClient({ initialWorkspaces, userEmail, userName }: Wor
         {/* Modal Dialog for creating workspaces */}
         <CreateWorkspaceDialog open={open} onOpenChange={setOpen} />
       </main>
-    </div>
+    </>
   );
 }

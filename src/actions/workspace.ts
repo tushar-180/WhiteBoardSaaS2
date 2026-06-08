@@ -1,23 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/utils/supabase/server";
+import { requireActionAuth } from "@/utils/supabase/server";
 import { fetchWorkspacesByOwner, insertWorkspace, deleteWorkspace } from "@/services/workspace";
 import { type Workspace } from "@/types/workspace";
+import { ROUTES } from "@/lib/constants";
 
 /**
  * Retrieves all workspaces owned by the currently authenticated user.
  */
 export async function getWorkspacesAction(): Promise<Workspace[]> {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("You must be logged in to fetch workspaces.");
-    }
+    const { user } = await requireActionAuth("You must be logged in to fetch workspaces.");
 
     return await fetchWorkspacesByOwner(user.id);
   } catch (error: unknown) {
@@ -31,14 +25,7 @@ export async function getWorkspacesAction(): Promise<Workspace[]> {
  */
 export async function createWorkspaceAction(name: string): Promise<Workspace> {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("You must be logged in to create a workspace.");
-    }
+    const { user } = await requireActionAuth("You must be logged in to create a workspace.");
 
     const trimmedName = name.trim();
     if (!trimmedName || trimmedName.length < 2) {
@@ -58,7 +45,7 @@ export async function createWorkspaceAction(name: string): Promise<Workspace> {
     const newWorkspace = await insertWorkspace(trimmedName, slug, user.id);
 
     // Revalidate the caching of the workspaces list page
-    revalidatePath("/workspaces");
+    revalidatePath(ROUTES.WORKSPACES);
 
     return newWorkspace;
   } catch (error: unknown) {
@@ -72,14 +59,7 @@ export async function createWorkspaceAction(name: string): Promise<Workspace> {
  */
 export async function deleteWorkspaceAction(workspaceId: string): Promise<void> {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("You must be logged in to delete a workspace.");
-    }
+    const { user } = await requireActionAuth("You must be logged in to delete a workspace.");
 
     await deleteWorkspace(workspaceId, user.id);
 

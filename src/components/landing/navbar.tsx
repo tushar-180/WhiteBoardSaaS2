@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Logout from "./logout";
+import { ASSETS, ROUTES } from "@/lib/constants";
 
 interface NavbarProps {
   isLoggedIn: boolean;
@@ -18,7 +19,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
           className="flex items-center gap-3 font-bold text-2xl tracking-tight hover:opacity-90 transition-opacity"
         >
           <Image
-            src="/logo.png"
+            src={ASSETS.LOGO}
             alt="Zentrox Logo"
             width={42}
             height={42}
@@ -59,7 +60,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
             <>
               <Logout />
               <Button asChild size="lg">
-                <Link href="/workspaces">
+                <Link href={ROUTES.WORKSPACES}>
                   Go to App
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -73,10 +74,10 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
                 size="lg"
                 className="hidden sm:inline-flex"
               >
-                <Link href="/login">Sign In</Link>
+                <Link href={ROUTES.LOGIN}>Sign In</Link>
               </Button>
               <Button asChild size="lg">
-                <Link href="/workspaces">
+                <Link href={ROUTES.WORKSPACES}>
                   Get Started
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

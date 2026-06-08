@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createMiddlewareClient } from "@/utils/supabase/server";
+import { ROUTES, DEFAULT_REDIRECTS } from "@/lib/constants";
 
 export async function proxy(request: NextRequest) {
   const { supabase, response: supabaseResponse } = createMiddlewareClient(request);
@@ -15,21 +16,21 @@ export async function proxy(request: NextRequest) {
   
   // Check if the user is trying to access protected routes
   const isProtectedRoute =
-    url.pathname.startsWith("/board") ||
-    url.pathname.startsWith("/workspaces");
+    url.pathname.startsWith(ROUTES.BOARD) ||
+    url.pathname.startsWith(ROUTES.WORKSPACES);
 
   if (!user && isProtectedRoute) {
-    const redirectUrl = new URL("/login", request.url);
+    const redirectUrl = new URL(DEFAULT_REDIRECTS.AUTH_FALLBACK, request.url);
     redirectUrl.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search);
     return NextResponse.redirect(redirectUrl);
   }
 
   // If the user is logged in, redirect them away from /login
-  if (user && url.pathname === "/login") {
+  if (user && url.pathname === ROUTES.LOGIN) {
 
-    const nextPath = url.searchParams.get("next") || "/";
+    const nextPath = url.searchParams.get("next") || ROUTES.HOME;
     // Avoid redirecting back to /login in case of bad parameters to prevent loops
-    const targetPath = nextPath.startsWith("/login") ? "/" : nextPath;
+    const targetPath = nextPath.startsWith(ROUTES.LOGIN) ? ROUTES.HOME : nextPath;
     const redirectUrl = new URL(targetPath, request.url);
     return NextResponse.redirect(redirectUrl);
   }

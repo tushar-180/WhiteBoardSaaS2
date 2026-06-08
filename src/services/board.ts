@@ -4,7 +4,9 @@ import { type Board } from "@/types/workspace";
 /**
  * Fetches all boards belonging to a workspace.
  */
-export async function fetchBoardsByWorkspace(workspaceId: string): Promise<Board[]> {
+export async function fetchBoardsByWorkspace(
+  workspaceId: string,
+): Promise<Board[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("boards")
@@ -46,7 +48,7 @@ export async function insertBoard(
   workspaceId: string,
   name: string,
   description: string | null,
-  userId: string
+  userId: string,
 ): Promise<Board> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -75,7 +77,7 @@ export async function insertBoard(
 export async function updateBoard(
   boardId: string,
   name: string,
-  description: string | null
+  description: string | null,
 ): Promise<Board> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -102,13 +104,37 @@ export async function updateBoard(
  */
 export async function deleteBoard(boardId: string): Promise<void> {
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("boards")
-    .delete()
-    .eq("id", boardId);
+  const { error } = await supabase.from("boards").delete().eq("id", boardId);
 
   if (error) {
     console.error("Database error in deleteBoard:", error);
     throw new Error(error.message);
   }
 }
+
+/**
+ * Updates the canvas_data JSONB field of a board.
+ */
+export async function updateBoardCanvas(
+  boardId: string,
+  canvasData: unknown,
+): Promise<Board> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("boards")
+    .update({
+      canvas_data: canvasData,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", boardId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Database error in updateBoardCanvas:", error);
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+

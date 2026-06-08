@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
+import { ROUTES } from "@/lib/constants";
 
 const Page = () => {
-  redirect("/login");
+  redirect(ROUTES.LOGIN);
 };
 
 export default Page;
