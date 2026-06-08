@@ -76,6 +76,7 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 
 **Goal:** Make the core app stable and pleasant to use.
 
+- [x] Add Next.js loading.tsx suspense states for both workspace list and detail routes.
 - [ ] Review empty states, not-found states, and protected-route redirects.
 - [ ] Tighten form validation and server-side error messages.
 - [ ] Run lint/build verification.

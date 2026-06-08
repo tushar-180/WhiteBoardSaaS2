@@ -11,11 +11,14 @@ interface WorkspaceNavProps {
   logoHref?: string;
 }
 
-export function WorkspaceNav({ userEmail, logoHref = "/workspaces" }: WorkspaceNavProps) {
+export function WorkspaceNav({ userEmail, logoHref = "/" }: WorkspaceNavProps) {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href={logoHref} className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+        <Link
+          href={logoHref}
+          className="flex items-center gap-2 hover:opacity-90 transition-opacity"
+        >
           <Image
             src="/logo.png"
             alt="Zentrox Logo"

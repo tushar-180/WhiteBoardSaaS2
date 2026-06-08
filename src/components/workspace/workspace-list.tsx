@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { WorkspaceCard } from "./workspace-card";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
 
+
 interface WorkspaceListProps {
   onCreateClick: () => void;
 }
@@ -30,10 +31,10 @@ export function WorkspaceList({ onCreateClick }: WorkspaceListProps) {
 
       {/* Render Workspace Cards */}
       {workspaces.map((workspace) => (
-        <WorkspaceCard
-          key={workspace.id}
-          workspace={workspace}
-        />
+          <WorkspaceCard
+            key={workspace.id}
+            workspace={workspace}
+          />
       ))}
     </div>
   );

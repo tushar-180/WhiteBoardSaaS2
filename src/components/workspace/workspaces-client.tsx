@@ -47,7 +47,7 @@ export function WorkspacesClient({ initialWorkspaces, userEmail, userName }: Wor
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-3xl -z-10" />
 
       {/* Navigation Header */}
-      <WorkspaceNav userEmail={user?.email} logoHref="/workspaces" />
+      <WorkspaceNav userEmail={user?.email} logoHref="/" />
 
       {/* Dashboard Main Workspace View */}
       <main className="flex-1 container mx-auto px-6 py-10 max-w-6xl">
