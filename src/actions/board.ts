@@ -7,6 +7,7 @@ import {
   insertBoard,
   updateBoard,
   deleteBoard,
+  updateBoardCanvas,
 } from "@/services/board";
 import { hasWorkspaceAccess } from "@/services/workspace";
 import { type Board } from "@/types/workspace";
@@ -43,7 +44,7 @@ export async function getBoardsAction(workspaceId: string): Promise<Board[]> {
 export async function createBoardAction(
   workspaceId: string,
   name: string,
-  description: string | null
+  description: string | null,
 ): Promise<Board> {
   try {
     const supabase = await createClient();
@@ -65,7 +66,12 @@ export async function createBoardAction(
       throw new Error("Board name must be at least 2 characters long.");
     }
 
-    const board = await insertBoard(workspaceId, trimmedName, description, user.id);
+    const board = await insertBoard(
+      workspaceId,
+      trimmedName,
+      description,
+      user.id,
+    );
 
     // Revalidate the workspace details route
     revalidatePath(`/workspaces/${workspaceId}`);
@@ -84,7 +90,7 @@ export async function updateBoardAction(
   workspaceId: string,
   boardId: string,
   name: string,
-  description: string | null
+  description: string | null,
 ): Promise<Board> {
   try {
     const supabase = await createClient();
@@ -121,7 +127,10 @@ export async function updateBoardAction(
 /**
  * Deletes a board from a workspace.
  */
-export async function deleteBoardAction(workspaceId: string, boardId: string): Promise<void> {
+export async function deleteBoardAction(
+  workspaceId: string,
+  boardId: string,
+): Promise<void> {
   try {
     const supabase = await createClient();
     const {
@@ -146,3 +155,37 @@ export async function deleteBoardAction(workspaceId: string, boardId: string): P
     throw new Error((error as Error).message || "Failed to delete board.");
   }
 }
+
+/**
+ * Updates a board's canvas data.
+ */
+export async function updateBoardCanvasAction(
+  workspaceId: string,
+  boardId: string,
+  canvasData: unknown,
+): Promise<Board> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error("You must be logged in to update canvas data.");
+    }
+
+    const hasAccess = await hasWorkspaceAccess(workspaceId, user.id);
+    if (!hasAccess) {
+      throw new Error("You do not have access to modify this workspace.");
+    }
+
+    const board = await updateBoardCanvas(boardId, canvasData);
+    return board;
+  } catch (error: unknown) {
+    console.error("Action error in updateBoardCanvasAction:", error);
+    throw new Error(
+      (error as Error).message || "Failed to update board canvas.",
+    );
+  }
+}
+

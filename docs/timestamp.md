@@ -66,11 +66,11 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 
 **Goal:** Store and restore board drawing state using `boards.canvas_data`.
 
-- [/] Install and configure the canvas library.
-- [ ] Embed the canvas in `/board/[boardId]`.
-- [ ] Load `boards.canvas_data` when a board opens.
-- [ ] Save canvas changes back to `boards.canvas_data`.
-- [ ] Add simple loading, saving, and error states.
+- [x] Install and configure the canvas library.
+- [x] Embed the canvas in `/board/[boardId]`.
+- [x] Load `boards.canvas_data` when a board opens.
+- [x] Save canvas changes back to `boards.canvas_data`.
+- [x] Add simple loading, saving, and error states.
 
 ## Stage 6: Polish and Release Readiness
 

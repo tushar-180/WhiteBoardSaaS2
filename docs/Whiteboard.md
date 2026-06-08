@@ -100,7 +100,25 @@ src/actions/board.ts
   -> Supabase tables
 ```
 
-The board Zustand store is `src/store/use-board-store.ts`.
+The board details and workspace list Zustand stores are `src/store/use-board-store.ts` and `src/store/use-workspace-store.ts`.
+
+### Whiteboard Canvas
+
+```txt
+/board/[boardId] page
+  -> fetchBoardById(boardId)
+  -> hasWorkspaceAccess(board.workspace_id, user.id)
+  -> WhiteboardEditor (Client component)
+  -> WhiteboardCanvas (Dynamically imported with SSR disabled)
+  -> useWhiteboardStore (Zustand state for saveStatus and lastSavedAt)
+```
+
+The whiteboard canvas persistence runtime flow:
+1. **Load**: `WhiteboardCanvas` loads the `canvas_data` JSONB snapshot from Supabase on mount.
+2. **Observe**: Subscribes to local drawing updates via `editor.store.listen` with `{ source: 'user', scope: 'document' }`.
+3. **Auto-save**: Updates trigger a debounced (2-second interval) callback that saves the document snapshot back to the database using the `updateBoardCanvasAction` server action.
+4. **Indicators**: The header displays real-time status badges (`Saved`, `Saving...`, `Unsaved changes`, `Save failed`) and allows a manual "Save Now" fallback if auto-save fails.
+5. **Route Guard**: The beforeunload listener warns users trying to leave the page with unsaved modifications.
 
 ---
 
