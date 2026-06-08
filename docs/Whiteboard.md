@@ -81,6 +81,27 @@ src/actions/workspace.ts
 
 The current Zustand store is `src/store/use-workspace-store.ts`.
 
+### Boards
+
+```txt
+/workspaces/[workspaceId] page
+  -> fetchWorkspaceById(workspaceId)
+  -> hasWorkspaceAccess(workspaceId, user.id)
+  -> fetchBoardsByWorkspace(workspaceId)
+  -> WorkspaceDetailsClient
+  -> useBoardStore
+```
+
+Board writes go through:
+
+```txt
+src/actions/board.ts
+  -> src/services/board.ts
+  -> Supabase tables
+```
+
+The board Zustand store is `src/store/use-board-store.ts`.
+
 ---
 
 ## 4. Database Schema

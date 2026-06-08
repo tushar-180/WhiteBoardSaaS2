@@ -63,6 +63,7 @@ src/
 │   └── auth/callback/    # Supabase OAuth callback
 ├── components/
 │   ├── auth/             # Auth UI
+│   ├── board/            # Board cards, lists, and form dialogs
 │   ├── landing/          # Landing page UI
 │   ├── ui/               # shadcn/ui components
 │   └── workspace/        # Workspace dashboard UI
@@ -132,6 +133,9 @@ Examples:
 - Workspace mutations belong in `src/actions/workspace.ts`.
 - Workspace types and schemas belong in `src/types/workspace.ts`.
 - Workspace UI belongs in `src/components/workspace/`.
+- Board DB logic belongs in `src/services/board.ts`.
+- Board mutations belong in `src/actions/board.ts`.
+- Board UI belongs in `src/components/board/`.
 
 ---
 

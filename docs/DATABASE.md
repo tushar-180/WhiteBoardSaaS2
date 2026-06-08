@@ -17,8 +17,10 @@ The app uses `@supabase/ssr` clients from `src/utils/supabase/`:
 The current service layer:
 
 - `src/services/profile.ts` reads public profile rows by user id.
-- `src/services/workspace.ts` reads, creates, and deletes owned workspaces.
-- `src/actions/workspace.ts` performs auth checks, validation, and cache revalidation before calling the service layer.
+- `src/services/workspace.ts` reads, creates, and deletes workspaces.
+- `src/actions/workspace.ts` performs auth checks, validation, and cache revalidation before calling the workspace service layer.
+- `src/services/board.ts` reads, creates, updates, and deletes boards.
+- `src/actions/board.ts` performs auth checks, workspace access validation, data schema verification, and cache revalidation before calling the board service layer.
 
 ---
 
@@ -132,5 +134,5 @@ Boards live inside a workspace. The drawing/canvas state is stored in `canvas_da
 
 - Workspace creation inserts a row in `workspaces`.
 - Workspace creation also inserts an owner row in `workspace_members`.
-- Boards are typed in `src/types/workspace.ts`; board CRUD and canvas persistence are still planned.
+- Boards are typed and fully managed (CRUD operations completed) via server actions and supabase services. Canvas persistence remains planned/in-progress for the next milestone.
 - `canvas_data` is the single JSONB storage field for board drawing state.
