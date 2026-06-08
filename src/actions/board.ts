@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/utils/supabase/server";
+import { requireActionAuth } from "@/utils/supabase/server";
 import {
   fetchBoardsByWorkspace,
   insertBoard,
@@ -11,20 +11,14 @@ import {
 } from "@/services/board";
 import { hasWorkspaceAccess } from "@/services/workspace";
 import { type Board } from "@/types/workspace";
+import { ROUTES } from "@/lib/constants";
 
 /**
  * Retrieves all boards belonging to a workspace.
  */
 export async function getBoardsAction(workspaceId: string): Promise<Board[]> {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("You must be logged in to load boards.");
-    }
+    const { user } = await requireActionAuth("You must be logged in to load boards.");
 
     const hasAccess = await hasWorkspaceAccess(workspaceId, user.id);
     if (!hasAccess) {
@@ -47,14 +41,7 @@ export async function createBoardAction(
   description: string | null,
 ): Promise<Board> {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("You must be logged in to create a board.");
-    }
+    const { user } = await requireActionAuth("You must be logged in to create a board.");
 
     const hasAccess = await hasWorkspaceAccess(workspaceId, user.id);
     if (!hasAccess) {
@@ -74,7 +61,7 @@ export async function createBoardAction(
     );
 
     // Revalidate the workspace details route
-    revalidatePath(`/workspaces/${workspaceId}`);
+    revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
 
     return board;
   } catch (error: unknown) {
@@ -93,14 +80,7 @@ export async function updateBoardAction(
   description: string | null,
 ): Promise<Board> {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("You must be logged in to update a board.");
-    }
+    const { user } = await requireActionAuth("You must be logged in to update a board.");
 
     const hasAccess = await hasWorkspaceAccess(workspaceId, user.id);
     if (!hasAccess) {
@@ -115,7 +95,7 @@ export async function updateBoardAction(
     const board = await updateBoard(boardId, trimmedName, description);
 
     // Revalidate the workspace details route
-    revalidatePath(`/workspaces/${workspaceId}`);
+    revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
 
     return board;
   } catch (error: unknown) {
@@ -132,14 +112,7 @@ export async function deleteBoardAction(
   boardId: string,
 ): Promise<void> {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("You must be logged in to delete a board.");
-    }
+    const { user } = await requireActionAuth("You must be logged in to delete a board.");
 
     const hasAccess = await hasWorkspaceAccess(workspaceId, user.id);
     if (!hasAccess) {
@@ -149,7 +122,7 @@ export async function deleteBoardAction(
     await deleteBoard(boardId);
 
     // Revalidate the workspace details route
-    revalidatePath(`/workspaces/${workspaceId}`);
+    revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
   } catch (error: unknown) {
     console.error("Action error in deleteBoardAction:", error);
     throw new Error((error as Error).message || "Failed to delete board.");
@@ -165,14 +138,7 @@ export async function updateBoardCanvasAction(
   canvasData: unknown,
 ): Promise<Board> {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("You must be logged in to update canvas data.");
-    }
+    const { user } = await requireActionAuth("You must be logged in to update canvas data.");
 
     const hasAccess = await hasWorkspaceAccess(workspaceId, user.id);
     if (!hasAccess) {

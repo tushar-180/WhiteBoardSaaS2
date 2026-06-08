@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createClient } from "@/utils/supabase/client";
 import { authSchema, type AuthFormData } from "@/types/auth";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
+import { ROUTES, DEFAULT_REDIRECTS } from "@/lib/constants";
 
 export function useAuthForm() {
   const router = useRouter();
@@ -38,8 +39,8 @@ export function useAuthForm() {
     form.clearErrors();
     try {
       const searchParams = new URLSearchParams(window.location.search);
-      const next = searchParams.get("next") || "/workspaces";
-      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      const next = searchParams.get("next") || DEFAULT_REDIRECTS.AFTER_LOGIN;
+      const callbackUrl = new URL(ROUTES.AUTH_CALLBACK, window.location.origin);
       callbackUrl.searchParams.set("next", next);
 
       const supabase = createClient();
@@ -111,7 +112,7 @@ export function useAuthForm() {
       }
 
       const searchParams = new URLSearchParams(window.location.search);
-      const next = searchParams.get("next") || (isSignUp ? "/" : "/workspaces");
+      const next = searchParams.get("next") || (isSignUp ? DEFAULT_REDIRECTS.AFTER_SIGNUP : DEFAULT_REDIRECTS.AFTER_LOGIN);
       router.push(next);
     } catch {
       form.setError("root", {

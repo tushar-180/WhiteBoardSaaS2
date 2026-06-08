@@ -43,17 +43,19 @@ Redux Toolkit is not part of the current architecture.
 
 ## 3. Current Runtime Flow
 
-### Authentication
+### Authentication & Constants
 
-```txt
-src/proxy.ts
-  -> checks Supabase session
-  -> redirects unauthenticated protected-route users to /login
-  -> redirects logged-in users away from /login
-```
+- Centralized route configurations and asset paths reside in `src/lib/constants.ts` (e.g., `ROUTES`, `ASSETS`, `DEFAULT_REDIRECTS`).
+- `src/proxy.ts` checks Supabase sessions using route guards and constants:
+  - Redirects unauthenticated protected-route users to `DEFAULT_REDIRECTS.AUTH_FALLBACK`.
+  - Redirects logged-in users away from `ROUTES.LOGIN`.
+
+- **Auth Helpers (`src/utils/supabase/server.ts`):**
+  - `getCurrentUser()`: retrieves client and user (does not throw/redirect).
+  - `requireAuth(redirectTo)`: route guard, redirects to login if unauthenticated.
+  - `requireActionAuth(errorMessage)`: for Server Actions, throws an error if unauthenticated.
 
 Auth UI lives in `src/components/auth/login-form.tsx` and uses:
-
 - `react-hook-form`
 - `zodResolver`
 - `authSchema` from `src/types/auth.ts`
@@ -62,14 +64,16 @@ Auth UI lives in `src/components/auth/login-form.tsx` and uses:
 
 ### Workspaces
 
-```txt
-/workspaces page
-  -> Supabase server auth check
-  -> fetchWorkspacesByOwner(user.id)
-  -> fetchProfileById(user.id)
-  -> WorkspacesClient
-  -> useWorkspaceStore
-```
+- **Workspaces Layout (`src/app/(protected)/workspaces/layout.tsx`):**
+  - Renders the shared `<WorkspaceNav />` header and background blur gradients across all workspaces pages.
+  - Consolidates standard page-level layout wrappers.
+
+- **Workspaces list page (`/workspaces`):**
+  - requireAuth() server-side auth validation
+  - fetchWorkspacesByOwner(user.id)
+  - fetchProfileById(user.id)
+  - WorkspacesClient
+  - useWorkspaceStore (hydrated client-side)
 
 Workspace writes go through:
 

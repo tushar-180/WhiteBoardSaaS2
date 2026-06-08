@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { ASSETS } from "@/lib/constants";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -10,7 +11,7 @@ export default function Footer() {
         {/* Brand */}
         <div className="flex items-center gap-2.5 font-bold text-sm tracking-tight text-muted-foreground">
           <Image
-            src="/logo.png"
+            src={ASSETS.LOGO}
             alt="Zentrox Logo"
             width={20}
             height={20}

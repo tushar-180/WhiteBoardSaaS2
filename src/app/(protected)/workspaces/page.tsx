@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { requireAuth } from "@/utils/supabase/server";
 import { fetchWorkspacesByOwner } from "@/services/workspace";
 import { fetchProfileById } from "@/services/profile";
 import { WorkspacesClient } from "@/components/workspace/workspaces-client";
@@ -8,15 +7,7 @@ import { WorkspacesClient } from "@/components/workspace/workspaces-client";
 export const revalidate = 0;
 
 export default async function WorkspacesPage() {
-  const supabase = await createClient();
-  
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { user } = await requireAuth();
 
   // Fetch all workspaces owned by the authenticated user and user profile details from DB in parallel
   const [workspaces, profile] = await Promise.all([

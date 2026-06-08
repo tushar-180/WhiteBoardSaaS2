@@ -9,6 +9,7 @@ import { useWhiteboardStore } from "@/store/use-whiteboard-store";
 import { updateBoardCanvasAction } from "@/actions/board";
 import { toast } from "sonner";
 import { type WhiteboardEditorProps } from "@/types/whiteboard";
+import { ROUTES } from "@/lib/constants";
 import WhiteboardSaveStatus from "./whiteboard-save-status";
 
 // Dynamically import the tldraw component with SSR disabled
@@ -78,7 +79,7 @@ export default function WhiteboardEditor({
       <header className="h-16 border-b border-border/40 bg-background/80 backdrop-blur-md z-40 flex items-center justify-between px-6 shrink-0">
         <div className="flex items-center gap-4 min-w-0">
           <Link
-            href={`/workspaces/${board.workspace_id}`}
+            href={`${ROUTES.WORKSPACES}/${board.workspace_id}`}
             className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-border/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200"
             title="Back to Workspace"
           >

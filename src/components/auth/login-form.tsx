@@ -19,6 +19,7 @@ import { AuthInput } from "./auth-input";
 import { AuthTabToggle } from "./auth-tab-toggle";
 import { GithubButton } from "./github-button";
 import { useAuthForm } from "@/hooks/auth/use-auth-form";
+import { ROUTES, ASSETS } from "@/lib/constants";
 
 export default function LoginPage() {
   const {
@@ -46,11 +47,11 @@ export default function LoginPage() {
 
       {/* Brand Logo Link */}
       <Link
-        href="/"
+        href={ROUTES.HOME}
         className="hover:opacity-95 transition-all mb-6 select-none animate-fade-in hover:scale-[1.03] duration-200"
       >
         <Image
-          src="/logo.png"
+          src={ASSETS.LOGO}
           alt="Zentrox Logo"
           width={96}
           height={96}

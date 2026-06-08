@@ -1,7 +1,8 @@
 import { redirect, notFound } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { requireAuth } from "@/utils/supabase/server";
 import { fetchBoardById } from "@/services/board";
 import { hasWorkspaceAccess } from "@/services/workspace";
+import { ROUTES } from "@/lib/constants";
 import WhiteboardEditor from "@/components/whiteboard/whiteboard-editor";
 
 export const revalidate = 0;
@@ -14,15 +15,7 @@ interface PageProps {
 
 export default async function BoardDetailPage({ params }: PageProps) {
   const { boardId } = await params;
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const { user } = await requireAuth();
 
   // 1. Fetch board details
   const board = await fetchBoardById(boardId);
@@ -33,7 +26,7 @@ export default async function BoardDetailPage({ params }: PageProps) {
   // 2. Validate workspace access
   const hasAccess = await hasWorkspaceAccess(board.workspace_id, user.id);
   if (!hasAccess) {
-    redirect("/workspaces");
+    redirect(ROUTES.WORKSPACES);
   }
 
   const licenseKey = process.env.TLDRAW_API;
