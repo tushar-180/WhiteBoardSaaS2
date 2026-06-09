@@ -135,6 +135,5 @@ erDiagram
 These features can be revisited after the core product is working:
 
 - Realtime board chat (chat panel per board via Supabase Realtime)
-- Comments
 - AI features
 - Advanced scaling infrastructure
