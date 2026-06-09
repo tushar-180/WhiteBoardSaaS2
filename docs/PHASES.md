@@ -14,7 +14,8 @@ Reference docs:
 - **State, Forms, Validation:** Zustand, React Hook Form, Zod, `@hookform/resolvers`
 - **Backend:** Next.js Server Actions, Route Handlers, Supabase SSR SDK
 - **Database:** Supabase PostgreSQL
-- **Canvas:** Planned whiteboard canvas stored in `boards.canvas_data`
+- **Canvas:** tldraw whiteboard with `boards.canvas_data` persistence and role-based read-only mode
+- **Analytics:** Vercel Analytics
 
 Not in the current scope: comments, AI diagram generation, AI chat, or a large realtime architecture.
 
@@ -70,15 +71,19 @@ erDiagram
 - Zustand store for hydrated workspace/user state
 - Creator automatically gets an `owner` row in `workspace_members`
 
-## Phase 3: Members and Invites
+## Phase 3: Members and Invites ✅
 
 **Goal:** Workspaces can support collaborators using existing database tables.
 
-- Member list for each workspace
-- Invite creation using `workspace_invites`
-- Invite acceptance by token
-- Workspace role handling with `WorkspaceRole`
-- Access checks before showing workspace or board data
+- Member list with role badges on the workspace detail page
+- `InviteMemberDialog` — create invite links with role selection (owner/editor/viewer)
+- Invite acceptance at `/invite/[token]` via `InviteAcceptClient`
+- `useMemberStore` Zustand store for optimistic member/invite UI updates
+- Member removal and role update actions (`src/actions/member.ts`)
+- Invite creation, acceptance, and revocation actions (`src/actions/invite.ts`)
+- `LeaveWorkspaceDialog` for non-owner members to leave a workspace
+- Role-based access: board creation restricted to owners; editors/viewers get read-only canvas
+- Vercel Analytics added to the root layout
 
 ## Phase 4: Boards
 
@@ -89,14 +94,15 @@ erDiagram
 - Board detail route at `/board/[boardId]`
 - Board ownership/access checks through workspace membership
 
-## Phase 5: Canvas Persistence
+## Phase 5: Canvas Persistence ✅
 
 **Goal:** Users can open a board, draw, save, and reload their canvas.
 
-- Canvas component in `/board/[boardId]`
-- Load board `canvas_data`
-- Save board `canvas_data`
-- Basic save status and error handling
+- tldraw canvas embedded in `/board/[boardId]`
+- Load board `canvas_data` from Supabase on open
+- Auto-save canvas changes back to `boards.canvas_data`
+- Basic save status and error indicators
+- Role-based read-only mode: `isReadonly` set for editors and viewers
 
 ## Phase 6: Polish and Deployment Readiness
 

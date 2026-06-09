@@ -43,9 +43,9 @@ The product flow is:
 ```txt
 Login / Register
   -> Workspaces
-  -> Members / Invites
-  -> Boards
-  -> Whiteboard canvas
+  -> Members / Invites (owners/editors/viewers)
+  -> Boards (owner-only creation)
+  -> Whiteboard canvas (read-only for editors/viewers)
   -> Save/load boards.canvas_data
 ```
 
@@ -60,7 +60,8 @@ src/
 ├── actions/              # Server Actions
 ├── app/                  # Next.js App Router pages and route handlers
 │   ├── (auth)/           # login/register routes
-│   ├── (protected)/      # protected workspace and board routes
+│   ├── (protected)/      # protected workspace, board, and invite routes
+│   │   └── invite/[token]/ # invite acceptance route
 │   └── auth/callback/    # Supabase OAuth callback
 ├── components/
 │   ├── auth/             # Auth UI
@@ -109,9 +110,10 @@ src/
 - Do not duplicate validation rules inside components if a schema already exists.
 
 ### Client State & Hydration
-- Use Zustand stores in `src/store/` (`useWorkspaceStore`, `useBoardStore`, `useWhiteboardStore`).
+- Use Zustand stores in `src/store/` (`useWorkspaceStore`, `useBoardStore`, `useWhiteboardStore`, `useMemberStore`).
 - Keep server-fetched data authoritative; hydrate Zustand only for interactive client UI.
 - When loading a parent page, hydrate the Zustand store via `useWorkspaceStore.setState(...)` or `useBoardStore.setState(...)` inside an effect or component mount phase. Do not recreate independent react state for fetched lists or user auth details.
+- `useMemberStore` manages workspace member and invite lists with optimistic updates (add/remove/role-change) for the `WorkspaceDetailsClient`.
 - Do not add Redux providers, slices, or RTK Query.
 
 ### React Hooks
@@ -141,6 +143,10 @@ Examples:
 - Workspace mutations belong in `src/actions/workspace.ts`.
 - Workspace types and schemas belong in `src/types/workspace.ts`.
 - Workspace UI belongs in `src/components/workspace/`.
+- Member DB logic belongs in `src/services/member.ts`.
+- Member mutations belong in `src/actions/member.ts`.
+- Invite DB logic belongs in `src/services/invite.ts`.
+- Invite mutations belong in `src/actions/invite.ts`.
 - Board DB logic belongs in `src/services/board.ts`.
 - Board mutations belong in `src/actions/board.ts`.
 - Board UI belongs in `src/components/board/`.
