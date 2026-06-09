@@ -117,7 +117,7 @@ erDiagram
 
 ## Phase 7: Real-Time Collaboration (Pending)
 
-**Goal:** Enable live multi-user editing on the same board using tldraw sync.
+**Goal:** Enable live multi-user editing on the same board using tldraw sync and Supabase Realtime presence.
 
 - tldraw sync backend: WebSocket server or Cloudflare Worker (`@tldraw/sync`)
 - Replace single-user `Tldraw` with `useSync` hook in `WhiteboardCanvas`
@@ -125,6 +125,8 @@ erDiagram
 - Room persistence and reconnection handling on the backend
 - Live cursor presence for connected users
 - Test concurrent edits across multiple browser sessions
+- Supabase Realtime presence channel on the board page to track active viewers
+- Live avatar stack in the board toolbar showing who is currently on the canvas
 
 ---
 
@@ -132,6 +134,7 @@ erDiagram
 
 These features can be revisited after the core product is working:
 
+- Realtime board chat (chat panel per board via Supabase Realtime)
 - Comments
 - AI features
 - Advanced scaling infrastructure
