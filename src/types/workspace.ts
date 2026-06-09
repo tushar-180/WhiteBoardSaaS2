@@ -5,6 +5,7 @@ export interface Workspace {
   name: string;
   slug: string;
   owner_id: string;
+  owner_name?: string;
   created_at: string;
   updated_at: string;
 }
@@ -24,7 +25,7 @@ export interface WorkspaceInvite {
   workspace_id: string;
   email: string;
   token: string;
-  status: "pending" | "accepted" | "expired" | "revoked";
+  status: "pending" | "accepted" | "expired" | "revoked" | "rejected";
   created_by: string;
   accepted_by: string | null;
   role: WorkspaceRole;

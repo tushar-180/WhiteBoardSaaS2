@@ -4,6 +4,7 @@ import { fetchBoardById } from "@/services/board";
 import { hasWorkspaceAccess } from "@/services/workspace";
 import { ROUTES } from "@/lib/constants";
 import WhiteboardEditor from "@/components/whiteboard/whiteboard-editor";
+import { fetchWorkspaceMemberRole } from "@/services/member";
 
 export const revalidate = 0;
 
@@ -28,9 +29,11 @@ export default async function BoardDetailPage({ params }: PageProps) {
   if (!hasAccess) {
     redirect(ROUTES.WORKSPACES);
   }
+  
 
+  const workspaceRole = await fetchWorkspaceMemberRole(board.workspace_id, user.id);
+  const isReadonly = workspaceRole === "viewer";
   const licenseKey = process.env.TLDRAW_API;
-
-  return <WhiteboardEditor board={board} licenseKey={licenseKey} />;
+  return <WhiteboardEditor board={board} licenseKey={licenseKey} isReadonly={isReadonly} />;
 }
 
