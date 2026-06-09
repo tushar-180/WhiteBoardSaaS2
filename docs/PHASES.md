@@ -30,6 +30,7 @@ graph TD
     P3 --> P4[Phase 4: Boards]
     P4 --> P5[Phase 5: Canvas Persistence]
     P5 --> P6[Phase 6: Polish + Deploy]
+    P6 --> P7[Phase 7: Real-Time Collaboration]
 ```
 
 ---
@@ -114,14 +115,23 @@ erDiagram
 - Environment variable docs
 - `npm run lint` and `npm run build`
 
+## Phase 7: Real-Time Collaboration (Pending)
+
+**Goal:** Enable live multi-user editing on the same board using tldraw sync.
+
+- tldraw sync backend: WebSocket server or Cloudflare Worker (`@tldraw/sync`)
+- Replace single-user `Tldraw` with `useSync` hook in `WhiteboardCanvas`
+- Asset store for file/image uploads within the canvas
+- Room persistence and reconnection handling on the backend
+- Live cursor presence for connected users
+- Test concurrent edits across multiple browser sessions
+
 ---
 
 ## Later / Optional
 
 These features can be revisited after the core product is working:
 
-- Supabase Realtime presence
-- Multiplayer canvas sync
 - Comments
 - AI features
 - Advanced scaling infrastructure

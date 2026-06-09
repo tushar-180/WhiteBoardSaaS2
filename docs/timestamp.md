@@ -94,10 +94,19 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 - [ ] Document required environment variables.
 - [ ] Prepare deployment notes.
 
+## Stage 7: Real-Time Collaboration
+
+**Goal:** Enable multiple users to collaborate live on the same board using tldraw sync.
+
+- [ ] Set up a tldraw sync backend (WebSocket server or Cloudflare Worker via `@tldraw/sync`).
+- [ ] Replace single-user `Tldraw` with `useSync` hook in `WhiteboardCanvas` for multi-user room state.
+- [ ] Configure an asset store for file/image uploads within the canvas.
+- [ ] Handle room persistence and reconnection on the backend.
+- [ ] Test concurrent edits across multiple browser sessions.
+- [ ] Add live cursor presence for connected users.
+
 ## Later / Optional
 
-- [ ] Supabase Realtime presence or live cursors.
-- [ ] Multiplayer canvas sync.
 - [ ] AI features.
 - [ ] Comments.
 - [ ] Advanced scaling infrastructure.
