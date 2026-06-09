@@ -12,11 +12,16 @@ interface BoardListProps {
   onCreateClick: () => void;
 }
 
-export function BoardList({ boards, workspaceId, currentUserRole, onCreateClick }: BoardListProps) {
+export function BoardList({
+  boards,
+  workspaceId,
+  currentUserRole,
+  onCreateClick,
+}: BoardListProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       {/* Create New Board Card – only for non‑viewer roles */}
-      {currentUserRole !== "viewer" && (
+      {currentUserRole !== "viewer" && currentUserRole !== "editor" && (
         <button
           onClick={onCreateClick}
           className="block text-left group h-full cursor-pointer focus:outline-none"
@@ -37,9 +42,9 @@ export function BoardList({ boards, workspaceId, currentUserRole, onCreateClick 
 
       {/* Boards List */}
       {boards.map((board) => (
-        <BoardCard 
-          key={board.id} 
-          board={board} 
+        <BoardCard
+          key={board.id}
+          board={board}
           workspaceId={workspaceId}
           currentUserRole={currentUserRole}
         />

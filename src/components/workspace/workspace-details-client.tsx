@@ -213,7 +213,7 @@ export function WorkspaceDetailsClient({
                 </p>
               </div>
 
-              {boards.length > 0 && currentUserRole !== "viewer" && (
+              {boards.length > 0 && currentUserRole !== "viewer" && currentUserRole !== "editor" && (
                 <Button
                   onClick={() => setBoardOpen(true)}
                   size="sm"
