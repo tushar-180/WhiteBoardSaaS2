@@ -133,14 +133,16 @@ export function InviteAcceptClient({
           )}
         </Button>
 
-        <Button
-          onClick={handleReject}
-          disabled={loading}
-          variant="outline"
-          className="w-full h-10 rounded-xl font-semibold cursor-pointer"
-        >
-          Decline
-        </Button>
+        {!isDifferentEmail && (
+          <Button
+            onClick={handleReject}
+            disabled={loading}
+            variant="outline"
+            className="w-full h-10 rounded-xl font-semibold cursor-pointer"
+          >
+            Decline
+          </Button>
+        )}
 
         <Button
           variant="ghost"
