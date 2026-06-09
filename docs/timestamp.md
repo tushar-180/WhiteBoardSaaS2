@@ -46,11 +46,19 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 
 **Goal:** Use the existing `workspace_members` and `workspace_invites` tables for collaboration access.
 
-- [ ] Add service functions for workspace members.
-- [ ] Show workspace owner/member list on the workspace detail page.
-- [ ] Add invite creation UI and Server Action.
-- [ ] Add invite accept route using `workspace_invites.token`.
-- [ ] Enforce workspace access by checking `owner_id` or `workspace_members`.
+- [x] Add service functions for workspace members (`src/services/member.ts`).
+- [x] Add service functions for workspace invites (`src/services/invite.ts`).
+- [x] Add member Server Actions in `src/actions/member.ts` (list, remove, update role, leave workspace).
+- [x] Add invite Server Actions in `src/actions/invite.ts` (create, accept, revoke, list).
+- [x] Extend workspace service with membership queries in `src/services/workspace.ts`.
+- [x] Show workspace owner/member list on the workspace detail page (`WorkspaceDetailsClient`).
+- [x] Add `InviteMemberDialog` — invite creation UI with role selection.
+- [x] Add invite accept route at `/invite/[token]` with `InviteAcceptClient` component.
+- [x] Add `useMemberStore` Zustand store for member/invite client state.
+- [x] Enforce role-based access: board creation restricted to owners only.
+- [x] Add read-only canvas mode for editors and viewers (`isReadonly` on tldraw editor).
+- [x] Add `LeaveWorkspaceDialog` component for non-owner members to leave a workspace.
+- [x] Add Vercel Analytics to `src/app/layout.tsx`.
 
 ## Stage 4: Board CRUD
 
@@ -86,10 +94,22 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 - [ ] Document required environment variables.
 - [ ] Prepare deployment notes.
 
+## Stage 7: Real-Time Collaboration
+
+**Goal:** Enable multiple users to collaborate live on the same board using tldraw sync and Supabase Realtime presence.
+
+- [ ] Set up a tldraw sync backend (WebSocket server or Cloudflare Worker via `@tldraw/sync`).
+- [ ] Replace single-user `Tldraw` with `useSync` hook in `WhiteboardCanvas` for multi-user room state.
+- [ ] Configure an asset store for file/image uploads within the canvas.
+- [ ] Handle room persistence and reconnection on the backend.
+- [ ] Test concurrent edits across multiple browser sessions.
+- [ ] Add live cursor presence for connected users.
+- [ ] Integrate Supabase Realtime presence channel on the board page to track which users are currently viewing the canvas.
+- [ ] Show live avatar stack (user avatars + names) in the board toolbar when others are present.
+
 ## Later / Optional
 
-- [ ] Supabase Realtime presence or live cursors.
-- [ ] Multiplayer canvas sync.
 - [ ] AI features.
 - [ ] Comments.
+- [ ] Realtime board chat (chat panel per board using Supabase Realtime).
 - [ ] Advanced scaling infrastructure.

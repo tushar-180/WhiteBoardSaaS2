@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Folder, ArrowRight, Trash2 } from "lucide-react";
+import { Folder, ArrowRight, Trash2, LogOut } from "lucide-react";
+import { LeaveWorkspaceDialog } from "./leave-workspace-dialog";
 import {
   Card,
   CardHeader,
@@ -14,6 +15,7 @@ import { type Workspace } from "@/types/workspace";
 import { DeleteWorkspaceDialog } from "./delete-workspace-dialog";
 import { ROUTES } from "@/lib/constants";
 
+
 interface WorkspaceCardProps {
   workspace: Workspace;
   userId: string;
@@ -22,6 +24,8 @@ interface WorkspaceCardProps {
 export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
   const [open, setOpen] = useState(false);
   const isOwner = workspace.owner_id === userId;
+  const canLeaveWorkspace = !isOwner;
+  const [openLeaveDialog, setOpenLeaveDialog] = useState(false);
 
   const formattedDate = new Date(workspace.created_at).toLocaleDateString(
     undefined,
@@ -37,6 +41,8 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
     e.stopPropagation();
     setOpen(true);
   };
+
+
 
   return (
     <>
@@ -57,6 +63,16 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
               title="Delete Workspace"
             >
               <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+          {!isOwner && canLeaveWorkspace && (
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenLeaveDialog(true); }}
+              className="absolute top-4 right-4 z-20 p-2 rounded-lg bg-background/80 hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600 border border-border/50 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
+              title="Leave Workspace"
+            >
+              <LogOut className="h-4 w-4" />
             </button>
           )}
 
@@ -104,6 +120,12 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
         workspaceName={workspace.name}
         open={open}
         onOpenChange={setOpen}
+      />
+      <LeaveWorkspaceDialog
+        workspaceId={workspace.id}
+        workspaceName={workspace.name}
+        open={openLeaveDialog}
+        onOpenChange={setOpenLeaveDialog}
       />
     </>
   );

@@ -50,6 +50,7 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
   const displayEmail = profile?.email || user.email || "";
 
   return (
+<div className="px-4 md:px-8">
     <WorkspaceDetailsClient
       workspace={workspace}
       initialBoards={boards}
@@ -58,6 +59,7 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
       currentUserRole={currentUserRole}
       userEmail={displayEmail}
     />
+  </div>
   );
 }
 

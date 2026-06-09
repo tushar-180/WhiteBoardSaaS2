@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { LayoutGrid, ArrowRight, Trash2, Edit, LogOut } from "lucide-react";
-import { toast } from "sonner";
+import { LayoutGrid, ArrowRight, Trash2, Edit } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -15,7 +13,8 @@ import {
 import { type Board, type WorkspaceRole } from "@/types/workspace";
 import { EditBoardDialog } from "./edit-board-dialog";
 import { DeleteBoardDialog } from "./delete-board-dialog";
-import { leaveWorkspaceAction } from "@/actions/member";
+
+
 
 interface BoardCardProps {
   board: Board;
@@ -24,10 +23,10 @@ interface BoardCardProps {
 }
 
 export function BoardCard({ board, workspaceId, currentUserRole }: BoardCardProps) {
-  const router = useRouter();
+  
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isLeaving, setIsLeaving] = useState(false);
+
 
   const formattedDate = new Date(board.created_at).toLocaleDateString(
     undefined,
@@ -39,7 +38,6 @@ export function BoardCard({ board, workspaceId, currentUserRole }: BoardCardProp
   );
 
   const canEditBoard = currentUserRole === "owner" || currentUserRole === "admin";
-  const canLeaveWorkspace = currentUserRole !== "owner";
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -53,20 +51,7 @@ export function BoardCard({ board, workspaceId, currentUserRole }: BoardCardProp
     setIsDeleteDialogOpen(true);
   };
 
-  const handleLeaveClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsLeaving(true);
-    try {
-      await leaveWorkspaceAction(workspaceId);
-      toast.success("You have left the workspace.");
-      router.push("/workspaces");
-    } catch (err: unknown) {
-      toast.error((err as Error).message || "Failed to leave workspace.");
-    } finally {
-      setIsLeaving(false);
-    }
-  };
+
 
   return (
     <>
@@ -97,17 +82,7 @@ export function BoardCard({ board, workspaceId, currentUserRole }: BoardCardProp
                 </button>
               </>
             )}
-            {canLeaveWorkspace && (
-              <button
-                type="button"
-                onClick={handleLeaveClick}
-                disabled={isLeaving}
-                className="p-1.5 rounded-lg bg-background/80 hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600 border border-border/50 transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Leave Workspace"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-              </button>
-            )}
+
           </div>
 
           <CardHeader className="p-0 gap-0">
