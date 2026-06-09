@@ -1,0 +1,248 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import { Resend } from "resend";
+import { requireActionAuth } from "@/utils/supabase/server";
+import {
+  createWorkspaceInvite,
+  acceptWorkspaceInvite,
+  revokeWorkspaceInvite,
+  rejectWorkspaceInvite,
+  fetchInviteByToken,
+} from "@/services/invite";
+import { fetchWorkspaceById } from "@/services/workspace";
+import { fetchWorkspaceMemberRole, checkIfEmailIsMember } from "@/services/member";
+import { type WorkspaceRole } from "@/types/workspace";
+import { ROUTES } from "@/lib/constants";
+
+/**
+ * Creates a workspace invite, generates a magic link, and attempts to send an email via Resend.
+ * Only owners and admins can invite others.
+ */
+export async function createInviteAction(
+  workspaceId: string,
+  email: string,
+  role: WorkspaceRole,
+): Promise<{ inviteLink: string; emailSent: boolean }> {
+  try {
+    const { user } = await requireActionAuth(
+      "You must be logged in to invite members.",
+    );
+
+    // 1. Validate role value (only admin, editor, viewer are inviteable roles)
+    const allowedRoles: WorkspaceRole[] = ["admin", "editor", "viewer"];
+    if (!allowedRoles.includes(role)) {
+      throw new Error(
+        "Invalid role selection. You cannot invite someone as an owner.",
+      );
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      throw new Error("Invalid email address.");
+    }
+
+    // 2. Fetch workspace details
+    const workspace = await fetchWorkspaceById(workspaceId);
+    if (!workspace) {
+      throw new Error("Workspace not found.");
+    }
+
+    // 3. Verify that the caller is an owner or admin
+    const currentUserRole = await fetchWorkspaceMemberRole(
+      workspaceId,
+      user.id,
+    );
+    if (
+      !currentUserRole ||
+      (currentUserRole !== "owner" && currentUserRole !== "admin")
+    ) {
+      throw new Error(
+        "Only workspace owners and administrators can invite new members.",
+      );
+    }
+
+    // 4. Check if the email is already a member of the workspace
+    const existingMemberRole = await checkIfEmailIsMember(workspaceId, trimmedEmail);
+    if (existingMemberRole) {
+      throw new Error(
+        `The email ${trimmedEmail} is already a member of this workspace as a ${existingMemberRole}.`,
+      );
+    }
+
+    // 5. Create the invite row in the database
+    const invite = await createWorkspaceInvite(
+      workspaceId,
+      trimmedEmail,
+      role,
+      user.id,
+    );
+
+    // 6. Build the invite link dynamically using the request headers
+    const headerStore = await headers();
+    const host = headerStore.get("host") || "localhost:3000";
+    const protocol =
+      host.includes("localhost") || host.includes("127.0.0.1")
+        ? "http"
+        : "https";
+    const inviteLink = `${protocol}://${host}/invite/${invite.token}`;
+
+    let emailSent = false;
+
+    // 7. Attempt to send invitation email using Resend SDK
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (resendApiKey) {
+      const resend = new Resend(resendApiKey);
+
+      // We'll use a friendly sender name. Since it's dev/test, onboarding@resend.dev is allowed.
+      // In production, users verify their custom domain.
+      // const fromEmail = "Zentrox <onboarding@resend.dev>";
+      const fromEmail = "Acme <onboarding@resend.dev>";
+
+      const { data, error } = await resend.emails.send(
+        {
+          from: fromEmail,
+          to: [trimmedEmail],
+          subject: `Join the "${workspace.name}" workspace on Zentrox`,
+          html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; rounded: 8px;">
+            <h2 style="color: #1a1a1a;">Workspace Invitation</h2>
+            <p>Hello,</p>
+            <p>You have been invited to join the <strong>${workspace.name}</strong> workspace on Zentrox as an <strong>${role}</strong>.</p>
+            <p>Click the link below to accept the invitation and start collaborating:</p>
+            <div style="margin: 24px 0;">
+              <a href="${inviteLink}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Accept Invitation</a>
+            </div>
+            <p style="color: #666; font-size: 14px;">If the button doesn't work, copy and paste this URL into your browser:</p>
+            <p style="word-break: break-all; font-size: 14px;"><a href="${inviteLink}">${inviteLink}</a></p>
+            <hr style="border: none; border-top: 1px solid #eaeaea; margin: 24px 0;" />
+            <p style="color: #999; font-size: 12px;">This invitation was sent by ${user.email}. If you did not expect this invitation, you can ignore this email.</p>
+          </div>
+        `,
+        },
+        {
+          idempotencyKey: `invite-${invite.id}`,
+        },
+      );
+
+      if (error) {
+        console.error("Resend SDK error:", error.message);
+      } else {
+        console.log("Invitation email successfully sent:", data);
+        emailSent = true;
+      }
+    } else {
+      console.log(
+        "No RESEND_API_KEY found. Logging invite link in server console:",
+        inviteLink,
+      );
+    }
+
+    // Revalidate paths
+    revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
+
+    return { inviteLink, emailSent };
+  } catch (error: unknown) {
+    console.error("Action error in createInviteAction:", error);
+    throw new Error((error as Error).message || "Failed to create invitation.");
+  }
+}
+
+/**
+ * Revokes a pending workspace invitation.
+ * Only owners and admins can revoke invites.
+ */
+export async function revokeInviteAction(
+  workspaceId: string,
+  inviteId: string,
+): Promise<void> {
+  try {
+    const { user } = await requireActionAuth(
+      "You must be logged in to revoke invitations.",
+    );
+
+    // 1. Fetch current user's role
+    const currentUserRole = await fetchWorkspaceMemberRole(
+      workspaceId,
+      user.id,
+    );
+    if (
+      !currentUserRole ||
+      (currentUserRole !== "owner" && currentUserRole !== "admin")
+    ) {
+      throw new Error(
+        "You do not have permission to revoke invitations in this workspace.",
+      );
+    }
+
+    // 2. Revoke invitation in database
+    await revokeWorkspaceInvite(workspaceId, inviteId);
+
+    // Revalidate paths
+    revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
+  } catch (error: unknown) {
+    console.error("Action error in revokeInviteAction:", error);
+    throw new Error((error as Error).message || "Failed to revoke invitation.");
+  }
+}
+
+/**
+ * Rejects a workspace invitation for the currently logged-in user.
+ */
+export async function rejectInviteAction(token: string): Promise<void> {
+  try {
+    const { user } = await requireActionAuth(
+      "You must be logged in to reject invitations.",
+    );
+
+    // Reject the invite
+    await rejectWorkspaceInvite(token, user.id);
+
+    // Revalidate workspaces list path
+    revalidatePath(ROUTES.WORKSPACES);
+  } catch (error: unknown) {
+    console.error("Action error in rejectInviteAction:", error);
+    throw new Error((error as Error).message || "Failed to reject invitation.");
+  }
+}
+
+/**
+ * Accepts a workspace invitation for the currently logged-in user.
+ * Only accepts if the user's email matches the invited email.
+ */
+export async function acceptInviteAction(token: string): Promise<string> {
+  try {
+    const { user } = await requireActionAuth(
+      "You must be logged in to accept invitations.",
+    );
+
+    // 1. Fetch the invite to verify email matches
+    const invite = await fetchInviteByToken(token);
+    if (!invite) {
+      throw new Error("Invitation is invalid, expired, or has already been accepted.");
+    }
+
+    // 2. Verify that the current user's email matches the invited email
+    const userEmail = user.email?.toLowerCase().trim() || "";
+    const invitedEmail = invite.email.toLowerCase().trim();
+    
+    if (userEmail !== invitedEmail) {
+      throw new Error(
+        `This invitation was sent to ${invite.email}. Please log in with that email address to accept this invitation.`,
+      );
+    }
+
+    // 3. Accept the invite. The service handles joining member and updating invite status
+    const workspaceId = await acceptWorkspaceInvite(token, user.id);
+
+    // Revalidate workspaces list path
+    revalidatePath(ROUTES.WORKSPACES);
+    revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
+
+    return workspaceId;
+  } catch (error: unknown) {
+    console.error("Action error in acceptInviteAction:", error);
+    throw new Error((error as Error).message || "Failed to accept invitation.");
+  }
+}

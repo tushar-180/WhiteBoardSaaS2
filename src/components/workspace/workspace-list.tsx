@@ -7,10 +7,11 @@ import { useWorkspaceStore } from "@/store/use-workspace-store";
 
 
 interface WorkspaceListProps {
+  userId: string;
   onCreateClick: () => void;
 }
 
-export function WorkspaceList({ onCreateClick }: WorkspaceListProps) {
+export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
   const workspaces = useWorkspaceStore((state) => state.workspaces);
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -34,6 +35,7 @@ export function WorkspaceList({ onCreateClick }: WorkspaceListProps) {
           <WorkspaceCard
             key={workspace.id}
             workspace={workspace}
+            userId={userId}
           />
       ))}
     </div>

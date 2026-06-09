@@ -15,6 +15,7 @@ export default function WhiteboardCanvas({
   initialCanvasData,
   editorRef,
   licenseKey,
+  isReadonly,
 }: WhiteboardCanvasProps) {
   const [editor, setEditor] = useState<Editor | null>(null);
   const setSaveStatus = useWhiteboardStore((state) => state.setSaveStatus);
@@ -92,6 +93,8 @@ export default function WhiteboardCanvas({
         licenseKey={licenseKey}
         onMount={(editorInstance) => {
           setEditor(editorInstance);
+          // Apply read-only state based on prop
+          editorInstance.updateInstanceState({ isReadonly: !!isReadonly });
         }}
       />
     </div>

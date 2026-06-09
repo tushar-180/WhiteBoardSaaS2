@@ -20,6 +20,7 @@ const WhiteboardCanvas = dynamic(() => import("./whiteboard-canvas"), {
 export default function WhiteboardEditor({
   board,
   licenseKey,
+  isReadonly,
 }: WhiteboardEditorProps) {
   const editorRef = useRef<Editor | null>(null);
   const saveStatus = useWhiteboardStore((state) => state.saveStatus);
@@ -107,6 +108,7 @@ export default function WhiteboardEditor({
           initialCanvasData={board.canvas_data}
           editorRef={editorRef}
           licenseKey={licenseKey}
+          isReadonly={isReadonly}
         />
       </main>
     </div>
