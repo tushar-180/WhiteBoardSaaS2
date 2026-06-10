@@ -1,9 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
-import { type WorkspaceInvite, type WorkspaceRole } from "@/types/workspace";
-
-export interface WorkspaceInviteWithWorkspace extends WorkspaceInvite {
-  workspace_name: string;
-}
+import { type WorkspaceInvite, type WorkspaceRole, type WorkspaceInviteWithWorkspace } from "@/types/workspace";
 
 /**
  * Fetches an invite by its unique token if it is pending.
@@ -23,7 +19,7 @@ export async function fetchInviteByToken(
 
   if (inviteError) {
     // No rows returned – treat as not found rather than a DB failure
-    if ((inviteError as any).code === "PGRST116") {
+    if (inviteError.code === "PGRST116") {
       console.warn("Invite not found (no pending record) for token:", token);
       return null;
     }

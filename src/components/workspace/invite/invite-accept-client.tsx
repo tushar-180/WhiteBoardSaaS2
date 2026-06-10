@@ -6,7 +6,7 @@ import { UserPlus, Loader2, AlertCircle, CheckCircle2, LogOut } from "lucide-rea
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { acceptInviteAction, rejectInviteAction } from "@/actions/invite";
-import { type WorkspaceInviteWithWorkspace } from "@/services/invite";
+import { type WorkspaceInviteWithWorkspace } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
 
 interface InviteAcceptClientProps {
@@ -113,6 +113,9 @@ export function InviteAcceptClient({
             <p>
               To accept this invitation, you must log in with that email address.
             </p>
+            <p>
+              If you don&apos;t log in with the correct email address, you won&apos;t be able to accept it.
+            </p>
           </div>
         )}
       </div>
@@ -133,14 +136,16 @@ export function InviteAcceptClient({
           )}
         </Button>
 
-        <Button
-          onClick={handleReject}
-          disabled={loading}
-          variant="outline"
-          className="w-full h-10 rounded-xl font-semibold cursor-pointer"
-        >
-          Decline
-        </Button>
+        {!isDifferentEmail && (
+          <Button
+            onClick={handleReject}
+            disabled={loading}
+            variant="outline"
+            className="w-full h-10 rounded-xl font-semibold cursor-pointer"
+          >
+            Decline
+          </Button>
+        )}
 
         <Button
           variant="ghost"

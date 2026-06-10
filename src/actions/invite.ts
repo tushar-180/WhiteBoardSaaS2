@@ -13,7 +13,7 @@ import {
 } from "@/services/invite";
 import { fetchWorkspaceById } from "@/services/workspace";
 import { fetchWorkspaceMemberRole, checkIfEmailIsMember } from "@/services/member";
-import { type WorkspaceRole } from "@/types/workspace";
+import { type WorkspaceRole, inviteSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
 
 /**
@@ -30,18 +30,13 @@ export async function createInviteAction(
       "You must be logged in to invite members.",
     );
 
-    // 1. Validate role value (only admin, editor, viewer are inviteable roles)
-    const allowedRoles: WorkspaceRole[] = ["admin", "editor", "viewer"];
-    if (!allowedRoles.includes(role)) {
-      throw new Error(
-        "Invalid role selection. You cannot invite someone as an owner.",
-      );
+    // 1. Validate inputs using inviteSchema
+    const validated = inviteSchema.safeParse({ email, role });
+    if (!validated.success) {
+      throw new Error(validated.error.issues[0].message);
     }
-
-    const trimmedEmail = email.trim().toLowerCase();
-    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      throw new Error("Invalid email address.");
-    }
+    const trimmedEmail = validated.data.email.toLowerCase();
+    const validatedRole = validated.data.role;
 
     // 2. Fetch workspace details
     const workspace = await fetchWorkspaceById(workspaceId);
@@ -75,7 +70,7 @@ export async function createInviteAction(
     const invite = await createWorkspaceInvite(
       workspaceId,
       trimmedEmail,
-      role,
+      validatedRole,
       user.id,
     );
 
@@ -109,7 +104,7 @@ export async function createInviteAction(
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; rounded: 8px;">
             <h2 style="color: #1a1a1a;">Workspace Invitation</h2>
             <p>Hello,</p>
-            <p>You have been invited to join the <strong>${workspace.name}</strong> workspace on Zentrox as an <strong>${role}</strong>.</p>
+            <p>You have been invited to join the <strong>${workspace.name}</strong> workspace on Zentrox as an <strong>${validatedRole}</strong>.</p>
             <p>Click the link below to accept the invitation and start collaborating:</p>
             <div style="margin: 24px 0;">
               <a href="${inviteLink}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Accept Invitation</a>

@@ -1,4 +1,4 @@
-import { Users, Layers, LayoutGrid, Download, Command, Keyboard } from "lucide-react";
+import { Users, Layers, LayoutGrid, Download } from "lucide-react";
 
 export default function Features() {
   return (

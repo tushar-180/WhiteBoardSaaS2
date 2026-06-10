@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Loader2, Mail, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 
@@ -20,14 +19,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createInviteAction } from "@/actions/invite";
+import { inviteSchema, type InviteFormData } from "@/types/workspace";
 
-
-const inviteSchema = z.object({
-  email: z.email("Please enter a valid email address."),
-  role: z.enum(["admin", "editor", "viewer"] as const),
-});
-
-type InviteFormData = z.infer<typeof inviteSchema>;
 
 interface InviteMemberDialogProps {
   workspaceId: string;

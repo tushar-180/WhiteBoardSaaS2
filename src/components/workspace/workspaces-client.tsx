@@ -7,7 +7,7 @@ import { Plus, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "./empty-state";
 import { WorkspaceList } from "./workspace-list";
-import { CreateWorkspaceDialog } from "./create-workspace-dialog";
+import { CreateWorkspaceDialog } from "./dialogs/create-workspace-dialog";
 import { type Workspace } from "@/types/workspace";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
 import RootLoading from "@/app/loading";

@@ -18,11 +18,10 @@ import { DeleteBoardDialog } from "./delete-board-dialog";
 
 interface BoardCardProps {
   board: Board;
-  workspaceId: string;
   currentUserRole: WorkspaceRole;
 }
 
-export function BoardCard({ board, workspaceId, currentUserRole }: BoardCardProps) {
+export function BoardCard({ board, currentUserRole }: BoardCardProps) {
   
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

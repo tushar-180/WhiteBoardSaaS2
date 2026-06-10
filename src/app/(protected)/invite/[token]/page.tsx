@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ShieldAlert, ArrowRight, CheckCircle2 } from "lucide-react";
 import { requireAuth } from "@/utils/supabase/server";
 import { fetchInviteByToken, fetchInviteByTokenAnyStatus } from "@/services/invite";
-import { InviteAcceptClient } from "@/components/workspace/invite-accept-client";
+import { InviteAcceptClient } from "@/components/workspace/invite/invite-accept-client";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/constants";
 

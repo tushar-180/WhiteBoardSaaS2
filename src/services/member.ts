@@ -1,16 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
-import { type WorkspaceRole, type WorkspaceMember } from "@/types/workspace";
-
-export interface WorkspaceMemberWithProfile {
-  id: string;
-  workspace_id: string;
-  user_id: string;
-  joined_at: string;
-  role: WorkspaceRole;
-  email: string;
-  name: string | null;
-  avatar_url: string | null;
-}
+import { type WorkspaceRole, type WorkspaceMember, type WorkspaceMemberWithProfile } from "@/types/workspace";
 
 /**
  * Fetches all members of a workspace along with their public profile information.

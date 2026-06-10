@@ -1,5 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
-import { type Workspace } from "@/types/workspace";
+import { type Workspace, type WorkspaceRole } from "@/types/workspace";
 
 /**
  * Fetches all workspaces owned by a specific user.
@@ -44,6 +44,7 @@ export async function fetchAllUserWorkspaces(userId: string): Promise<Workspace[
     .select(
       `
       workspace_id,
+      role,
       workspaces:workspace_id (
         id,
         name,
@@ -64,6 +65,7 @@ export async function fetchAllUserWorkspaces(userId: string): Promise<Workspace[
   // Extract workspace objects from member records
   interface MemberWorkspaceRow {
     workspace_id: string;
+    role: string;
     workspaces: {
       id: string;
       name: string;
@@ -76,12 +78,23 @@ export async function fetchAllUserWorkspaces(userId: string): Promise<Workspace[
 
   const joinedWorkspacesList = (memberWorkspaces || [])
     .flatMap((m) => {
-      const ws = (m as MemberWorkspaceRow).workspaces;
-      return ws ? ws as Workspace[] : [];
+      const row = m as unknown as MemberWorkspaceRow;
+      const ws = row.workspaces;
+      const role = row.role as WorkspaceRole;
+      if (!ws) return [];
+      const workspacesArray = Array.isArray(ws) ? ws : [ws];
+      return workspacesArray.map((w) => ({
+        ...w,
+        currentUserRole: role,
+      })) as Workspace[];
     });
 
   // 3. Fetch owner profiles for all unique workspaces
-  const allWorkspaces = [...(ownedWorkspaces || []), ...joinedWorkspacesList];
+  const ownedWorkspacesWithRole = (ownedWorkspaces || []).map((w) => ({
+    ...w,
+    currentUserRole: "owner" as WorkspaceRole,
+  }));
+  const allWorkspaces = [...ownedWorkspacesWithRole, ...joinedWorkspacesList];
   const uniqueOwnerIds = [...new Set(allWorkspaces.map((w) => w.owner_id))];
 
   const { data: ownerProfiles, error: profileError } = await supabase
@@ -96,7 +109,7 @@ export async function fetchAllUserWorkspaces(userId: string): Promise<Workspace[
 
   // Map owner names to workspaces
   const profileMap = new Map(
-    (ownerProfiles || []).map((p: any) => [
+    (ownerProfiles || []).map((p: { id: string; name: string | null; email?: string | null }) => [
       p.id,
       p.name || p.email?.split("@")[0] || "Unknown",
     ])
