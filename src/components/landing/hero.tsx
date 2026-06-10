@@ -1,6 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowRight, Play, Sparkles, MousePointer, PenTool, Type, Square, Circle, Eraser, Download, HelpCircle, Plus, Minus } from "lucide-react";
+import { ArrowRight, MousePointer, PenTool, Type, Square, Circle, Eraser, Download, HelpCircle, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/constants";
 

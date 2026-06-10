@@ -88,11 +88,11 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 - [x] Refactor repeating Supabase client/auth calls into reusable server helpers.
 - [x] Extract shared layout, background gradients, and navigation headers into workspaces route layout.
 - [x] Centralize route configuration targets and asset paths into constants file.
-- [ ] Review empty states, not-found states, and protected-route redirects.
-- [ ] Tighten form validation and server-side error messages.
-- [ ] Run lint/build verification.
-- [ ] Document required environment variables.
-- [ ] Prepare deployment notes.
+- [x] Review empty states, not-found states, and protected-route redirects.
+- [x] Tighten form validation and server-side error messages.
+- [x] Run lint/build verification.
+- [x] Document required environment variables.
+- [x] Prepare deployment notes.
 
 ## Stage 7: Real-Time Collaboration
 

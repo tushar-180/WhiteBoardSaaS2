@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Folder, ArrowRight, Trash2, LogOut } from "lucide-react";
-import { LeaveWorkspaceDialog } from "./leave-workspace-dialog";
+import { LeaveWorkspaceDialog } from "./dialogs/leave-workspace-dialog";
 import {
   Card,
   CardHeader,
@@ -12,7 +12,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { type Workspace } from "@/types/workspace";
-import { DeleteWorkspaceDialog } from "./delete-workspace-dialog";
+import { DeleteWorkspaceDialog } from "./dialogs/delete-workspace-dialog";
 import { ROUTES } from "@/lib/constants";
 
 
@@ -43,6 +43,20 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
   };
 
 
+
+  const getRoleBadgeClass = (role: string) => {
+    switch (role) {
+      case "owner":
+        return "bg-amber-500/10 text-amber-500 border border-amber-500/20";
+      case "admin":
+        return "bg-purple-500/10 text-purple-500 border border-purple-500/20";
+      case "editor":
+        return "bg-blue-500/10 text-blue-500 border border-blue-500/20";
+      case "viewer":
+      default:
+        return "bg-muted text-muted-foreground border border-border";
+    }
+  };
 
   return (
     <>
@@ -77,13 +91,21 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
           )}
 
           <CardHeader className="p-0 gap-0">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-                <Folder className="h-4 w-4" />
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                  <Folder className="h-4 w-4" />
+                </div>
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                  Workspace
+                </span>
               </div>
-              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
-                Workspace
-              </span>
+
+              {workspace.currentUserRole && (
+                <span className={`text-[8px] uppercase tracking-wider px-1.5 py-0.5 rounded-full font-bold font-mono transition-opacity duration-200 group-hover:opacity-0 group-hover:pointer-events-none ${getRoleBadgeClass(workspace.currentUserRole)}`}>
+                  {workspace.currentUserRole}
+                </span>
+              )}
             </div>
             <CardTitle className="text-base font-bold text-foreground group-hover:text-primary transition-colors duration-200 truncate pr-4">
               {workspace.name}

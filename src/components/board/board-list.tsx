@@ -7,14 +7,12 @@ import { type Board, type WorkspaceRole } from "@/types/workspace";
 
 interface BoardListProps {
   boards: Board[];
-  workspaceId: string;
   currentUserRole: WorkspaceRole;
   onCreateClick: () => void;
 }
 
 export function BoardList({
   boards,
-  workspaceId,
   currentUserRole,
   onCreateClick,
 }: BoardListProps) {
@@ -45,7 +43,6 @@ export function BoardList({
         <BoardCard
           key={board.id}
           board={board}
-          workspaceId={workspaceId}
           currentUserRole={currentUserRole}
         />
       ))}

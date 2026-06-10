@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
@@ -55,7 +54,7 @@ export function LeaveWorkspaceDialog({
             <DialogTitle className="text-lg font-bold">Leave Workspace</DialogTitle>
           </div>
           <DialogDescription className="text-muted-foreground text-xs pt-1">
-            Are you sure you want to leave "{workspaceName}"?
+            Are you sure you want to leave &quot;{workspaceName}&quot;?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="sm:justify-end gap-2 pt-2">

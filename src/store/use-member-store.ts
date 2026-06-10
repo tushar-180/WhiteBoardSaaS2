@@ -1,6 +1,5 @@
 import { create } from "zustand";
-import { type WorkspaceInvite, type WorkspaceRole } from "@/types/workspace";
-import { type WorkspaceMemberWithProfile } from "@/services/member";
+import { type WorkspaceInvite, type WorkspaceRole, type WorkspaceMemberWithProfile } from "@/types/workspace";
 
 interface MemberState {
   members: WorkspaceMemberWithProfile[];

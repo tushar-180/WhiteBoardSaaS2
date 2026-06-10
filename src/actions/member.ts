@@ -9,7 +9,7 @@ import {
   fetchWorkspaceMembers,
 } from "@/services/member";
 import { fetchWorkspaceById } from "@/services/workspace";
-import { type WorkspaceRole } from "@/types/workspace";
+import { type WorkspaceRole, workspaceRoleSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
 
 /**
@@ -79,10 +79,11 @@ export async function updateMemberRoleAction(
     const { user } = await requireActionAuth("You must be logged in to update member roles.");
 
     // 1. Validate role value
-    const allowedRoles: WorkspaceRole[] = ["admin", "editor", "viewer"];
-    if (!allowedRoles.includes(newRole)) {
+    const validated = workspaceRoleSchema.safeParse(newRole);
+    if (!validated.success || validated.data === "owner") {
       throw new Error("Invalid role selection.");
     }
+    const validatedRole = validated.data;
 
     // 2. Fetch workspace to verify existence
     const workspace = await fetchWorkspaceById(workspaceId);
@@ -125,7 +126,7 @@ export async function updateMemberRoleAction(
     }
 
     // 6. Update role
-    await updateWorkspaceMemberRole(workspaceId, memberId, newRole);
+    await updateWorkspaceMemberRole(workspaceId, memberId, validatedRole);
 
     // Revalidate paths
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
