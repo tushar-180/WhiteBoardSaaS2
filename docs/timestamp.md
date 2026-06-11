@@ -96,20 +96,21 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 
 ## Stage 7: Real-Time Collaboration
 
-**Goal:** Enable multiple users to collaborate live on the same board using tldraw sync and Supabase Realtime presence.
+**Goal:** Enable multiple users to collaborate live on the same board using a custom tldraw WebSocket sync server and TLSocketRoom presence.
 
-- [ ] Set up a tldraw sync backend (WebSocket server or Cloudflare Worker via `@tldraw/sync`).
-- [ ] Replace single-user `Tldraw` with `useSync` hook in `WhiteboardCanvas` for multi-user room state.
-- [ ] Configure an asset store for file/image uploads within the canvas.
-- [ ] Handle room persistence and reconnection on the backend.
-- [ ] Test concurrent edits across multiple browser sessions.
-- [ ] Add live cursor presence for connected users.
-- [ ] Integrate Supabase Realtime presence channel on the board page to track which users are currently viewing the canvas.
-- [ ] Show live avatar stack (user avatars + names) in the board toolbar when others are present.
+- [x] Set up a tldraw sync backend (WebSocket server via `@tldraw/sync @tldraw/sync-core`).
+- [x] Replace single-user `Tldraw` with `useSync` hook in `WhiteboardCanvas` for multi-user room state.
+- [x] Configure an asset store for file/image uploads within the canvas.
+- [x] Handle room persistence and reconnection on the backend.
+- [x] Test concurrent edits across multiple browser sessions.
+- [x] Add live cursor presence for connected users.
+- [x] Show live avatar stack (user avatars + names) in the board toolbar when others are present.
+- [x] Refactor client-side and sync server codebases into clean modular architectures.
+- [x] Implement server-side user profile fetching and props threading.
 
 ## Later / Optional
 
 - [ ] AI features.
 - [ ] Comments.
-- [ ] Realtime board chat (chat panel per board using Supabase Realtime).
+- [ ] Realtime board chat (chat panel per board).
 - [ ] Advanced scaling infrastructure.
