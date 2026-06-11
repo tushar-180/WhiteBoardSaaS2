@@ -51,7 +51,7 @@ export function useWhiteboardSync({ boardId }: UseWhiteboardSyncOptions) {
   // Synchronize WebSocket sync connection status with Whiteboard Zustand store
   useEffect(() => {
     if (syncStore.status === "loading") {
-      setSaveStatus("saving");
+      setSaveStatus("idle");
     } else if (syncStore.status === "synced-remote") {
       setSaveStatus("saved");
       setLastSavedAt(new Date());
