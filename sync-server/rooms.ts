@@ -111,7 +111,9 @@ export async function getOrCreateRoom(
         // Broadcast saving state to connected clients
         for (const session of room.getSessions()) {
           if (session.isConnected) {
-            room.sendCustomMessage(session.sessionId, { type: "autosave:saving" });
+            room.sendCustomMessage(session.sessionId, {
+              type: "autosave:saving",
+            });
           }
         }
 
@@ -134,7 +136,9 @@ export async function getOrCreateRoom(
         // Broadcast error state
         for (const session of room.getSessions()) {
           if (session.isConnected) {
-            room.sendCustomMessage(session.sessionId, { type: "autosave:error" });
+            room.sendCustomMessage(session.sessionId, {
+              type: "autosave:error",
+            });
           }
         }
       }

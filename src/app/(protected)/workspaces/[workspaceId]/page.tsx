@@ -1,5 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { requireAuth } from "@/utils/supabase/server";
+import { UnauthorizedAccess } from "@/components/shared/unauthorized-access";
 import { fetchWorkspaceById, hasWorkspaceAccess } from "@/services/workspace";
 import { ROUTES } from "@/lib/constants";
 import { fetchProfileById } from "@/services/profile";
@@ -29,7 +30,7 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
 
   const hasAccess = await hasWorkspaceAccess(workspaceId, user.id);
   if (!hasAccess) {
-    redirect(ROUTES.WORKSPACES);
+    return <UnauthorizedAccess />;
   }
 
   // 2. Fetch current user role and member lists

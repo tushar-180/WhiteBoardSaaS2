@@ -2,13 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  Plus,
-  ArrowLeft,
-  Calendar,
-  Hash,
-  Shield,
-} from "lucide-react";
+import { Plus, ArrowLeft, Calendar, Hash, Shield } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { BoardList } from "@/components/board/board-list";
@@ -71,7 +65,7 @@ export function WorkspaceDetailsClient({
   }
 
   const formattedDate = new Date(workspace.created_at).toLocaleDateString(
-    undefined,
+    "en-US",
     {
       year: "numeric",
       month: "short",
@@ -108,16 +102,18 @@ export function WorkspaceDetailsClient({
                 </p>
               </div>
 
-              {boards.length > 0 && currentUserRole !== "viewer" && currentUserRole !== "editor" && (
-                <Button
-                  onClick={() => setBoardOpen(true)}
-                  size="sm"
-                  className="rounded-xl font-semibold shadow-xs active:scale-[0.99] transition-all duration-200 cursor-pointer"
-                >
-                  <Plus className="mr-1 h-4 w-4" />
-                  New Board
-                </Button>
-              )}
+              {boards.length > 0 &&
+                currentUserRole !== "viewer" &&
+                currentUserRole !== "editor" && (
+                  <Button
+                    onClick={() => setBoardOpen(true)}
+                    size="sm"
+                    className="rounded-xl font-semibold shadow-xs active:scale-[0.99] transition-all duration-200 cursor-pointer"
+                  >
+                    <Plus className="mr-1 h-4 w-4" />
+                    New Board
+                  </Button>
+                )}
             </div>
 
             <div className="border-t border-border/40 pt-6">
@@ -149,7 +145,7 @@ export function WorkspaceDetailsClient({
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4 shrink-0 text-primary/70" />
-                  <span>Created {formattedDate}</span>
+                  <span suppressHydrationWarning>Created {formattedDate}</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Shield className="h-4 w-4 shrink-0 text-primary/70" />
@@ -167,9 +163,7 @@ export function WorkspaceDetailsClient({
             />
 
             {/* Pending Invites Card (Visible only to owners/admins) */}
-            {canManage && (
-              <WorkspaceInvitesList workspaceId={workspace.id} />
-            )}
+            {canManage && <WorkspaceInvitesList workspaceId={workspace.id} />}
           </div>
         </div>
 
@@ -190,4 +184,3 @@ export function WorkspaceDetailsClient({
     </>
   );
 }
-

@@ -28,7 +28,7 @@ export function BoardCard({ board, currentUserRole }: BoardCardProps) {
 
 
   const formattedDate = new Date(board.created_at).toLocaleDateString(
-    undefined,
+    "en-US",
     {
       year: "numeric",
       month: "short",
