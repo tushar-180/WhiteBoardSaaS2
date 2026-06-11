@@ -118,14 +118,17 @@ The board details and workspace list Zustand stores are `src/store/use-board-sto
 ```
 
 The whiteboard canvas collaboration and persistence runtime flow:
-1. **Connection**: `WhiteboardCanvas` uses `@tldraw/sync`'s `useSync` hook to connect to the sync server (`ws://localhost:8787/boards/:boardId?token=JWT`).
-2. **Auth & Authorization**: The WebSocket server validates the Supabase JWT token, confirms the board and workspace exist, and verifies user membership.
-3. **Load**: When the first client connects, the sync server loads `boards.canvas_data`, converts it to a `RoomSnapshot`, and creates a `TLSocketRoom` room.
-4. **Collaboration**: TLSocketRoom synchronizes edits, cursors, presence, selections, and conflict resolution across clients in real-time.
-5. **Auto-save**: Server-side document updates trigger a debounced (3-second) callback that saves the room's current snapshot back to `boards.canvas_data` in Supabase using the active editor's auth token.
-6. **Indicators**: The client-side status maps the WebSocket connection states (`loading`, `synced-remote`, `error`) to the header status badges (`Saving...`, `Saved`, `Save failed`).
-7. **Cleanup**: When the last user disconnects, the server saves the final room snapshot to Supabase and shuts down the room. Signal handlers (`SIGTERM`, `SIGINT`) persist active rooms on shutdown.
-8. **Manual Save**: The manual save fallback remains available on the client using the `updateBoardCanvasAction` server action.
+1. **User Auth Fetch**: The server component (`page.tsx` + `requireAuth()`) queries the Supabase database for the logged-in user profile's display name, formulating a synchronous `currentUser` object.
+2. **Props Threading**: `currentUser` is passed down as props to `<WhiteboardEditor>` and then `<WhiteboardCanvas>`, enabling instant preference hydration and preventing client-side loading flashes or validation errors.
+3. **Connection**: `WhiteboardCanvas` uses `@tldraw/sync`'s `useSync` hook to connect to the sync server (`ws://localhost:8787/boards/:boardId?token=JWT`).
+4. **Auth & Authorization**: The WebSocket server validates the Supabase JWT token, confirms the board and workspace exist, and verifies user membership.
+5. **Load**: When the first client connects, the sync server loads `boards.canvas_data`, converts it to a `RoomSnapshot`, and creates a `TLSocketRoom` room.
+6. **Collaboration**: TLSocketRoom synchronizes edits, cursors, presence, selections, and conflict resolution across clients in real-time.
+7. **Local Change Detection**: The client-side store listener (`store.listen` with `{ source: "all" }`) detects local document changes immediately and transitions the Zustand save state to `"saving"`.
+8. **Auto-save**: Server-side document updates trigger a debounced (3-second) callback that saves the room's current snapshot back to `boards.canvas_data` in Supabase.
+9. **Indicators**: The client receives server-broadcasted `"autosave:saving"`, `"autosave:saved"`, and `"autosave:error"` custom messages to transition the header status badges cleanly.
+10. **Cleanup**: When the last user disconnects, the server saves the final room snapshot to Supabase and shuts down the room. Signal handlers (`SIGTERM`, `SIGINT`) persist active rooms on shutdown.
+11. **Manual Save**: The manual save fallback remains available on the client using the `updateBoardCanvasAction` server action.
 
 ---
 
@@ -168,6 +171,11 @@ src/
 │   ├── auth/             # Login/register UI
 │   ├── landing/          # Landing page UI
 │   ├── ui/               # shadcn/ui components
+│   ├── whiteboard/       # Whiteboard canvas wrapper and sub-modules
+│   │   ├── hooks/        # Collaboration custom hooks
+│   │   │   ├─ use-collaborator-notifications.ts
+│   │   │   └─ use-whiteboard-sync.ts
+│   │   └── utils/        # Utility helpers (sync-uri.ts)
 │   └── workspace/        # Workspace dashboard UI
 ├── lib/                  # Shared utilities
 ├── services/             # Supabase data access
@@ -175,6 +183,16 @@ src/
 ├── types/                # TypeScript types and Zod schemas
 ├── utils/supabase/       # Supabase browser/server clients
 └── proxy.ts              # Auth route guard
+
+sync-server/              # Multiplayer WS Sync Server (Modular)
+├── config.ts             # Configurations and env setup
+├── types.ts              # Sync types
+├── database.ts           # Supabase client helper
+├── auth.ts               # Authenticated board verification
+├── connection.ts         # Socket routing and connection queues
+├── rooms.ts              # Room registry and autosave loops
+├── persistence.ts        # Database snapshot savers
+└── server.ts             # Main entry point
 ```
 
 ---
@@ -183,8 +201,7 @@ src/
 
 These can be explored only after the core app is stable:
 
-- Supabase Realtime presence
-- Multiplayer canvas sync
+- Realtime board chat (chat panel per board)
 - Comments
 - AI helpers
 - Advanced deployment/scaling work

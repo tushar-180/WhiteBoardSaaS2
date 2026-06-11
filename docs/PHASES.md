@@ -115,18 +115,18 @@ erDiagram
 - Environment variable docs
 - `npm run lint` and `npm run build`
 
-## Phase 7: Real-Time Collaboration (Pending)
+## Phase 7: Real-Time Collaboration ✅
 
-**Goal:** Enable live multi-user editing on the same board using tldraw sync and Supabase Realtime presence.
+**Goal:** Enable live multi-user editing on the same board using a custom tldraw WebSocket sync server and TLSocketRoom presence.
 
-- tldraw sync backend: WebSocket server or Cloudflare Worker (`@tldraw/sync`)
+- tldraw sync backend: WebSocket server (`@tldraw/sync`, `@tldraw/sync-core`)
 - Replace single-user `Tldraw` with `useSync` hook in `WhiteboardCanvas`
 - Asset store for file/image uploads within the canvas
 - Room persistence and reconnection handling on the backend
 - Live cursor presence for connected users
 - Test concurrent edits across multiple browser sessions
-- Supabase Realtime presence channel on the board page to track active viewers
-- Live avatar stack in the board toolbar showing who is currently on the canvas
+- TLSocketRoom presence channel on the sync server to track active collaborators
+- Live avatar stack and join/leave toast notifications showing who is currently on the canvas
 
 ---
 
@@ -134,6 +134,6 @@ erDiagram
 
 These features can be revisited after the core product is working:
 
-- Realtime board chat (chat panel per board via Supabase Realtime)
+- Realtime board chat (chat panel per board)
 - AI features
 - Advanced scaling infrastructure

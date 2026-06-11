@@ -47,14 +47,14 @@ src/
 ├── actions/             # Server Actions for authenticated mutations & cache revalidations
 ├── api/                 # Next.js API Route Handlers
 ├── app/                 # Next.js App Router (Layouts, pages, route segments)
-│   ├── (auth)/          # Authenticated route groups (Login, Register)
-│   ├── (protected)/     # Protected route groups (Workspaces, Boards)
-│   └── auth/callback/   # Supabase OAuth callbacks
 ├── components/          # React components
 │   ├── auth/            # Auth forms & layouts
 │   ├── board/           # Board cards, lists, and form dialogs
 │   ├── landing/         # Marketing landing page sections
 │   ├── ui/              # Reusable shadcn/ui components
+│   ├── whiteboard/      # Whiteboard canvas wrapper and sub-modules
+│   │   ├── hooks/       # Custom hooks (e.g. use-whiteboard-sync, use-collaborator-notifications)
+│   │   └── utils/       # Utility helpers (e.g. sync-uri.ts)
 │   └── workspace/       # Workspace dashboard layouts & list views
 ├── hooks/               # Custom reusable React hooks
 ├── lib/                 # Shared utilities, helper libraries (e.g. cn tailwind-merge)
@@ -235,6 +235,11 @@ whiteboard-canvas
 │  │  │  ├─ skeleton.tsx
 │  │  │  └─ sonner.tsx
 │  │  ├─ whiteboard
+│  │  │  ├─ hooks
+│  │  │  │  ├─ use-collaborator-notifications.ts
+│  │  │  │  └─ use-whiteboard-sync.ts
+│  │  │  ├─ utils
+│  │  │  │  └─ sync-uri.ts
 │  │  │  ├─ whiteboard-canvas.tsx
 │  │  │  ├─ whiteboard-editor.tsx
 │  │  │  └─ whiteboard-save-status.tsx
@@ -287,7 +292,14 @@ whiteboard-canvas
 │  └─ migrations
 │     └─ 20260604000000_create_profiles_table_and_trigger.sql
 ├─ sync-server
-│  └─ server.ts
+│  ├─ auth.ts
+│  ├─ config.ts
+│  ├─ connection.ts
+│  ├─ database.ts
+│  ├─ persistence.ts
+│  ├─ rooms.ts
+│  ├─ server.ts
+│  └─ types.ts
 ├─ tsconfig.json
 └─ vercel.json
 
