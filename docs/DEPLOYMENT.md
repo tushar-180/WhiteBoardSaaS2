@@ -48,6 +48,7 @@ Under the **Environment Variables** section in Vercel, add the following variabl
 | `NEXT_PUBLIC_SUPABASE_URL` | Settings -> API -> Project URL | `https://xxxx.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Settings -> API -> `anon` public key | `eyJhbGciOiJIUzI1NiIsIn...` |
 | `TLDRAW_API` | (Optional) Your TLDraw API license key | `tldraw_api_key_here` |
+| `RESEND_API_KEY` | (Optional) Your Resend API key for sending emails | `re_123456789...` |
 
 Click **Add** for each variable, then click **Deploy**.
 

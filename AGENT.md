@@ -43,9 +43,9 @@ The product flow is:
 ```txt
 Login / Register
   -> Workspaces
-  -> Members / Invites
-  -> Boards
-  -> Whiteboard canvas
+  -> Members / Invites (owners/editors/viewers)
+  -> Boards (owner-only creation)
+  -> Whiteboard canvas (read-only for editors/viewers)
   -> Save/load boards.canvas_data
 ```
 
@@ -59,14 +59,14 @@ AI, comments, large realtime collaboration, and advanced scaling are later ideas
 src/
 ├── actions/              # Server Actions
 ├── app/                  # Next.js App Router pages and route handlers
-│   ├── (auth)/           # login/register routes
-│   ├── (protected)/      # protected workspace and board routes
-│   └── auth/callback/    # Supabase OAuth callback
 ├── components/
 │   ├── auth/             # Auth UI
 │   ├── board/            # Board cards, lists, and form dialogs
 │   ├── landing/          # Landing page UI
 │   ├── ui/               # shadcn/ui components
+│   ├── whiteboard/       # Whiteboard canvas wrapper and sub-modules
+│   │   ├── hooks/        # Whiteboard collaboration hooks
+│   │   └── utils/        # Whiteboard WebSocket helpers
 │   └── workspace/        # Workspace dashboard UI
 ├── hooks/                # Custom React hooks (e.g. hooks/auth/)
 ├── lib/                  # Shared utilities (e.g. constants.ts)
@@ -75,6 +75,16 @@ src/
 ├── types/                # TypeScript types and Zod schemas
 ├── utils/supabase/       # Supabase browser/server clients
 └── proxy.ts              # Auth route guard
+
+sync-server/              # Multiplayer WS Sync Server (Modular)
+├── config.ts             # Configurations and env setup
+├── types.ts              # Sync types
+├── database.ts           # Supabase client helper
+├── auth.ts               # Authenticated board verification
+├── connection.ts         # Socket routing and connection queues
+├── rooms.ts              # Room registry and autosave loops
+├── persistence.ts        # Database snapshot savers
+└── server.ts             # Main entry point
 ```
 
 ---
@@ -88,6 +98,7 @@ src/
   - `getCurrentUser()`: Fetches the Supabase client and authenticated user (no throws or redirects).
   - `requireAuth(redirectTo)`: Used in Server Components (pages); redirects if not logged in.
   - `requireActionAuth(errorMessage)`: Used in Server Actions; throws an error if not logged in.
+- **Server-Side User Profile Fetch:** When loading protected details (like board pages), the server component (`page.tsx`) queries the user profile `displayName` and propagates a synchronous `currentUser` prop to the editor and canvas components. This avoids redundant client-side Supabase auth and profile lookups, ensuring the canvas mounts instantly with correct preferences.
 - `src/proxy.ts` uses `createMiddlewareClient` from `src/utils/supabase/server.ts`.
 
 ### Constants & Routes
@@ -109,9 +120,10 @@ src/
 - Do not duplicate validation rules inside components if a schema already exists.
 
 ### Client State & Hydration
-- Use Zustand stores in `src/store/` (`useWorkspaceStore`, `useBoardStore`, `useWhiteboardStore`).
+- Use Zustand stores in `src/store/` (`useWorkspaceStore`, `useBoardStore`, `useWhiteboardStore`, `useMemberStore`).
 - Keep server-fetched data authoritative; hydrate Zustand only for interactive client UI.
 - When loading a parent page, hydrate the Zustand store via `useWorkspaceStore.setState(...)` or `useBoardStore.setState(...)` inside an effect or component mount phase. Do not recreate independent react state for fetched lists or user auth details.
+- `useMemberStore` manages workspace member and invite lists with optimistic updates (add/remove/role-change) for the `WorkspaceDetailsClient`.
 - Do not add Redux providers, slices, or RTK Query.
 
 ### React Hooks
@@ -141,9 +153,16 @@ Examples:
 - Workspace mutations belong in `src/actions/workspace.ts`.
 - Workspace types and schemas belong in `src/types/workspace.ts`.
 - Workspace UI belongs in `src/components/workspace/`.
+- Member DB logic belongs in `src/services/member.ts`.
+- Member mutations belong in `src/actions/member.ts`.
+- Invite DB logic belongs in `src/services/invite.ts`.
+- Invite mutations belong in `src/actions/invite.ts`.
 - Board DB logic belongs in `src/services/board.ts`.
 - Board mutations belong in `src/actions/board.ts`.
 - Board UI belongs in `src/components/board/`.
+- Whiteboard hooks belong in `src/components/whiteboard/hooks/`.
+- Whiteboard utils belong in `src/components/whiteboard/utils/`.
+- Whiteboard UI/canvas belongs in `src/components/whiteboard/`.
 
 ---
 

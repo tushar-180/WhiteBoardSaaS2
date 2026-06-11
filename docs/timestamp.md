@@ -46,11 +46,19 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 
 **Goal:** Use the existing `workspace_members` and `workspace_invites` tables for collaboration access.
 
-- [ ] Add service functions for workspace members.
-- [ ] Show workspace owner/member list on the workspace detail page.
-- [ ] Add invite creation UI and Server Action.
-- [ ] Add invite accept route using `workspace_invites.token`.
-- [ ] Enforce workspace access by checking `owner_id` or `workspace_members`.
+- [x] Add service functions for workspace members (`src/services/member.ts`).
+- [x] Add service functions for workspace invites (`src/services/invite.ts`).
+- [x] Add member Server Actions in `src/actions/member.ts` (list, remove, update role, leave workspace).
+- [x] Add invite Server Actions in `src/actions/invite.ts` (create, accept, revoke, list).
+- [x] Extend workspace service with membership queries in `src/services/workspace.ts`.
+- [x] Show workspace owner/member list on the workspace detail page (`WorkspaceDetailsClient`).
+- [x] Add `InviteMemberDialog` — invite creation UI with role selection.
+- [x] Add invite accept route at `/invite/[token]` with `InviteAcceptClient` component.
+- [x] Add `useMemberStore` Zustand store for member/invite client state.
+- [x] Enforce role-based access: board creation restricted to owners only.
+- [x] Add read-only canvas mode for editors and viewers (`isReadonly` on tldraw editor).
+- [x] Add `LeaveWorkspaceDialog` component for non-owner members to leave a workspace.
+- [x] Add Vercel Analytics to `src/app/layout.tsx`.
 
 ## Stage 4: Board CRUD
 
@@ -80,16 +88,29 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 - [x] Refactor repeating Supabase client/auth calls into reusable server helpers.
 - [x] Extract shared layout, background gradients, and navigation headers into workspaces route layout.
 - [x] Centralize route configuration targets and asset paths into constants file.
-- [ ] Review empty states, not-found states, and protected-route redirects.
-- [ ] Tighten form validation and server-side error messages.
-- [ ] Run lint/build verification.
-- [ ] Document required environment variables.
-- [ ] Prepare deployment notes.
+- [x] Review empty states, not-found states, and protected-route redirects.
+- [x] Tighten form validation and server-side error messages.
+- [x] Run lint/build verification.
+- [x] Document required environment variables.
+- [x] Prepare deployment notes.
+
+## Stage 7: Real-Time Collaboration
+
+**Goal:** Enable multiple users to collaborate live on the same board using a custom tldraw WebSocket sync server and TLSocketRoom presence.
+
+- [x] Set up a tldraw sync backend (WebSocket server via `@tldraw/sync @tldraw/sync-core`).
+- [x] Replace single-user `Tldraw` with `useSync` hook in `WhiteboardCanvas` for multi-user room state.
+- [x] Configure an asset store for file/image uploads within the canvas.
+- [x] Handle room persistence and reconnection on the backend.
+- [x] Test concurrent edits across multiple browser sessions.
+- [x] Add live cursor presence for connected users.
+- [x] Show live avatar stack (user avatars + names) in the board toolbar when others are present.
+- [x] Refactor client-side and sync server codebases into clean modular architectures.
+- [x] Implement server-side user profile fetching and props threading.
 
 ## Later / Optional
 
-- [ ] Supabase Realtime presence or live cursors.
-- [ ] Multiplayer canvas sync.
 - [ ] AI features.
 - [ ] Comments.
+- [ ] Realtime board chat (chat panel per board).
 - [ ] Advanced scaling infrastructure.

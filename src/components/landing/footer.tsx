@@ -16,7 +16,6 @@ export default function Footer() {
             width={20}
             height={20}
             className="object-contain rounded"
-            style={{ height: "auto" }}
           />
           <span>Zentrox</span>
         </div>

@@ -26,7 +26,6 @@ export function WorkspaceNav({ userEmail, logoHref = ROUTES.HOME }: WorkspaceNav
             width={32}
             height={32}
             className="object-contain"
-            style={{ height: "auto" }}
           />
           <span className="font-black tracking-tight text-lg text-foreground">
             Zentrox

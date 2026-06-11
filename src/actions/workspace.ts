@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireActionAuth } from "@/utils/supabase/server";
 import { fetchWorkspacesByOwner, insertWorkspace, deleteWorkspace } from "@/services/workspace";
-import { type Workspace } from "@/types/workspace";
+import { type Workspace, workspaceSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
 
 /**
@@ -20,6 +20,9 @@ export async function getWorkspacesAction(): Promise<Workspace[]> {
   }
 }
 
+
+
+
 /**
  * Creates a new workspace with a slug generated from the workspace name.
  */
@@ -27,10 +30,12 @@ export async function createWorkspaceAction(name: string): Promise<Workspace> {
   try {
     const { user } = await requireActionAuth("You must be logged in to create a workspace.");
 
-    const trimmedName = name.trim();
-    if (!trimmedName || trimmedName.length < 2) {
-      throw new Error("Workspace name must be at least 2 characters long.");
+    const validated = workspaceSchema.safeParse({ name });
+    if (!validated.success) {
+      throw new Error(validated.error.issues[0].message);
     }
+    const trimmedName = validated.data.name;
+
 
     // Slugify the workspace name
     const cleanSlug = trimmedName

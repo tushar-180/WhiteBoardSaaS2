@@ -2,31 +2,52 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, ArrowLeft, Users, Calendar, Hash, Shield } from "lucide-react";
+import {
+  Plus,
+  ArrowLeft,
+  Calendar,
+  Hash,
+  Shield,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { BoardList } from "@/components/board/board-list";
 import { EmptyBoards } from "@/components/board/empty-boards";
 import { CreateBoardDialog } from "@/components/board/create-board-dialog";
-import { type Workspace, type Board } from "@/types/workspace";
+import { InviteMemberDialog } from "@/components/workspace/dialogs/invite-member-dialog";
+import { WorkspaceMembersList } from "@/components/workspace/members/workspace-members-list";
+import { WorkspaceInvitesList } from "@/components/workspace/invite/workspace-invites-list";
+import {
+  type Workspace,
+  type Board,
+  type WorkspaceInvite,
+  type WorkspaceRole,
+  type WorkspaceMemberWithProfile,
+} from "@/types/workspace";
 import { useBoardStore } from "@/store/use-board-store";
+import { useMemberStore } from "@/store/use-member-store";
 import RootLoading from "@/app/loading";
 import { ROUTES } from "@/lib/constants";
 
 interface WorkspaceDetailsClientProps {
   workspace: Workspace;
   initialBoards: Board[];
+  initialMembers: WorkspaceMemberWithProfile[];
+  initialInvites: WorkspaceInvite[];
+  currentUserRole: WorkspaceRole;
   userEmail?: string;
-  userName?: string;
 }
 
 export function WorkspaceDetailsClient({
   workspace,
   initialBoards,
+  initialMembers,
+  initialInvites,
+  currentUserRole,
   userEmail,
-  userName,
 }: WorkspaceDetailsClientProps) {
-  const [open, setOpen] = useState(false);
+  const [boardOpen, setBoardOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   // Sync server data with client-side Zustand store on mount/update
@@ -34,10 +55,14 @@ export function WorkspaceDetailsClient({
     useBoardStore.setState({
       boards: initialBoards,
     });
+    useMemberStore.setState({
+      members: initialMembers,
+      invites: initialInvites,
+    });
     setTimeout(() => {
       setIsMounted(true);
     }, 0);
-  }, [initialBoards]);
+  }, [initialBoards, initialMembers, initialInvites]);
 
   const boards = useBoardStore((state) => state.boards);
 
@@ -54,10 +79,12 @@ export function WorkspaceDetailsClient({
     },
   );
 
+  const canManage = currentUserRole === "owner" || currentUserRole === "admin";
+
   return (
     <>
       {/* Main Container */}
-      <main className="flex-1 container mx-auto px-6 py-10 max-w-7xl">
+      <main className="flex-1 container mx-auto px-6 py-10 max-w-7xl relative">
         {/* Back navigation */}
         <Link
           href={ROUTES.WORKSPACES}
@@ -81,9 +108,9 @@ export function WorkspaceDetailsClient({
                 </p>
               </div>
 
-              {boards.length > 0 && (
+              {boards.length > 0 && currentUserRole !== "viewer" && currentUserRole !== "editor" && (
                 <Button
-                  onClick={() => setOpen(true)}
+                  onClick={() => setBoardOpen(true)}
                   size="sm"
                   className="rounded-xl font-semibold shadow-xs active:scale-[0.99] transition-all duration-200 cursor-pointer"
                 >
@@ -95,11 +122,14 @@ export function WorkspaceDetailsClient({
 
             <div className="border-t border-border/40 pt-6">
               {boards.length === 0 ? (
-                <EmptyBoards onCreateClick={() => setOpen(true)} />
+                currentUserRole !== "viewer" && (
+                  <EmptyBoards onCreateClick={() => setBoardOpen(true)} />
+                )
               ) : (
                 <BoardList
                   boards={boards}
-                  onCreateClick={() => setOpen(true)}
+                  currentUserRole={currentUserRole}
+                  onCreateClick={() => setBoardOpen(true)}
                 />
               )}
             </div>
@@ -123,51 +153,41 @@ export function WorkspaceDetailsClient({
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Shield className="h-4 w-4 shrink-0 text-primary/70" />
-                  <span>Role: Owner</span>
+                  <span className="capitalize">Role: {currentUserRole}</span>
                 </div>
               </div>
             </div>
 
-            {/* Members Card Placeholder (Ready for Stage 3) */}
-            <div className="rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                  <Users className="h-4 w-4 text-primary/80" />
-                  Members
-                </h3>
-                <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold">
-                  1
-                </span>
-              </div>
+            {/* Active Members Card */}
+            <WorkspaceMembersList
+              workspaceId={workspace.id}
+              currentUserRole={currentUserRole}
+              userEmail={userEmail}
+              onInviteClick={() => setInviteOpen(true)}
+            />
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-7 w-7 rounded-full bg-gradient-to-r from-primary to-purple-600 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-xs">
-                    {(userName || userEmail || "U")
-                      .substring(0, 2)
-                      .toUpperCase()}
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-xs font-bold text-foreground truncate">
-                      {userName || "User"}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground truncate">
-                      {userEmail}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Pending Invites Card (Visible only to owners/admins) */}
+            {canManage && (
+              <WorkspaceInvitesList workspaceId={workspace.id} />
+            )}
           </div>
         </div>
 
         {/* Create Board Modal Dialog */}
         <CreateBoardDialog
           workspaceId={workspace.id}
-          open={open}
-          onOpenChange={setOpen}
+          open={boardOpen}
+          onOpenChange={setBoardOpen}
+        />
+
+        {/* Invite Member Dialog */}
+        <InviteMemberDialog
+          workspaceId={workspace.id}
+          open={inviteOpen}
+          onOpenChange={setInviteOpen}
         />
       </main>
     </>
   );
 }
+

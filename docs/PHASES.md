@@ -14,7 +14,8 @@ Reference docs:
 - **State, Forms, Validation:** Zustand, React Hook Form, Zod, `@hookform/resolvers`
 - **Backend:** Next.js Server Actions, Route Handlers, Supabase SSR SDK
 - **Database:** Supabase PostgreSQL
-- **Canvas:** Planned whiteboard canvas stored in `boards.canvas_data`
+- **Canvas:** tldraw whiteboard with `boards.canvas_data` persistence and role-based read-only mode
+- **Analytics:** Vercel Analytics
 
 Not in the current scope: comments, AI diagram generation, AI chat, or a large realtime architecture.
 
@@ -29,6 +30,7 @@ graph TD
     P3 --> P4[Phase 4: Boards]
     P4 --> P5[Phase 5: Canvas Persistence]
     P5 --> P6[Phase 6: Polish + Deploy]
+    P6 --> P7[Phase 7: Real-Time Collaboration]
 ```
 
 ---
@@ -70,15 +72,19 @@ erDiagram
 - Zustand store for hydrated workspace/user state
 - Creator automatically gets an `owner` row in `workspace_members`
 
-## Phase 3: Members and Invites
+## Phase 3: Members and Invites ✅
 
 **Goal:** Workspaces can support collaborators using existing database tables.
 
-- Member list for each workspace
-- Invite creation using `workspace_invites`
-- Invite acceptance by token
-- Workspace role handling with `WorkspaceRole`
-- Access checks before showing workspace or board data
+- Member list with role badges on the workspace detail page
+- `InviteMemberDialog` — create invite links with role selection (owner/editor/viewer)
+- Invite acceptance at `/invite/[token]` via `InviteAcceptClient`
+- `useMemberStore` Zustand store for optimistic member/invite UI updates
+- Member removal and role update actions (`src/actions/member.ts`)
+- Invite creation, acceptance, and revocation actions (`src/actions/invite.ts`)
+- `LeaveWorkspaceDialog` for non-owner members to leave a workspace
+- Role-based access: board creation restricted to owners; editors/viewers get read-only canvas
+- Vercel Analytics added to the root layout
 
 ## Phase 4: Boards
 
@@ -89,14 +95,15 @@ erDiagram
 - Board detail route at `/board/[boardId]`
 - Board ownership/access checks through workspace membership
 
-## Phase 5: Canvas Persistence
+## Phase 5: Canvas Persistence ✅
 
 **Goal:** Users can open a board, draw, save, and reload their canvas.
 
-- Canvas component in `/board/[boardId]`
-- Load board `canvas_data`
-- Save board `canvas_data`
-- Basic save status and error handling
+- tldraw canvas embedded in `/board/[boardId]`
+- Load board `canvas_data` from Supabase on open
+- Auto-save canvas changes back to `boards.canvas_data`
+- Basic save status and error indicators
+- Role-based read-only mode: `isReadonly` set for editors and viewers
 
 ## Phase 6: Polish and Deployment Readiness
 
@@ -108,14 +115,25 @@ erDiagram
 - Environment variable docs
 - `npm run lint` and `npm run build`
 
+## Phase 7: Real-Time Collaboration ✅
+
+**Goal:** Enable live multi-user editing on the same board using a custom tldraw WebSocket sync server and TLSocketRoom presence.
+
+- tldraw sync backend: WebSocket server (`@tldraw/sync`, `@tldraw/sync-core`)
+- Replace single-user `Tldraw` with `useSync` hook in `WhiteboardCanvas`
+- Asset store for file/image uploads within the canvas
+- Room persistence and reconnection handling on the backend
+- Live cursor presence for connected users
+- Test concurrent edits across multiple browser sessions
+- TLSocketRoom presence channel on the sync server to track active collaborators
+- Live avatar stack and join/leave toast notifications showing who is currently on the canvas
+
 ---
 
 ## Later / Optional
 
 These features can be revisited after the core product is working:
 
-- Supabase Realtime presence
-- Multiplayer canvas sync
-- Comments
+- Realtime board chat (chat panel per board)
 - AI features
 - Advanced scaling infrastructure

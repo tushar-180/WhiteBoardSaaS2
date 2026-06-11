@@ -10,7 +10,7 @@ import {
   updateBoardCanvas,
 } from "@/services/board";
 import { hasWorkspaceAccess } from "@/services/workspace";
-import { type Board } from "@/types/workspace";
+import { type Board, boardSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
 
 /**
@@ -48,15 +48,16 @@ export async function createBoardAction(
       throw new Error("You do not have access to modify this workspace.");
     }
 
-    const trimmedName = name.trim();
-    if (!trimmedName || trimmedName.length < 2) {
-      throw new Error("Board name must be at least 2 characters long.");
+    const validated = boardSchema.safeParse({ name, description });
+    if (!validated.success) {
+      throw new Error(validated.error.issues[0].message);
     }
+    const { name: trimmedName, description: validatedDescription } = validated.data;
 
     const board = await insertBoard(
       workspaceId,
       trimmedName,
-      description,
+      validatedDescription || null,
       user.id,
     );
 
@@ -87,12 +88,13 @@ export async function updateBoardAction(
       throw new Error("You do not have access to modify this workspace.");
     }
 
-    const trimmedName = name.trim();
-    if (!trimmedName || trimmedName.length < 2) {
-      throw new Error("Board name must be at least 2 characters long.");
+    const validated = boardSchema.safeParse({ name, description });
+    if (!validated.success) {
+      throw new Error(validated.error.issues[0].message);
     }
+    const { name: trimmedName, description: validatedDescription } = validated.data;
 
-    const board = await updateBoard(boardId, trimmedName, description);
+    const board = await updateBoard(boardId, trimmedName, validatedDescription || null);
 
     // Revalidate the workspace details route
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);

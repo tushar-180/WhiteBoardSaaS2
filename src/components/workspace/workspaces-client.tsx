@@ -7,18 +7,19 @@ import { Plus, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "./empty-state";
 import { WorkspaceList } from "./workspace-list";
-import { CreateWorkspaceDialog } from "./create-workspace-dialog";
+import { CreateWorkspaceDialog } from "./dialogs/create-workspace-dialog";
 import { type Workspace } from "@/types/workspace";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
 import RootLoading from "@/app/loading";
 
 interface WorkspacesClientProps {
   initialWorkspaces: Workspace[];
+  userId: string;
   userEmail?: string;
   userName?: string;
 }
 
-export function WorkspacesClient({ initialWorkspaces, userEmail, userName }: WorkspacesClientProps) {
+export function WorkspacesClient({ initialWorkspaces, userId, userEmail, userName }: WorkspacesClientProps) {
   const [open, setOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -79,7 +80,7 @@ export function WorkspacesClient({ initialWorkspaces, userEmail, userName }: Wor
         {workspaces.length === 0 ? (
           <EmptyState onCreateClick={() => setOpen(true)} />
         ) : (
-          <WorkspaceList onCreateClick={() => setOpen(true)} />
+          <WorkspaceList userId={userId} onCreateClick={() => setOpen(true)} />
         )}
 
         {/* Modal Dialog for creating workspaces */}
