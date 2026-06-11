@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { type Board } from "@/types/workspace";
+import { isValidUUID } from "@/lib/utils";
 
 /**
  * Fetches all boards belonging to a workspace.
@@ -26,6 +27,9 @@ export async function fetchBoardsByWorkspace(
  * Fetches a single board by its ID.
  */
 export async function fetchBoardById(boardId: string): Promise<Board | null> {
+  if (!isValidUUID(boardId)) {
+    return null;
+  }
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("boards")

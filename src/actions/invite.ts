@@ -74,14 +74,21 @@ export async function createInviteAction(
       user.id,
     );
 
-    // 6. Build the invite link dynamically using the request headers
-    const headerStore = await headers();
-    const host = headerStore.get("host") || "localhost:3000";
-    const protocol =
-      host.includes("localhost") || host.includes("127.0.0.1")
-        ? "http"
-        : "https";
-    const inviteLink = `${protocol}://${host}/invite/${invite.token}`;
+    // 6. Build the invite link dynamically using environment variables or request headers
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    let inviteLink = "";
+
+    if (baseUrl) {
+      const cleanBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+      inviteLink = `${cleanBaseUrl}/invite/${invite.token}`;
+    } else {
+      const headerStore = await headers();
+      const forwardedHost = headerStore.get("x-forwarded-host");
+      const host = forwardedHost || headerStore.get("host") || "localhost:3000";
+      const forwardedProto = headerStore.get("x-forwarded-proto");
+      const protocol = forwardedProto || (host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https");
+      inviteLink = `${protocol}://${host}/invite/${invite.token}`;
+    }
 
     let emailSent = false;
 

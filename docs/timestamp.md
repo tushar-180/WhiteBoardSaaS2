@@ -98,13 +98,12 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 
 **Goal:** Enable multiple users to collaborate live on the same board using tldraw sync and Supabase Realtime presence.
 
-- [ ] Set up a tldraw sync backend (WebSocket server or Cloudflare Worker via `@tldraw/sync`).
-- [ ] Replace single-user `Tldraw` with `useSync` hook in `WhiteboardCanvas` for multi-user room state.
-- [ ] Configure an asset store for file/image uploads within the canvas.
-- [ ] Handle room persistence and reconnection on the backend.
+- [x] Set up a tldraw sync backend (WebSocket server via `@tldraw/sync @tldraw/sync-core`).
+- [x] Replace single-user `Tldraw` with `useSync` hook in `WhiteboardCanvas` for multi-user room state.
+- [x] Configure an asset store for file/image uploads within the canvas.
+- [x] Handle room persistence and reconnection on the backend.
 - [ ] Test concurrent edits across multiple browser sessions.
-- [ ] Add live cursor presence for connected users.
-- [ ] Integrate Supabase Realtime presence channel on the board page to track which users are currently viewing the canvas.
+- [x] Add live cursor presence for connected users.
 - [ ] Show live avatar stack (user avatars + names) in the board toolbar when others are present.
 
 ## Later / Optional

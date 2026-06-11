@@ -19,6 +19,7 @@ const WhiteboardCanvas = dynamic(() => import("./whiteboard-canvas"), {
 
 export default function WhiteboardEditor({
   board,
+  currentUser,
   licenseKey,
   isReadonly,
 }: WhiteboardEditorProps) {
@@ -107,6 +108,7 @@ export default function WhiteboardEditor({
           workspaceId={board.workspace_id}
           initialCanvasData={board.canvas_data}
           editorRef={editorRef}
+          currentUser={currentUser}
           licenseKey={licenseKey}
           isReadonly={isReadonly}
         />

@@ -117,12 +117,15 @@ The board details and workspace list Zustand stores are `src/store/use-board-sto
   -> useWhiteboardStore (Zustand state for saveStatus and lastSavedAt)
 ```
 
-The whiteboard canvas persistence runtime flow:
-1. **Load**: `WhiteboardCanvas` loads the `canvas_data` JSONB snapshot from Supabase on mount.
-2. **Observe**: Subscribes to local drawing updates via `editor.store.listen` with `{ source: 'user', scope: 'document' }`.
-3. **Auto-save**: Updates trigger a debounced (2-second interval) callback that saves the document snapshot back to the database using the `updateBoardCanvasAction` server action.
-4. **Indicators**: The header displays real-time status badges (`Saved`, `Saving...`, `Unsaved changes`, `Save failed`) and allows a manual "Save Now" fallback if auto-save fails.
-5. **Route Guard**: The beforeunload listener warns users trying to leave the page with unsaved modifications.
+The whiteboard canvas collaboration and persistence runtime flow:
+1. **Connection**: `WhiteboardCanvas` uses `@tldraw/sync`'s `useSync` hook to connect to the sync server (`ws://localhost:8787/boards/:boardId?token=JWT`).
+2. **Auth & Authorization**: The WebSocket server validates the Supabase JWT token, confirms the board and workspace exist, and verifies user membership.
+3. **Load**: When the first client connects, the sync server loads `boards.canvas_data`, converts it to a `RoomSnapshot`, and creates a `TLSocketRoom` room.
+4. **Collaboration**: TLSocketRoom synchronizes edits, cursors, presence, selections, and conflict resolution across clients in real-time.
+5. **Auto-save**: Server-side document updates trigger a debounced (3-second) callback that saves the room's current snapshot back to `boards.canvas_data` in Supabase using the active editor's auth token.
+6. **Indicators**: The client-side status maps the WebSocket connection states (`loading`, `synced-remote`, `error`) to the header status badges (`Saving...`, `Saved`, `Save failed`).
+7. **Cleanup**: When the last user disconnects, the server saves the final room snapshot to Supabase and shuts down the room. Signal handlers (`SIGTERM`, `SIGINT`) persist active rooms on shutdown.
+8. **Manual Save**: The manual save fallback remains available on the client using the `updateBoardCanvasAction` server action.
 
 ---
 

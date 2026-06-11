@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { type Workspace, type WorkspaceRole } from "@/types/workspace";
+import { isValidUUID } from "@/lib/utils";
 
 /**
  * Fetches all workspaces owned by a specific user.
@@ -202,6 +203,9 @@ export async function deleteWorkspace(workspaceId: string, ownerId: string): Pro
  * Fetches a single workspace by its ID.
  */
 export async function fetchWorkspaceById(workspaceId: string): Promise<Workspace | null> {
+  if (!isValidUUID(workspaceId)) {
+    return null;
+  }
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("workspaces")
