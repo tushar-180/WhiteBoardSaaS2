@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Tldraw, type Editor } from "tldraw";
 import "tldraw/tldraw.css";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { type WhiteboardCanvasProps } from "@/types/whiteboard";
 import { useWhiteboardSync } from "./hooks/use-whiteboard-sync";
 import { useCollaboratorNotifications } from "./hooks/use-collaborator-notifications";
@@ -68,26 +70,30 @@ export default function WhiteboardCanvas({
 
   if (syncStore.status === "loading") {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 backdrop-blur-sm z-50">
-        <div className="flex flex-col items-center gap-4 text-center px-4 max-w-sm">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-sm font-semibold text-foreground">
-            Connecting to collaboration session...
-          </p>
-          {showTimeoutWarning && (
-            <div className="flex flex-col items-center gap-3">
-              <p className="text-xs text-muted-foreground">
-                The connection is taking longer than usual. The server might be offline or unreachable.
-              </p>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow transition-all duration-200"
-              >
-                Retry Connection
-              </button>
-            </div>
-          )}
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/10 z-50">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <p className="text-sm font-medium">Connecting...</p>
         </div>
+        {showTimeoutWarning && (
+          <div className="flex flex-col items-center gap-3 mt-6 p-4 bg-background rounded-xl border shadow-sm max-w-sm mx-4">
+            <div className="flex items-center gap-2 text-amber-500">
+              <AlertCircle className="h-4 w-4" />
+              <p className="text-sm font-semibold">Connection delayed</p>
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              The sync server is taking longer than expected. It might be sleeping or unreachable.
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              size="sm"
+              variant="outline"
+              className="w-full mt-2"
+            >
+              Retry Connection
+            </Button>
+          </div>
+        )}
       </div>
     );
   }

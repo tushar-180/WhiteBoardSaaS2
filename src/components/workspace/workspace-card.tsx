@@ -28,7 +28,7 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
   const [openLeaveDialog, setOpenLeaveDialog] = useState(false);
 
   const formattedDate = new Date(workspace.created_at).toLocaleDateString(
-    undefined,
+    "en-US",
     {
       year: "numeric",
       month: "short",

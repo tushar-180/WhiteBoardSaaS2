@@ -1,4 +1,4 @@
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 
 export default function BoardLoading() {
   return (
@@ -17,15 +17,12 @@ export default function BoardLoading() {
         <div className="h-7 w-20 bg-muted rounded-full animate-pulse" />
       </header>
 
-      {/* Drawing Canvas Area Placeholder */}
-      <main className="flex-1 w-full h-[calc(100vh-64px)] flex flex-col items-center justify-center bg-background/50 relative">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(hsl(var(--foreground)/0.08)_1px,transparent_1px)] [background-size:20px_20px]" />
-        <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-primary/20 to-purple-500/20 text-primary mb-4 shadow-sm animate-pulse">
-          <RefreshCw className="h-6 w-6 text-primary animate-spin" />
+      {/* Minimal Canvas Area Placeholder */}
+      <main className="flex-1 w-full flex items-center justify-center bg-muted/10">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <p className="text-sm font-medium">Loading...</p>
         </div>
-        <p className="text-sm text-muted-foreground font-medium animate-pulse">
-          Initializing canvas workspace...
-        </p>
       </main>
     </div>
   );

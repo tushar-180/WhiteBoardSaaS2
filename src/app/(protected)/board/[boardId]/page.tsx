@@ -1,5 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { requireAuth } from "@/utils/supabase/server";
+import { UnauthorizedAccess } from "@/components/shared/unauthorized-access";
 import { fetchBoardById } from "@/services/board";
 import { hasWorkspaceAccess } from "@/services/workspace";
 import { ROUTES } from "@/lib/constants";
@@ -27,9 +28,8 @@ export default async function BoardDetailPage({ params }: PageProps) {
   // 2. Validate workspace access
   const hasAccess = await hasWorkspaceAccess(board.workspace_id, user.id);
   if (!hasAccess) {
-    redirect(ROUTES.WORKSPACES);
+    return <UnauthorizedAccess />;
   }
-  
 
   const workspaceRole = await fetchWorkspaceMemberRole(board.workspace_id, user.id);
   const isReadonly = workspaceRole === "viewer";

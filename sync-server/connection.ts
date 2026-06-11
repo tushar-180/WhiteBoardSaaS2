@@ -9,7 +9,10 @@ import { type SocketType } from "./types";
 /**
  * Handles validation, authentication, and room socket binding.
  */
-export async function handleConnection(socket: WebSocket, req: IncomingMessage) {
+export async function handleConnection(
+  socket: WebSocket,
+  req: IncomingMessage,
+) {
   // Set up temporary listeners to buffer early messages during async validation
   const messageQueue: unknown[] = [];
   let isClosed = false;
@@ -35,7 +38,9 @@ export async function handleConnection(socket: WebSocket, req: IncomingMessage) 
   // Pattern: /boards/:boardId
   const match = pathname.match(/^\/boards\/([a-zA-Z0-9-]+)$/);
   if (!match) {
-    console.warn(`[Sync Server] Rejecting connection: Invalid path ${pathname}`);
+    console.warn(
+      `[Sync Server] Rejecting connection: Invalid path ${pathname}`,
+    );
     cleanupTempListeners();
     socket.close(4000, "Invalid connection path");
     return;
@@ -45,7 +50,9 @@ export async function handleConnection(socket: WebSocket, req: IncomingMessage) 
   const token = url.searchParams.get("token");
 
   if (!token) {
-    console.warn(`[Sync Server] Rejecting connection to board ${boardId}: Missing auth token`);
+    console.warn(
+      `[Sync Server] Rejecting connection to board ${boardId}: Missing auth token`,
+    );
     cleanupTempListeners();
     socket.close(4001, "Missing authentication token");
     return;
@@ -63,12 +70,14 @@ export async function handleConnection(socket: WebSocket, req: IncomingMessage) 
 
     // 3. Get or create room and bind socket
     const room = await getOrCreateRoom(boardId, auth.canvasData);
-    
+
     // Remove temporary buffers before passing socket to room
     cleanupTempListeners();
 
     if (isClosed) {
-      console.warn(`[Sync Server] Client disconnected before connection validation finished for board ${boardId}`);
+      console.warn(
+        `[Sync Server] Client disconnected before connection validation finished for board ${boardId}`,
+      );
       return;
     }
 
@@ -85,12 +94,17 @@ export async function handleConnection(socket: WebSocket, req: IncomingMessage) 
 
     // Replay any messages received during the asynchronous validation phase
     for (const msg of messageQueue) {
-      room.handleSocketMessage(sessionId, msg as string | AllowSharedBufferSource);
+      room.handleSocketMessage(
+        sessionId,
+        msg as string | AllowSharedBufferSource,
+      );
     }
-
   } catch (err: unknown) {
     const error = err as Error;
-    console.error(`[Sync Server] Error handling socket connection for board ${boardId}:`, error.message);
+    console.error(
+      `[Sync Server] Error handling socket connection for board ${boardId}:`,
+      error.message,
+    );
     cleanupTempListeners();
     socket.close(4999, error.message || "Internal validation error");
   }
