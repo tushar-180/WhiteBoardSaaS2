@@ -6,13 +6,15 @@ import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/actions/auth";
 import { ROUTES, ASSETS } from "@/lib/constants";
+import { NotificationInbox } from "./notification-inbox";
 
 interface WorkspaceNavProps {
   userEmail?: string;
+  userId?: string;
   logoHref?: string;
 }
 
-export function WorkspaceNav({ userEmail, logoHref = ROUTES.HOME }: WorkspaceNavProps) {
+export function WorkspaceNav({ userEmail, userId, logoHref = ROUTES.HOME }: WorkspaceNavProps) {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
@@ -34,9 +36,12 @@ export function WorkspaceNav({ userEmail, logoHref = ROUTES.HOME }: WorkspaceNav
 
         <div className="flex items-center gap-4">
           {userEmail && (
-            <span className="text-xs text-muted-foreground hidden sm:inline-block font-medium">
-              {userEmail}
-            </span>
+            <>
+              <NotificationInbox userEmail={userEmail} userId={userId} />
+              <span className="text-xs text-muted-foreground hidden sm:inline-block font-medium">
+                {userEmail}
+              </span>
+            </>
           )}
           <form action={signOutAction}>
             <Button

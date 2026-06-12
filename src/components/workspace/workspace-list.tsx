@@ -1,10 +1,20 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Search, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { WorkspaceCard } from "./workspace-card";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
-
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface WorkspaceListProps {
   userId: string;
@@ -13,65 +23,258 @@ interface WorkspaceListProps {
 
 export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
   const workspaces = useWorkspaceStore((state) => state.workspaces);
+  const [filter, setFilter] = useState<"all" | "owned" | "joined">("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const ownedWorkspaces = workspaces.filter((w) => w.owner_id === userId);
   const joinedWorkspaces = workspaces.filter((w) => w.owner_id !== userId);
 
+  const filteredWorkspaces = workspaces.filter((w) => {
+    const matchesFilter = filter === "all" || 
+                         (filter === "owned" && w.owner_id === userId) ||
+                         (filter === "joined" && w.owner_id !== userId);
+    
+    const matchesSearch = w.name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesFilter && matchesSearch;
+  });
+
+  // Pagination states
+  const ITEMS_PER_PAGE = 6;
+  const hasCreateCard = filter === "all" || filter === "owned";
+  const totalCount = filteredWorkspaces.length + (hasCreateCard ? 1 : 0);
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const activePage = Math.min(currentPage, Math.max(1, totalPages));
+
+  // Reset page to 1 when filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, searchQuery]);
+
+  // Calculate items to show
+  let pageWorkspaces: typeof filteredWorkspaces = [];
+  let showCreateCardOnPage = false;
+
+  if (hasCreateCard) {
+    if (activePage === 1) {
+      showCreateCardOnPage = true;
+      pageWorkspaces = filteredWorkspaces.slice(0, ITEMS_PER_PAGE - 1);
+    } else {
+      showCreateCardOnPage = false;
+      const startIndex = (activePage - 1) * ITEMS_PER_PAGE - 1;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+      pageWorkspaces = filteredWorkspaces.slice(startIndex, endIndex);
+    }
+  } else {
+    showCreateCardOnPage = false;
+    const startIndex = (activePage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    pageWorkspaces = filteredWorkspaces.slice(startIndex, endIndex);
+  }
+
+  const getPageNumbers = () => {
+    const pages: (number | "ellipsis")[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      pages.push(1);
+
+      if (activePage > 3) {
+        pages.push("ellipsis");
+      }
+
+      const start = Math.max(2, activePage - 1);
+      const end = Math.min(totalPages - 1, activePage + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (activePage < totalPages - 2) {
+        pages.push("ellipsis");
+      }
+
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
   return (
-    <div className="space-y-10">
-      {/* Owned Workspaces Section */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-          <h3 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+    <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+      {/* Filters Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4 shrink-0">
+        <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/50 backdrop-blur-xs w-fit">
+          <button
+            onClick={() => setFilter("all")}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
+              filter === "all"
+                ? "bg-background text-foreground shadow-xs border border-border/50"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/20 border border-transparent"
+            }`}
+          >
+            All Workspaces ({workspaces.length})
+          </button>
+          <button
+            onClick={() => setFilter("owned")}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
+              filter === "owned"
+                ? "bg-background text-foreground shadow-xs border border-border/50"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/20 border border-transparent"
+            }`}
+          >
             Owned by Me ({ownedWorkspaces.length})
+          </button>
+          <button
+            onClick={() => setFilter("joined")}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
+              filter === "joined"
+                ? "bg-background text-foreground shadow-xs border border-border/50"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/20 border border-transparent"
+            }`}
+          >
+            Joined ({joinedWorkspaces.length})
+          </button>
+        </div>
+
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search workspaces..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-9 h-9 text-xs rounded-xl bg-muted/20 border-border/50 focus-visible:ring-primary/30"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Content wrapper with scrollable grid */}
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0 py-4">
+        <div className="flex items-center gap-2 mb-4 shrink-0">
+          <span
+            className={`h-1.5 w-1.5 rounded-full transition-colors duration-300 ${
+              filter === "joined" ? "bg-purple-500" : "bg-primary"
+            }`}
+          />
+          <h3 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            {filter === "all" && `All Workspaces (${workspaces.length})`}
+            {filter === "owned" && `Owned Workspaces (${ownedWorkspaces.length})`}
+            {filter === "joined" && `Joined Workspaces (${joinedWorkspaces.length})`}
           </h3>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {/* Create New Workspace Action Card */}
-          <button onClick={onCreateClick} className="block text-left group h-full cursor-pointer focus:outline-none">
-            <Card className="h-full min-h-[160px] border border-dashed border-border/100 bg-background/30 transition-all duration-300 hover:border-primary/60 hover:bg-muted/10 rounded-xl p-5 flex flex-col items-center justify-center text-center gap-2 ring-0">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/60 border border-border/80 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all duration-300 shadow-xs">
-                <Plus className="h-5 w-5" />
-              </div>
-              <span className="font-bold text-sm text-foreground/80 group-hover:text-primary transition-colors duration-200">
-                Create Workspace
-              </span>
-              <span className="text-[11px] text-muted-foreground max-w-[180px] leading-relaxed">
-                Set up a new space for your boards and team.
-              </span>
-            </Card>
-          </button>
 
-          {/* Render Workspace Cards */}
-          {ownedWorkspaces.map((workspace) => (
+        <div className="flex-1 overflow-y-auto min-h-0 pr-1 pb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {/* Create New Workspace Action Card - Show for All or Owned on Page 1 */}
+            {showCreateCardOnPage && (
+              <button
+                onClick={onCreateClick}
+                className="block text-left group h-full cursor-pointer focus:outline-none"
+              >
+                <Card className="h-full min-h-[160px] border border-dashed border-border/100 bg-background/30 transition-all duration-300 hover:border-primary/60 hover:bg-muted/10 rounded-xl p-5 flex flex-col items-center justify-center text-center gap-2 ring-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/60 border border-border/80 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all duration-300 shadow-xs">
+                    <Plus className="h-5 w-5" />
+                  </div>
+                  <span className="font-bold text-sm text-foreground/80 group-hover:text-primary transition-colors duration-200">
+                    Create Workspace
+                  </span>
+                  <span className="text-[11px] text-muted-foreground max-w-[180px] leading-relaxed">
+                    Set up a new space for your boards and team.
+                  </span>
+                </Card>
+              </button>
+            )}
+
+            {/* Render Workspace Cards */}
+            {pageWorkspaces.map((workspace) => (
               <WorkspaceCard
                 key={workspace.id}
                 workspace={workspace}
                 userId={userId}
               />
-          ))}
+            ))}
+
+            {/* Empty State when filtering Joined and none are found or search yields no results */}
+            {filteredWorkspaces.length === 0 && (
+              <div className="col-span-full py-12 text-center border border-dashed border-border/60 rounded-xl bg-background/30 flex flex-col items-center justify-center p-6 gap-2">
+                <span className="text-sm font-semibold text-muted-foreground">
+                  {searchQuery ? "No workspaces found" : "No workspaces"}
+                </span>
+                <span className="text-xs text-muted-foreground/80 max-w-sm">
+                  {searchQuery 
+                    ? `No workspaces match your search "${searchQuery}".` 
+                    : filter === "joined" 
+                      ? "You haven't joined any workspaces yet. When others invite you, their workspaces will show up here."
+                      : "You don't have any workspaces yet."}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Joined Workspaces Section */}
-      {joinedWorkspaces.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Joined Workspaces ({joinedWorkspaces.length})
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {joinedWorkspaces.map((workspace) => (
-                <WorkspaceCard
-                  key={workspace.id}
-                  workspace={workspace}
-                  userId={userId}
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="shrink-0 pt-4 border-t border-border/20 flex justify-center bg-background/80 backdrop-blur-xs">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (activePage > 1) setCurrentPage(activePage - 1);
+                  }}
+                  className={activePage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 />
-            ))}
-          </div>
+              </PaginationItem>
+
+              {getPageNumbers().map((pageNum, idx) => (
+                <PaginationItem key={idx}>
+                  {pageNum === "ellipsis" ? (
+                    <PaginationEllipsis />
+                  ) : (
+                    <PaginationLink
+                      href="#"
+                      isActive={activePage === pageNum}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage(pageNum);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  )}
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (activePage < totalPages) setCurrentPage(activePage + 1);
+                  }}
+                  className={activePage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         </div>
       )}
     </div>

@@ -19,10 +19,11 @@ export function InviteAcceptClient({
   currentUserEmail,
 }: InviteAcceptClientProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [acceptLoading, setAcceptLoading] = useState(false);
+  const [rejectLoading, setRejectLoading] = useState(false);
 
   const handleAccept = async () => {
-    setLoading(true);
+    setAcceptLoading(true);
     try {
       const workspaceId = await acceptInviteAction(invite.token);
       toast.success("Successfully joined the workspace!");
@@ -33,12 +34,12 @@ export function InviteAcceptClient({
           "Failed to accept invitation. Please try again.",
       );
     } finally {
-      setLoading(false);
+      setAcceptLoading(false);
     }
   };
 
   const handleReject = async () => {
-    setLoading(true);
+    setRejectLoading(true);
     try {
       await rejectInviteAction(invite.token);
       toast.success("Invitation rejected successfully.");
@@ -49,7 +50,7 @@ export function InviteAcceptClient({
           "Failed to reject invitation. Please try again.",
       );
     } finally {
-      setLoading(false);
+      setRejectLoading(false);
     }
   };
 
@@ -123,10 +124,10 @@ export function InviteAcceptClient({
       <div className="flex flex-col gap-2 pt-2">
         <Button
           onClick={handleAccept}
-          disabled={loading || isDifferentEmail}
+          disabled={acceptLoading || rejectLoading || isDifferentEmail}
           className="w-full h-10 rounded-xl font-semibold shadow-xs active:scale-[0.99] transition-all cursor-pointer"
         >
-          {loading ? (
+          {acceptLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing...
@@ -139,32 +140,41 @@ export function InviteAcceptClient({
         {!isDifferentEmail && (
           <Button
             onClick={handleReject}
-            disabled={loading}
+            disabled={acceptLoading || rejectLoading}
             variant="outline"
             className="w-full h-10 rounded-xl font-semibold cursor-pointer"
           >
-            Decline
+            {rejectLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Declining...
+              </>
+            ) : (
+              "Decline"
+            )}
           </Button>
         )}
 
-        <Button
-          variant="ghost"
-          onClick={async () => {
-            // Sign out of current account and refresh/redirect to login page
-            const { createClient } = await import("@/utils/supabase/client");
-            const supabase = createClient();
-            await supabase.auth.signOut();
-            toast.info(
-              "Logged out. Please log in or register with your other account.",
-            );
-            router.push(`${ROUTES.LOGIN}?next=/invite/${invite.token}`);
-          }}
-          disabled={loading}
-          className="w-full h-10 rounded-xl text-muted-foreground hover:text-foreground cursor-pointer text-xs"
-        >
-          <LogOut className="mr-1.5 h-3.5 w-3.5" />
-          Switch Accounts
-        </Button>
+        {isDifferentEmail && (
+          <Button
+            variant="ghost"
+            onClick={async () => {
+              // Sign out of current account and refresh/redirect to login page
+              const { createClient } = await import("@/utils/supabase/client");
+              const supabase = createClient();
+              await supabase.auth.signOut();
+              toast.info(
+                "Logged out. Please log in or register with your other account.",
+              );
+              router.push(`${ROUTES.LOGIN}?next=/invite/${invite.token}`);
+            }}
+            disabled={acceptLoading || rejectLoading}
+            className="w-full h-10 rounded-xl text-muted-foreground hover:text-foreground cursor-pointer text-xs"
+          >
+            <LogOut className="mr-1.5 h-3.5 w-3.5" />
+            Switch Accounts
+          </Button>
+        )}
       </div>
     </div>
   );

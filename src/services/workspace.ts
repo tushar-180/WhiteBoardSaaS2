@@ -2,24 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { type Workspace, type WorkspaceRole } from "@/types/workspace";
 import { isValidUUID } from "@/lib/utils";
 
-/**
- * Fetches all workspaces owned by a specific user.
- */
-export async function fetchWorkspacesByOwner(userId: string): Promise<Workspace[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("workspaces")
-    .select("*")
-    .eq("owner_id", userId)
-    .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Database error in fetchWorkspacesByOwner:", error);
-    throw new Error(error.message);
-  }
-
-  return data || [];
-}
 
 /**
  * Fetches all workspaces the user has access to (owned or joined) with owner information.

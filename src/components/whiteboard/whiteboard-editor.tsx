@@ -2,17 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { getSnapshot, type Editor } from "tldraw";
 import { useWhiteboardStore } from "@/store/use-whiteboard-store";
 import { updateBoardCanvasAction } from "@/actions/board";
 import { toast } from "sonner";
 import { type WhiteboardEditorProps } from "@/types/whiteboard";
-import { ROUTES } from "@/lib/constants";
 import { createClient } from "@/utils/supabase/client";
-import WhiteboardSaveStatus from "./whiteboard-save-status";
+import { KickedOverlay } from "./kicked-overlay";
+import { EditorHeader } from "./editor-header";
 
 // Dynamically import the tldraw component with SSR disabled
 const WhiteboardCanvas = dynamic(() => import("./whiteboard-canvas"), {
@@ -63,7 +61,7 @@ export default function WhiteboardEditor({
       }
     };
 
-    // Listen to changes on workspace_members for this user
+    // Listen to changes on workspace_members
     const channel = supabase
       .channel(`member-role-${board.workspace_id}-${currentUser.id}`)
       .on(
@@ -72,16 +70,27 @@ export default function WhiteboardEditor({
           event: "*",
           schema: "public",
           table: "workspace_members",
-          filter: `user_id=eq.${currentUser.id}`,
         },
         (payload) => {
           console.log("[Realtime] Received workspace member update:", payload);
           if (payload.eventType === "DELETE") {
+            // Since DELETE payload.old only contains the primary key ID, we must check if our access was removed
             verifyAccess();
           } else if (payload.eventType === "UPDATE") {
-            const updatedMember = payload.new as { workspace_id: string; role: string };
-            if (updatedMember.workspace_id === board.workspace_id) {
+            const updatedMember = payload.new as { user_id: string; workspace_id: string; role: string };
+            if (
+              updatedMember.user_id === currentUser.id &&
+              updatedMember.workspace_id === board.workspace_id
+            ) {
               setLocalIsReadonly(updatedMember.role === "viewer");
+            }
+          } else if (payload.eventType === "INSERT") {
+            const newMember = payload.new as { user_id: string; workspace_id: string };
+            if (
+              newMember.user_id === currentUser.id &&
+              newMember.workspace_id === board.workspace_id
+            ) {
+              verifyAccess();
             }
           }
         }
@@ -157,76 +166,13 @@ export default function WhiteboardEditor({
   };
 
   if (isKicked) {
-    return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center bg-radial from-background/90 via-background to-background z-50 p-6 animate-in fade-in duration-300">
-        <div className="max-w-md w-full text-center space-y-6 p-8 rounded-2xl border border-border/80 bg-card/60 backdrop-blur-md shadow-2xl relative overflow-hidden">
-          {/* Subtle red ambient glow */}
-          <div className="absolute -top-20 -left-20 w-40 h-40 bg-destructive/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-destructive/10 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="inline-flex p-3 rounded-full bg-destructive/10 border border-destructive/20 text-destructive animate-pulse">
-            <svg
-              className="h-8 w-8"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
-          </div>
-
-          <div className="space-y-2 relative z-10">
-            <h1 className="text-xl font-bold tracking-tight text-foreground">
-              You are no longer in this workspace
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Your access has been revoked or your membership has been removed by the workspace administrator.
-            </p>
-          </div>
-
-          <div className="pt-2">
-            <Link
-              href={ROUTES.WORKSPACES}
-              className="inline-flex w-full items-center justify-center h-10 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 shadow-md transition-all duration-200 active:scale-98 cursor-pointer"
-            >
-              Go to Workspaces
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+    return <KickedOverlay />;
   }
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden relative select-none">
       {/* Top Header */}
-      <header className="h-16 border-b border-border/40 bg-background/80 backdrop-blur-md z-40 flex items-center justify-between px-6 shrink-0">
-        <div className="flex items-center gap-4 min-w-0">
-          <Link
-            href={`${ROUTES.WORKSPACES}/${board.workspace_id}`}
-            className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-border/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200"
-            title="Back to Workspace"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm font-bold text-foreground truncate">
-              {board.name}
-            </span>
-            <span className="text-[10px] text-muted-foreground truncate max-w-[250px]">
-              {board.description || "No description"}
-            </span>
-          </div>
-        </div>
-
-        {/* Real-time Save Status Indicators */}
-        <WhiteboardSaveStatus onSave={handleManualSave} />
-      </header>
+      <EditorHeader board={board} onSave={handleManualSave} />
 
       {/* Drawing Canvas Container */}
       <main className="flex-1 w-full h-[calc(100vh-64px)] relative bg-muted/20">

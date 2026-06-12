@@ -21,3 +21,25 @@ export async function fetchProfileById(userId: string): Promise<Profile | null> 
 
   return data;
 }
+
+/**
+ * Searches for profiles where email starts with or contains the query.
+ * Limits the results to 5 for autocomplete.
+ */
+export async function searchProfilesByEmail(query: string): Promise<Profile[]> {
+  if (!query || query.trim().length < 2) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .ilike("email", `%${query.trim()}%`)
+    .limit(5);
+
+  if (error) {
+    console.error("Database error in searchProfilesByEmail:", error);
+    return [];
+  }
+
+  return data || [];
+}
+

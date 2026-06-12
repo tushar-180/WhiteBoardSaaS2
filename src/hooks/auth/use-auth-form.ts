@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createClient } from "@/utils/supabase/client";
@@ -9,6 +9,7 @@ import { ROUTES, DEFAULT_REDIRECTS } from "@/lib/constants";
 
 export function useAuthForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [emailLoading, setEmailLoading] = useState(false);
   const [githubLoading, setGithubLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -30,6 +31,22 @@ export function useAuthForm() {
       password: "",
     },
   });
+
+  const errorParam = searchParams?.get("error");
+
+  useEffect(() => {
+    if (errorParam === "oauth-failed") {
+      form.setError("root", {
+        type: "manual",
+        message: "GitHub authentication failed. Please try again.",
+      });
+    } else if (errorParam) {
+      form.setError("root", {
+        type: "manual",
+        message: decodeURIComponent(errorParam),
+      });
+    }
+  }, [errorParam, form]);
 
   const passwordValue = form.watch("password") || "";
   const isPasswordValid = passwordValue.length >= 6;

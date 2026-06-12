@@ -131,6 +131,30 @@ export async function fetchPendingInvitesByWorkspace(
 }
 
 /**
+ * Checks if a pending invite already exists for a specific email in a workspace.
+ */
+export async function checkIfInviteIsPending(
+  workspaceId: string,
+  email: string,
+): Promise<boolean> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("workspace_invites")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("email", email.trim().toLowerCase())
+    .eq("status", "pending")
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    console.error("Database error in checkIfInviteIsPending:", error);
+    return false;
+  }
+
+  return !!data;
+}
+
+/**
  * Inserts a new workspace invitation record into the database.
  */
 export async function createWorkspaceInvite(
@@ -308,3 +332,122 @@ export async function rejectWorkspaceInvite(
 
   return invite.workspace_id;
 }
+
+
+
+/**
+ * Fetches all notifications for a user, including:
+ * 1. Pending invites sent to their email (incoming)
+ * 2. Accepted/rejected status updates for invites created by them which they haven't dismissed yet (outgoing status)
+ */
+export async function fetchUserNotifications(
+  email: string,
+  userId: string,
+): Promise<WorkspaceInviteWithWorkspace[]> {
+  const supabase = await createClient();
+
+  // 1. Fetch incoming pending invites
+  const { data: incoming, error: incomingError } = await supabase
+    .from("workspace_invites")
+    .select("*")
+    .eq("email", email.toLowerCase().trim())
+    .eq("status", "pending");
+
+  if (incomingError) {
+    console.error("Database error fetching incoming invites:", incomingError);
+  }
+
+  // 2. Fetch outgoing accepted/rejected status updates not dismissed yet
+  const { data: outgoing, error: outgoingError } = await supabase
+    .from("workspace_invites")
+    .select("*")
+    .eq("created_by", userId)
+    .in("status", ["accepted", "rejected"])
+    .eq("inviter_seen", false);
+
+  if (outgoingError) {
+    console.error("Database error fetching outgoing invite statuses:", outgoingError);
+  }
+
+  const allInvites = [...(incoming || []), ...(outgoing || [])];
+  if (allInvites.length === 0) return [];
+
+  // Batch-fetch workspaces
+  const workspaceIds = Array.from(new Set(allInvites.map((i) => i.workspace_id)));
+  const { data: workspaces, error: workspaceError } = await supabase
+    .from("workspaces")
+    .select("id, name")
+    .in("id", workspaceIds);
+
+  if (workspaceError) {
+    console.error("Database error fetching workspaces for notifications:", workspaceError);
+  }
+
+  const workspaceMap = new Map<string, string>();
+  workspaces?.forEach((w) => {
+    workspaceMap.set(w.id, w.name);
+  });
+
+  // Batch-fetch profiles
+  const creatorIds = incoming?.map((i) => i.created_by) || [];
+  const inviteeIds = outgoing?.map((o) => o.accepted_by).filter((id): id is string => id !== null) || [];
+  const profileIds = Array.from(new Set([...creatorIds, ...inviteeIds]));
+
+  const { data: profiles, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, name, email")
+    .in("id", profileIds);
+
+  if (profileError) {
+    console.error("Database error fetching profiles for notifications:", profileError);
+  }
+
+  const profileMap = new Map<string, string>();
+  profiles?.forEach((p) => {
+    profileMap.set(p.id, p.name || p.email || "Someone");
+  });
+
+  return allInvites.map((invite) => {
+    const isIncoming = invite.email.toLowerCase().trim() === email.toLowerCase().trim();
+    
+    let relativeName = "Someone";
+    if (isIncoming) {
+      relativeName = profileMap.get(invite.created_by) || "Someone";
+    } else if (invite.accepted_by) {
+      relativeName = profileMap.get(invite.accepted_by) || invite.email || "Someone";
+    }
+
+    return {
+      id: invite.id,
+      workspace_id: invite.workspace_id,
+      email: invite.email,
+      token: invite.token,
+      status: invite.status,
+      created_by: invite.created_by,
+      accepted_by: invite.accepted_by,
+      role: invite.role as WorkspaceRole,
+      workspace_name: workspaceMap.get(invite.workspace_id) || "Unknown Workspace",
+      inviter_name: isIncoming ? relativeName : undefined,
+      invitee_name: !isIncoming ? relativeName : undefined,
+    };
+  });
+}
+
+/**
+ * Marks an outgoing invite notification as dismissed/seen by the inviter.
+ */
+export async function dismissInviteNotification(inviteId: string, userId: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("workspace_invites")
+    .update({ inviter_seen: true })
+    .eq("id", inviteId)
+    .eq("created_by", userId);
+
+  if (error) {
+    console.error("Database error in dismissInviteNotification:", error);
+    throw new Error(error.message);
+  }
+}
+
+

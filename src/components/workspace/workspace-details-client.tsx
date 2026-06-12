@@ -78,21 +78,21 @@ export function WorkspaceDetailsClient({
   return (
     <>
       {/* Main Container */}
-      <main className="flex-1 container mx-auto px-6 py-10 max-w-7xl relative">
+      <main className="flex-1 flex flex-col container mx-auto px-6 pb-6 pt-4 max-w-7xl relative overflow-hidden min-h-0">
         {/* Back navigation */}
         <Link
           href={ROUTES.WORKSPACES}
-          className="inline-flex items-center gap-1.5 text-xs mb-6 font-semibold text-muted-foreground hover:text-foreground transition-all w-fit hover:-translate-x-0.5 duration-200"
+          className="inline-flex items-center gap-1.5 text-xs mb-4 font-semibold text-muted-foreground hover:text-foreground transition-all w-fit hover:-translate-x-0.5 duration-200 shrink-0"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Workspaces
         </Link>
 
         {/* Workspace Title & Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-8 overflow-hidden min-h-0">
           {/* Left / Center - Boards Content (Col Span 3) */}
-          <div className="lg:col-span-3 space-y-8">
-            <div className="flex items-center justify-between">
+          <div className="lg:col-span-3 flex flex-col overflow-hidden min-h-0 space-y-6">
+            <div className="flex items-center justify-between shrink-0">
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl mb-1.5">
                   {workspace.name}
@@ -116,10 +116,12 @@ export function WorkspaceDetailsClient({
                 )}
             </div>
 
-            <div className="border-t border-border/40 pt-6">
+            <div className="flex-1 flex flex-col overflow-hidden min-h-0 border-t border-border/40 pt-6">
               {boards.length === 0 ? (
                 currentUserRole !== "viewer" && (
-                  <EmptyBoards onCreateClick={() => setBoardOpen(true)} />
+                  <div className="flex-1 flex items-center justify-center overflow-y-auto">
+                    <EmptyBoards onCreateClick={() => setBoardOpen(true)} />
+                  </div>
                 )
               ) : (
                 <BoardList
@@ -132,7 +134,7 @@ export function WorkspaceDetailsClient({
           </div>
 
           {/* Right - Sidebar Metadata (Col Span 1) */}
-          <div className="space-y-6 lg:border-l lg:border-border/40 lg:pl-8">
+          <div className="lg:col-span-1 space-y-6 lg:border-l lg:border-border/40 lg:pl-8 overflow-y-auto pr-1.5 pb-4 min-h-0 shrink-0 lg:shrink">
             {/* Workspace Info Card */}
             <div className="rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur-xs space-y-4">
               <h3 className="text-sm font-bold text-foreground">
