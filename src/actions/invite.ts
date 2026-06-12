@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { Resend } from "resend";
 import { requireActionAuth } from "@/utils/supabase/server";
+import { sendWorkspaceInviteEmail } from "@/services/email";
 import {
   createWorkspaceInvite,
   acceptWorkspaceInvite,
@@ -29,7 +29,7 @@ export async function createInviteAction(
   workspaceId: string,
   email: string,
   role: WorkspaceRole,
-): Promise<{ inviteLink: string; emailSent: boolean }> {
+): Promise<{ inviteLink: string; emailSent: boolean; emailError?: string }> {
   try {
     const { user } = await requireActionAuth(
       "You must be logged in to invite members.",
@@ -101,61 +101,24 @@ export async function createInviteAction(
       inviteLink = `${protocol}://${host}/invite/${invite.token}`;
     }
 
-    let emailSent = false;
+    // 8. Attempt to send invitation email using the email service
+    const { success: emailSent, error: emailError } = await sendWorkspaceInviteEmail(
+      trimmedEmail,
+      workspace.name,
+      validatedRole,
+      inviteLink,
+      user.email || "A workspace member",
+      invite.id
+    );
 
-    // 8. Attempt to send invitation email using Resend SDK
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (resendApiKey) {
-      const resend = new Resend(resendApiKey);
-
-      // We'll use a friendly sender name. Since it's dev/test, onboarding@resend.dev is allowed.
-      // In production, users verify their custom domain.
-      // const fromEmail = "Zentrox <onboarding@resend.dev>";
-      const fromEmail = "Acme <onboarding@resend.dev>";
-
-      const { data, error } = await resend.emails.send(
-        {
-          from: fromEmail,
-          to: [trimmedEmail],
-          subject: `Join the "${workspace.name}" workspace on Zentrox`,
-          html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; rounded: 8px;">
-            <h2 style="color: #1a1a1a;">Workspace Invitation</h2>
-            <p>Hello,</p>
-            <p>You have been invited to join the <strong>${workspace.name}</strong> workspace on Zentrox as an <strong>${validatedRole}</strong>.</p>
-            <p>Click the link below to accept the invitation and start collaborating:</p>
-            <div style="margin: 24px 0;">
-              <a href="${inviteLink}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Accept Invitation</a>
-            </div>
-            <p style="color: #666; font-size: 14px;">If the button doesn't work, copy and paste this URL into your browser:</p>
-            <p style="word-break: break-all; font-size: 14px;"><a href="${inviteLink}">${inviteLink}</a></p>
-            <hr style="border: none; border-top: 1px solid #eaeaea; margin: 24px 0;" />
-            <p style="color: #999; font-size: 12px;">This invitation was sent by ${user.email}. If you did not expect this invitation, you can ignore this email.</p>
-          </div>
-        `,
-        },
-        {
-          idempotencyKey: `invite-${invite.id}`,
-        },
-      );
-
-      if (error) {
-        console.error("Resend SDK error:", error.message);
-      } else {
-        console.log("Invitation email successfully sent:", data);
-        emailSent = true;
-      }
-    } else {
-      console.log(
-        "No RESEND_API_KEY found. Logging invite link in server console:",
-        inviteLink,
-      );
+    if (!emailSent) {
+      console.log("Logging invite link in server console:", inviteLink, "Error:", emailError);
     }
 
     // Revalidate paths
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
 
-    return { inviteLink, emailSent };
+    return { inviteLink, emailSent, emailError };
   } catch (error: unknown) {
     console.error("Action error in createInviteAction:", error);
     throw new Error((error as Error).message || "Failed to create invitation.");
