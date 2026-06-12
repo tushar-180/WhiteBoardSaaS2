@@ -1,24 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireActionAuth } from "@/utils/supabase/server";
-import { fetchWorkspacesByOwner, insertWorkspace, deleteWorkspace } from "@/services/workspace";
+import { requireActionAuth, createClient } from "@/utils/supabase/server";
+import { insertWorkspace, deleteWorkspace } from "@/services/workspace";
 import { type Workspace, workspaceSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
-
-/**
- * Retrieves all workspaces owned by the currently authenticated user.
- */
-export async function getWorkspacesAction(): Promise<Workspace[]> {
-  try {
-    const { user } = await requireActionAuth("You must be logged in to fetch workspaces.");
-
-    return await fetchWorkspacesByOwner(user.id);
-  } catch (error: unknown) {
-    console.error("Action error in getWorkspacesAction:", error);
-    throw new Error((error as Error).message || "Failed to load workspaces.");
-  }
-}
 
 
 
@@ -36,6 +22,22 @@ export async function createWorkspaceAction(name: string): Promise<Workspace> {
     }
     const trimmedName = validated.data.name;
 
+    // Check if user already owns a workspace with this name (case-insensitive)
+    const supabase = await createClient();
+    const { data: existingWorkspace, error: checkError } = await supabase
+      .from("workspaces")
+      .select("id")
+      .eq("owner_id", user.id)
+      .ilike("name", trimmedName.trim())
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("Database error checking existing workspace:", checkError);
+    }
+
+    if (existingWorkspace) {
+      throw new Error(`You have already created a workspace named "${trimmedName}".`);
+    }
 
     // Slugify the workspace name
     const cleanSlug = trimmedName

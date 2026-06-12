@@ -66,7 +66,7 @@ export function CreateBoardDialog({
       if (onSuccess) {
         onSuccess();
       }
-      router.push(`/board/${newBoard.id}`);
+      // router.push(`/board/${newBoard.id}`);
     } catch (error: unknown) {
       toast.error(
         (error as Error).message || "Failed to create board. Please try again."

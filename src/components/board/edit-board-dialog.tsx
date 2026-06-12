@@ -45,8 +45,8 @@ export function EditBoardDialog({
   const {
     register,
     handleSubmit,
-    setValue,
-    formState: { errors },
+    reset,
+    formState: { errors, isDirty },
   } = useForm<BoardFormData>({
     resolver: zodResolver(boardSchema),
     defaultValues: {
@@ -58,10 +58,12 @@ export function EditBoardDialog({
   // Sync with new initials if dialog target changes
   useEffect(() => {
     if (open) {
-      setValue("name", initialName);
-      setValue("description", initialDescription || "");
+      reset({
+        name: initialName,
+        description: initialDescription || "",
+      });
     }
-  }, [open, initialName, initialDescription, setValue]);
+  }, [open, initialName, initialDescription, reset]);
 
   const onSubmit = async (data: BoardFormData) => {
     setLoading(true);
@@ -151,7 +153,7 @@ export function EditBoardDialog({
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || !isDirty}
               className="h-10 rounded-xl px-4 font-semibold"
             >
               {loading ? (

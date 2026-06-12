@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireActionAuth } from "@/utils/supabase/server";
+import { requireActionAuth, createClient } from "@/utils/supabase/server";
 import {
   fetchBoardsByWorkspace,
   insertBoard,
@@ -54,6 +54,23 @@ export async function createBoardAction(
     }
     const { name: trimmedName, description: validatedDescription } = validated.data;
 
+    // Check if a board with this name already exists in the workspace (case-insensitive)
+    const supabase = await createClient();
+    const { data: existingBoard, error: checkError } = await supabase
+      .from("boards")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .ilike("name", trimmedName.trim())
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("Database error checking existing board:", checkError);
+    }
+
+    if (existingBoard) {
+      throw new Error(`A board named "${trimmedName}" already exists in this workspace.`);
+    }
+
     const board = await insertBoard(
       workspaceId,
       trimmedName,
@@ -93,6 +110,24 @@ export async function updateBoardAction(
       throw new Error(validated.error.issues[0].message);
     }
     const { name: trimmedName, description: validatedDescription } = validated.data;
+
+    // Check if a board with this name already exists in the workspace (excluding current boardId) (case-insensitive)
+    const supabase = await createClient();
+    const { data: existingBoard, error: checkError } = await supabase
+      .from("boards")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .neq("id", boardId)
+      .ilike("name", trimmedName.trim())
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("Database error checking existing board:", checkError);
+    }
+
+    if (existingBoard) {
+      throw new Error(`A board named "${trimmedName}" already exists in this workspace.`);
+    }
 
     const board = await updateBoard(boardId, trimmedName, validatedDescription || null);
 

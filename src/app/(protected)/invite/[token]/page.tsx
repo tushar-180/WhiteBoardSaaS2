@@ -16,7 +16,7 @@ interface PageProps {
 
 export default async function InviteAcceptPage({ params }: PageProps) {
   const { token } = await params;
-  const { user } = await requireAuth();
+  const { user } = await requireAuth(`/login?next=${encodeURIComponent(`/invite/${token}`)}`);
 
   // 1. Fetch details of the invite token (pending only)
   const invite = await fetchInviteByToken(token);

@@ -30,6 +30,7 @@ export interface WorkspaceInvite {
   created_by: string;
   accepted_by: string | null;
   role: WorkspaceRole;
+  inviter_seen?: boolean;
 }
 
 export interface Board {
@@ -89,6 +90,8 @@ export interface WorkspaceMemberWithProfile {
 
 export interface WorkspaceInviteWithWorkspace extends WorkspaceInvite {
   workspace_name: string;
+  inviter_name?: string;
+  invitee_name?: string;
 }
 
 

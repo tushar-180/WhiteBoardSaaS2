@@ -1,9 +1,8 @@
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { requireAuth } from "@/utils/supabase/server";
 import { UnauthorizedAccess } from "@/components/shared/unauthorized-access";
 import { fetchBoardById } from "@/services/board";
 import { hasWorkspaceAccess } from "@/services/workspace";
-import { ROUTES } from "@/lib/constants";
 import WhiteboardEditor from "@/components/whiteboard/whiteboard-editor";
 import { fetchWorkspaceMemberRole } from "@/services/member";
 
@@ -17,7 +16,7 @@ interface PageProps {
 
 export default async function BoardDetailPage({ params }: PageProps) {
   const { boardId } = await params;
-  const { supabase, user } = await requireAuth();
+  const { supabase, user } = await requireAuth(`/login?next=${encodeURIComponent(`/board/${boardId}`)}`);
 
   // 1. Fetch board details
   const board = await fetchBoardById(boardId);
