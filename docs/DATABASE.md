@@ -73,7 +73,7 @@ Top-level container for boards and collaborators.
 
 ## Table `workspace_members`
 
-Maps users to workspaces and stores their role.
+Maps users to workspaces and stores their role. Enabled for Supabase Realtime to broadcast access revocations and updates.
 
 ### Columns
 
@@ -96,7 +96,7 @@ Maps users to workspaces and stores their role.
 
 ## Table `workspace_invites`
 
-Stores pending or completed invitations to join a workspace.
+Stores pending or completed invitations to join a workspace. Enabled for Supabase Realtime to notify users of accepted invitations.
 
 ### Columns
 
@@ -110,6 +110,7 @@ Stores pending or completed invitations to join a workspace.
 | `created_by` | `uuid` |  |
 | `accepted_by` | `uuid` | Nullable |
 | `role` | `WorkspaceRole` |  |
+| `inviter_seen` | `boolean` | Default false |
 
 ## Table `boards`
 

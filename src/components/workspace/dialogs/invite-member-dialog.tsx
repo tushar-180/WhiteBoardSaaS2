@@ -38,6 +38,7 @@ export function InviteMemberDialog({
   const [inviteResult, setInviteResult] = useState<{
     link: string;
     emailSent: boolean;
+    emailError?: string;
   } | null>(null);
 
   const {
@@ -93,10 +94,14 @@ export function InviteMemberDialog({
       setInviteResult({
         link: result.inviteLink,
         emailSent: result.emailSent,
+        emailError: result.emailError,
       });
 
       if (result.emailSent) {
         toast.success(`Invitation email sent to ${data.email}!`);
+      } else if (result.emailError) {
+        console.error("Email sending failed:", result.emailError);
+        toast.error("Email server is currently down. The invite was created, please share the magic link manually.");
       } else {
         toast.success(`Magic invite link created successfully!`);
       }

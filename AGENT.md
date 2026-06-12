@@ -120,10 +120,11 @@ sync-server/              # Multiplayer WS Sync Server (Modular)
 - Do not duplicate validation rules inside components if a schema already exists.
 
 ### Client State & Hydration
-- Use Zustand stores in `src/store/` (`useWorkspaceStore`, `useBoardStore`, `useWhiteboardStore`, `useMemberStore`).
+- Use Zustand stores in `src/store/` (`useWorkspaceStore`, `useBoardStore`, `useWhiteboardStore`, `useMemberStore`, `useNotificationStore`).
 - Keep server-fetched data authoritative; hydrate Zustand only for interactive client UI.
 - When loading a parent page, hydrate the Zustand store via `useWorkspaceStore.setState(...)` or `useBoardStore.setState(...)` inside an effect or component mount phase. Do not recreate independent react state for fetched lists or user auth details.
 - `useMemberStore` manages workspace member and invite lists with optimistic updates (add/remove/role-change) for the `WorkspaceDetailsClient`.
+- `useNotificationStore` manages real-time workspace activity notifications across the application.
 - Do not add Redux providers, slices, or RTK Query.
 
 ### React Hooks
@@ -131,7 +132,7 @@ sync-server/              # Multiplayer WS Sync Server (Modular)
 - Group related hooks under feature-based subdirectories (e.g., `src/hooks/auth/`).
 
 ### UI
-- Use existing shadcn/ui components from `src/components/ui/`.
+- Use existing shadcn/ui components from `src/components/ui/` (e.g. `DropdownMenu`, `Pagination`).
 - Use lucide-react icons where icons are needed.
 - Use Sonner for user-facing toast feedback.
 - Keep UI patterns consistent with existing auth and workspace components.
@@ -157,6 +158,7 @@ Examples:
 - Member mutations belong in `src/actions/member.ts`.
 - Invite DB logic belongs in `src/services/invite.ts`.
 - Invite mutations belong in `src/actions/invite.ts`.
+- Notifications UI belongs in `src/components/workspace/` (e.g. `notification-inbox.tsx`).
 - Board DB logic belongs in `src/services/board.ts`.
 - Board mutations belong in `src/actions/board.ts`.
 - Board UI belongs in `src/components/board/`.

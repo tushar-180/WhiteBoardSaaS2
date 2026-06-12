@@ -77,7 +77,19 @@ Since this app uses Supabase Auth, you must explicitly allow Supabase to redirec
 
 ---
 
-## ⚙️ Step 5: Vercel Configuration (`vercel.json`)
+## 🗄️ Step 5: Apply Supabase Migrations
+
+The application requires specific database schemas and Realtime configurations (like enabling `workspace_invites` and `workspace_members` for live notifications).
+
+Ensure you apply the latest migrations to your production Supabase database:
+```bash
+supabase link --project-ref your-project-ref
+supabase db push
+```
+
+---
+
+## ⚙️ Step 6: Vercel Configuration (`vercel.json`)
 
 To make deployment and security configuration simple, a `vercel.json` file is defined at the root of the project. It handles:
 1. **Build settings:** Explicitly hooks up `npm run build`, `npm run dev`, and `npm install`.
@@ -114,6 +126,27 @@ If you prefer to deploy directly from your local terminal without connecting Git
    ```bash
    vercel --prod
    ```
+
+---
+
+## 🔌 Deploying the WebSocket Sync Server (Render)
+
+The Next.js app on Vercel is stateless. To enable real-time collaboration, you must deploy the `sync-server` separately to a long-running environment like [Render](https://render.com).
+
+1. Go to your Render Dashboard and create a new **Web Service**.
+2. Connect the same GitHub repository.
+3. Configure the service:
+   - **Environment:** `Node`
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm run sync`
+4. Add the required Environment Variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+5. Click **Create Web Service**.
+6. Once deployed, copy the Render service URL (e.g., `https://your-sync-server.onrender.com`).
+7. **Update Vercel:** Go back to your Vercel Dashboard, find your Next.js project's Environment Variables, and add:
+   - `NEXT_PUBLIC_SYNC_SERVER_URL` = `https://your-sync-server.onrender.com`
+8. Redeploy your Vercel project so it picks up the new sync server URL.
 
 ---
 

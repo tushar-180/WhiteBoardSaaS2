@@ -15,6 +15,8 @@ Stage 3 -> Workspace members, invites, and access control
 Stage 4 -> Board CRUD inside workspaces
 Stage 5 -> Whiteboard canvas and canvas_data persistence
 Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
+Stage 7 -> Real-Time Collaboration
+Stage 8 -> Real-Time Notifications, Access Controls, and UI Polish
 ```
 
 ---
@@ -107,6 +109,21 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 - [x] Show live avatar stack (user avatars + names) in the board toolbar when others are present.
 - [x] Refactor client-side and sync server codebases into clean modular architectures.
 - [x] Implement server-side user profile fetching and props threading.
+
+## Stage 8: Real-Time Notifications, Access Controls, and UI Polish
+
+**Goal:** Provide live feedback for workspace events, enhance access control dynamics, and improve core UI components.
+
+- [x] Create a `NotificationInbox` to display workspace activities in real-time.
+- [x] Add `use-notification-store.ts` for managing global notification state.
+- [x] Enable Supabase Realtime subscriptions for `workspace_invites` and `workspace_members`.
+- [x] Add an `inviter_seen` field to track and notify inviter about accepted invites.
+- [x] Refactor `InviteMemberDialog` into modular components (`invite-form`, `invite-success`, `invite-suggestions`).
+- [x] Implement real-time access revocation monitoring inside the whiteboard editor.
+- [x] Add `KickedOverlay` to handle users losing permissions mid-session.
+- [x] Refactor `WorkspaceMembersList` and introduce `WorkspaceMemberRow`.
+- [x] Add generic reusable `DropdownMenu` and `Pagination` UI components.
+- [x] Integrate pagination into `BoardList` and `WorkspaceList`.
 
 ## Later / Optional
 
