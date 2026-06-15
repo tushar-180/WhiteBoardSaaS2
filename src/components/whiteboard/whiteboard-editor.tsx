@@ -11,6 +11,7 @@ import { type WhiteboardEditorProps } from "@/types/whiteboard";
 import { createClient } from "@/utils/supabase/client";
 import { KickedOverlay } from "./kicked-overlay";
 import { EditorHeader } from "./editor-header";
+import posthog from "posthog-js";
 
 // Dynamically import the tldraw component with SSR disabled
 const WhiteboardCanvas = dynamic(() => import("./whiteboard-canvas"), {
@@ -155,9 +156,14 @@ export default function WhiteboardEditor({
       );
       setSaveStatus("saved");
       setLastSavedAt(new Date());
+      posthog.capture("board_saved_manually", {
+        board_id: board.id,
+        workspace_id: board.workspace_id,
+      });
       toast.success("Board saved to cloud successfully!");
     } catch (error) {
       console.error("Manual save error:", error);
+      posthog.captureException(error);
       setSaveStatus("error");
       toast.error(
         "Failed to save board drawing. Please check your connection.",

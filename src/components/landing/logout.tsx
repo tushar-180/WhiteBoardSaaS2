@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { Button } from "../ui/button";
 import { Loader2 } from "lucide-react";
 import { signOutAction } from "@/actions/auth";
+import posthog from "posthog-js";
 
 const Logout = () => {
   const [isPending, startTransition] = useTransition();
@@ -11,6 +12,7 @@ const Logout = () => {
   const handleSignOut = (e: React.FormEvent) => {
     e.preventDefault();
     startTransition(async () => {
+      posthog.reset();
       await signOutAction();
     });
   };

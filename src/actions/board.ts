@@ -12,6 +12,7 @@ import {
 import { hasWorkspaceAccess } from "@/services/workspace";
 import { type Board, boardSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 /**
  * Retrieves all boards belonging to a workspace.
@@ -77,6 +78,17 @@ export async function createBoardAction(
       validatedDescription || null,
       user.id,
     );
+
+    getPostHogClient().capture({
+      distinctId: user.id,
+      event: "board_created",
+      properties: {
+        board_id: board.id,
+        board_name: board.name,
+        workspace_id: workspaceId,
+        has_description: !!validatedDescription,
+      },
+    });
 
     // Revalidate the workspace details route
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
@@ -183,6 +195,13 @@ export async function updateBoardCanvasAction(
     }
 
     const board = await updateBoardCanvas(boardId, canvasData);
+
+    getPostHogClient().capture({
+      distinctId: user.id,
+      event: "board_canvas_saved",
+      properties: { board_id: boardId, workspace_id: workspaceId },
+    });
+
     return board;
   } catch (error: unknown) {
     console.error("Action error in updateBoardCanvasAction:", error);

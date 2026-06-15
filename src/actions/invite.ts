@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { requireActionAuth } from "@/utils/supabase/server";
 import { sendWorkspaceInviteEmail } from "@/services/email";
+import { getPostHogClient } from "@/lib/posthog-server";
 import {
   createWorkspaceInvite,
   acceptWorkspaceInvite,
@@ -115,6 +116,17 @@ export async function createInviteAction(
       console.log("Logging invite link in server console:", inviteLink, "Error:", emailError);
     }
 
+    getPostHogClient().capture({
+      distinctId: user.id,
+      event: "workspace_invite_sent",
+      properties: {
+        workspace_id: workspaceId,
+        workspace_name: workspace.name,
+        invited_role: validatedRole,
+        email_sent: emailSent,
+      },
+    });
+
     // Revalidate paths
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
 
@@ -175,6 +187,12 @@ export async function rejectInviteAction(token: string): Promise<void> {
     // Reject the invite
     await rejectWorkspaceInvite(token, user.id);
 
+    getPostHogClient().capture({
+      distinctId: user.id,
+      event: "workspace_invite_declined",
+      properties: { invite_token: token },
+    });
+
     // Revalidate workspaces list path
     revalidatePath(ROUTES.WORKSPACES);
   } catch (error: unknown) {
@@ -211,6 +229,16 @@ export async function acceptInviteAction(token: string): Promise<string> {
 
     // 3. Accept the invite. The service handles joining member and updating invite status
     const workspaceId = await acceptWorkspaceInvite(token, user.id);
+
+    getPostHogClient().capture({
+      distinctId: user.id,
+      event: "workspace_invite_accepted",
+      properties: {
+        workspace_id: workspaceId,
+        invite_token: token,
+        role: invite.role,
+      },
+    });
 
     // Revalidate workspaces list path
     revalidatePath(ROUTES.WORKSPACES);

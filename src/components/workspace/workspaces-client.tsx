@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Plus, ArrowLeft } from "lucide-react";
+import posthog from "posthog-js";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "./empty-state";
@@ -34,10 +35,14 @@ export function WorkspacesClient({
       workspaces: initialWorkspaces,
       user: userEmail ? { email: userEmail, name: userName || "" } : null,
     });
+    posthog.identify(userId, {
+      email: userEmail,
+      name: userName,
+    });
     setTimeout(() => {
       setIsMounted(true);
     }, 0);
-  }, [initialWorkspaces, userEmail, userName]);
+  }, [initialWorkspaces, userId, userEmail, userName]);
   const workspaces = useWorkspaceStore((state) => state.workspaces);
   const user = useWorkspaceStore((state) => state.user);
 
