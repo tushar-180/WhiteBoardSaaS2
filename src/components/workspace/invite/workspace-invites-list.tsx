@@ -18,8 +18,9 @@ interface WorkspaceInvitesListProps {
 export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps) {
   const router = useRouter();
   const invites = useMemberStore((state) => state.invites);
+  const removeInvite = useMemberStore((state) => state.removeInvite);
   
-  const [actionLoading, setActionLoading] = useState(false);
+  const [loadingInviteId, setLoadingInviteId] = useState<string | null>(null);
   const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
   const [viewAllOpen, setViewAllOpen] = useState(false);
 
@@ -33,15 +34,16 @@ export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps)
   };
 
   const handleRevokeInvite = async (inviteId: string) => {
-    setActionLoading(true);
+    setLoadingInviteId(inviteId);
     try {
       await revokeInviteAction(workspaceId, inviteId);
+      removeInvite(inviteId); // Remove instantly from UI upon success
       toast.success("Invitation revoked successfully.");
       router.refresh();
     } catch (err: unknown) {
       toast.error((err as Error).message || "Failed to revoke invitation.");
     } finally {
-      setActionLoading(false);
+      setLoadingInviteId(null);
     }
   };
 
@@ -54,12 +56,7 @@ export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps)
   const hasMore = invites.length > INITIAL_VISIBLE_COUNT;
 
   return (
-    <div className="flex flex-col max-h-[300px] rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur-xs animate-in fade-in slide-in-from-bottom-2 duration-300 relative z-10">
-      {actionLoading && (
-        <div className="absolute inset-0 z-50 bg-background/30 backdrop-blur-xs flex items-center justify-center rounded-xl">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        </div>
-      )}
+    <div className="flex flex-col max-h-[300px] rounded-xl border bg-card p-4 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300 relative z-10">
 
       <div className="flex items-center justify-between shrink-0 mb-4">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
@@ -71,33 +68,33 @@ export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps)
         </span>
       </div>
 
-      <div className="space-y-3 overflow-y-auto flex-1 min-h-0 pr-1 pb-1 custom-scrollbar">
+      <div className="space-y-1.5 overflow-y-auto flex-1 min-h-0 pr-1 pb-1 custom-scrollbar">
         {visibleInvites.map((invite) => (
           <div
             key={invite.id}
-            className="flex items-center justify-between gap-2"
+            className="flex items-center justify-between gap-2 p-2 rounded-lg border border-transparent hover:bg-muted/40 hover:border-border/50 transition-all group"
           >
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-foreground truncate max-w-[120px] sm:max-w-none">
+            <div className="flex flex-col min-w-0 px-1">
+              <span className="text-sm font-medium text-foreground truncate max-w-[140px] sm:max-w-none">
                 {invite.email}
               </span>
-              <span className="text-[9px] text-muted-foreground uppercase font-mono tracking-wider font-semibold">
+              <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-wider font-semibold mt-0.5">
                 {invite.role}
               </span>
             </div>
 
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-1 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => handleCopyInviteLink(invite)}
-                className="h-6.5 w-6.5 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
+                className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer"
                 title="Copy invitation link"
               >
                 {copiedInviteId === invite.id ? (
-                  <Check className="h-3 w-3 text-emerald-500" />
+                  <Check className="h-3.5 w-3.5 text-emerald-500" />
                 ) : (
-                  <Copy className="h-3 w-3" />
+                  <Copy className="h-3.5 w-3.5" />
                 )}
               </Button>
 
@@ -105,10 +102,15 @@ export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps)
                 variant="ghost"
                 size="icon"
                 onClick={() => handleRevokeInvite(invite.id)}
-                className="h-6.5 w-6.5 rounded-lg text-destructive/70 hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                disabled={loadingInviteId === invite.id}
+                className="h-7 w-7 rounded-md text-destructive/70 hover:text-destructive hover:bg-destructive/10 focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer"
                 title="Revoke invitation"
               >
-                <X className="h-3.5 w-3.5" />
+                {loadingInviteId === invite.id ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <X className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </div>
@@ -138,33 +140,33 @@ export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps)
               Complete list of all pending invitations for this workspace.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto p-5 pt-4 space-y-3 min-h-0 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 pt-2 space-y-1.5 min-h-0 custom-scrollbar">
             {invites.map((invite) => (
               <div
                 key={invite.id}
-                className="flex items-center justify-between gap-2"
+                className="flex items-center justify-between gap-2 p-2 rounded-lg border border-transparent hover:bg-muted/40 hover:border-border/50 transition-all group"
               >
-                <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-bold text-foreground truncate max-w-[120px] sm:max-w-none">
+                <div className="flex flex-col min-w-0 px-1">
+                  <span className="text-sm font-medium text-foreground truncate max-w-[140px] sm:max-w-none">
                     {invite.email}
                   </span>
-                  <span className="text-[9px] text-muted-foreground uppercase font-mono tracking-wider font-semibold">
+                  <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-wider font-semibold mt-0.5">
                     {invite.role}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => handleCopyInviteLink(invite)}
-                    className="h-6.5 w-6.5 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
+                    className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer"
                     title="Copy invitation link"
                   >
                     {copiedInviteId === invite.id ? (
-                      <Check className="h-3 w-3 text-emerald-500" />
+                      <Check className="h-3.5 w-3.5 text-emerald-500" />
                     ) : (
-                      <Copy className="h-3 w-3" />
+                      <Copy className="h-3.5 w-3.5" />
                     )}
                   </Button>
 
@@ -172,10 +174,15 @@ export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps)
                     variant="ghost"
                     size="icon"
                     onClick={() => handleRevokeInvite(invite.id)}
-                    className="h-6.5 w-6.5 rounded-lg text-destructive/70 hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                    disabled={loadingInviteId === invite.id}
+                    className="h-7 w-7 rounded-md text-destructive/70 hover:text-destructive hover:bg-destructive/10 focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer"
                     title="Revoke invitation"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    {loadingInviteId === invite.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <X className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>
