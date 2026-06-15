@@ -1,4 +1,4 @@
-import { Resend } from "resend";
+import sgMail from "@sendgrid/mail";
 
 export interface SendEmailOptions {
   to: string | string[];
@@ -10,49 +10,64 @@ export interface SendEmailOptions {
 
 /**
  * A generic email service to send emails.
- * Currently uses Resend. Can be swapped with SendGrid, Mailgun, etc., in the future.
+ * Currently uses SendGrid. Can be swapped with Mailgun, AWS SES, etc., in the future.
  */
 export async function sendEmail(
   options: SendEmailOptions,
 ): Promise<{ success: boolean; data?: any; error?: string }> {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = process.env.SENDGRID_API_KEY;
 
   if (!apiKey) {
     console.log(
-      "[Email Service] No RESEND_API_KEY found. Skipping email send.",
+      "[Email Service] No SENDGRID_API_KEY found. Skipping email send.",
     );
     return { success: false, error: "No API key configured." };
   }
 
-  try {
-    const resend = new Resend(apiKey);
-    
-    // We'll use a friendly sender name. Since it's dev/test, onboarding@resend.dev is allowed.
-    // In production, users verify their custom domain.
-    const fromEmail = options.from || "Acme <onboarding@resend.dev>";
+  sgMail.setApiKey(apiKey);
 
-    const payload = {
-      from: fromEmail,
-      to: Array.isArray(options.to) ? options.to : [options.to],
+  try {
+    // SendGrid requires a verified sender identity.
+    // Configure this in your .env.local file.
+    const rawFrom = options.from || process.env.SENDGRID_FROM_EMAIL || "onboarding@yourdomain.com";
+    
+    let fromObj: string | { name: string; email: string } = rawFrom;
+    
+    // Parse "Name <email@domain.com>" format if present
+    const cleanFrom = rawFrom.replace(/["']/g, "").trim();
+    const match = cleanFrom.match(/^(.*?)\s*<(.+?)>$/);
+    
+    if (match) {
+      fromObj = {
+        name: match[1].trim(),
+        email: match[2].trim(),
+      };
+    } else {
+      fromObj = cleanFrom;
+    }
+
+    const msg = {
+      to: options.to,
+      from: fromObj,
       subject: options.subject,
       html: options.html,
     };
 
-    const requestOptions = options.idempotencyKey
-      ? { idempotencyKey: options.idempotencyKey }
-      : undefined;
+    console.log("----------------------------------------");
+    console.log("[Email Service] Attempting to send email via SendGrid...");
+    console.log("  FROM: ", JSON.stringify(msg.from));
+    console.log("  TO:   ", JSON.stringify(msg.to));
+    console.log("----------------------------------------");
 
-    const { data, error } = await resend.emails.send(payload, requestOptions);
+    const response = await sgMail.send(msg);
 
-    if (error) {
-      console.error("[Email Service] Provider SDK error:", error.message);
-      return { success: false, error: error.message };
-    }
-
-    console.log("[Email Service] Email successfully sent to", payload.to);
-    return { success: true, data };
+    console.log("[Email Service] Email successfully sent to", options.to);
+    return { success: true, data: response };
   } catch (error: any) {
-    console.error("[Email Service] Failed to send email:", error.message);
+    console.error("[Email Service] Failed to send email via SendGrid:", error.message);
+    if (error.response) {
+      console.error("[Email Service] SendGrid Response Error:", error.response.body);
+    }
     return { success: false, error: error.message };
   }
 }
@@ -69,18 +84,33 @@ export async function sendWorkspaceInviteEmail(
   inviteId: string,
 ): Promise<{ success: boolean; data?: any; error?: string }> {
   const html = `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
-      <h2 style="color: #1a1a1a;">Workspace Invitation</h2>
-      <p>Hello,</p>
-      <p>You have been invited to join the <strong>${workspaceName}</strong> workspace on Zentrox as an <strong>${role}</strong>.</p>
-      <p>Click the link below to accept the invitation and start collaborating:</p>
-      <div style="margin: 24px 0;">
-        <a href="${inviteLink}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Accept Invitation</a>
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
+      <div style="background-color: #09090b; padding: 32px 40px; text-align: center;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.5px;">Zentrox</h1>
       </div>
-      <p style="color: #666; font-size: 14px;">If the button doesn't work, copy and paste this URL into your browser:</p>
-      <p style="word-break: break-all; font-size: 14px;"><a href="${inviteLink}">${inviteLink}</a></p>
-      <hr style="border: none; border-top: 1px solid #eaeaea; margin: 24px 0;" />
-      <p style="color: #999; font-size: 12px;">This invitation was sent by ${inviterEmail}. If you did not expect this invitation, you can ignore this email.</p>
+      <div style="padding: 40px;">
+        <h2 style="color: #09090b; margin-top: 0; margin-bottom: 24px; font-size: 20px; font-weight: 600; letter-spacing: -0.5px;">You've been invited to collaborate!</h2>
+        <p style="color: #374151; font-size: 16px; line-height: 24px; margin: 0 0 24px 0;">
+          Hello,
+        </p>
+        <p style="color: #374151; font-size: 16px; line-height: 24px; margin: 0 0 32px 0;">
+          You have been invited to join the <strong>${workspaceName}</strong> workspace on Zentrox as an <strong>${role}</strong>.
+        </p>
+        <div style="text-align: center; margin-bottom: 32px;">
+          <a href="${inviteLink}" style="background-color: #09090b; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 16px; display: inline-block;">Accept Invitation</a>
+        </div>
+        <p style="color: #6b7280; font-size: 14px; line-height: 20px; margin: 0 0 8px 0;">
+          If the button doesn't work, copy and paste this URL into your browser:
+        </p>
+        <div style="background-color: #f3f4f6; padding: 12px 16px; border-radius: 6px; word-break: break-all;">
+          <a href="${inviteLink}" style="color: #2563eb; font-size: 14px; text-decoration: none;">${inviteLink}</a>
+        </div>
+      </div>
+      <div style="background-color: #f9fafb; border-top: 1px solid #e5e7eb; padding: 24px 40px; text-align: center;">
+        <p style="color: #9ca3af; font-size: 12px; line-height: 18px; margin: 0;">
+          This invitation was sent by <strong>${inviterEmail}</strong>.<br>If you were not expecting this invitation, you can safely ignore this email.
+        </p>
+      </div>
     </div>
   `;
 
@@ -91,3 +121,4 @@ export async function sendWorkspaceInviteEmail(
     idempotencyKey: `invite-${inviteId}`,
   });
 }
+
