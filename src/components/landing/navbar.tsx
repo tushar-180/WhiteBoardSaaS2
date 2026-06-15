@@ -25,7 +25,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
             height={42}
             className="object-contain rounded-xl shadow-sm"
           />
-          <span className="font-black tracking-tight text-foreground">
+          <span className="font-black tracking-tight text-foreground hidden sm:inline">
             Zentrox
           </span>
         </Link>
@@ -54,14 +54,14 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
         </nav>
 
         {/* CTA Buttons */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {isLoggedIn ? (
             <>
               <Logout />
-              <Button asChild size="lg">
+              <Button asChild className="h-9 px-4 text-xs sm:text-sm sm:h-11 sm:px-8 sm:text-base rounded-xl font-semibold shadow-xs">
                 <Link href={ROUTES.WORKSPACES}>
                   Go to App
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-1.5 sm:ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Link>
               </Button>
             </>
@@ -70,15 +70,14 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
               <Button
                 asChild
                 variant="ghost"
-                size="lg"
-                className="hidden sm:inline-flex"
+                className="hidden sm:inline-flex h-9 px-4 sm:h-11 sm:px-8 rounded-xl font-semibold"
               >
                 <Link href={ROUTES.LOGIN}>Sign In</Link>
               </Button>
-              <Button asChild size="lg">
+              <Button asChild className="h-9 px-4 text-xs sm:text-sm sm:h-11 sm:px-8 sm:text-base rounded-xl font-semibold shadow-xs">
                 <Link href={ROUTES.WORKSPACES}>
                   Get Started
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-1.5 sm:ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Link>
               </Button>
             </>

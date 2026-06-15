@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { LayoutGrid, ArrowRight, Trash2, Edit } from "lucide-react";
+import { LayoutGrid, ArrowRight, Trash2, Edit, Info } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -27,12 +27,24 @@ export function BoardCard({ board, currentUserRole }: BoardCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
 
-  const formattedDate = new Date(board.created_at).toLocaleDateString(
+  const formattedDate = new Date(board.created_at).toLocaleString(
     "en-US",
     {
       year: "numeric",
       month: "short",
       day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    },
+  );
+
+  const formattedUpdatedDate = new Date(board.updated_at).toLocaleString(
+    "en-US",
+    {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
     },
   );
 
@@ -55,18 +67,19 @@ export function BoardCard({ board, currentUserRole }: BoardCardProps) {
   return (
     <>
       <Link href={`/board/${board.id}`} className="block group">
-        <Card className="h-full border border-border/60 bg-card/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-5 gap-0 ring-0">
+        <Card className="h-full min-h-[160px] flex flex-col border border-border/60 bg-card/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0 group cursor-pointer focus-within:ring-2 focus-within:ring-primary/50">
           {/* Decorative corner shape */}
-          <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full translate-x-4 -translate-y-4 group-hover:scale-125 transition-transform duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/5 rounded-bl-full translate-x-4 -translate-y-4 group-hover:scale-125 transition-transform duration-500" />
 
           {/* Action buttons (revealed on hover) */}
-          <div className="absolute top-4 right-4 z-20 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300">
+          <div className="absolute top-4 right-4 z-20 flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300">
             {canEditBoard && (
               <>
                 <button
                   type="button"
                   onClick={handleEditClick}
-                  className="p-1.5 rounded-lg bg-background/80 hover:bg-primary/10 text-muted-foreground hover:text-primary border border-border/50 transition-colors duration-200 cursor-pointer"
+                  className="p-1.5 rounded-lg bg-background/80 hover:bg-indigo-500/10 text-muted-foreground hover:text-indigo-500 border border-border/50 transition-colors duration-200 cursor-pointer"
                   title="Edit Board"
                 >
                   <Edit className="h-3.5 w-3.5" />
@@ -84,9 +97,9 @@ export function BoardCard({ board, currentUserRole }: BoardCardProps) {
 
           </div>
 
-          <CardHeader className="p-0 gap-0">
+          <CardHeader className="p-0 gap-0 relative z-10">
             <div className="flex items-center gap-2 mb-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-300">
                 <LayoutGrid className="h-4 w-4" />
               </div>
               <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
@@ -94,7 +107,7 @@ export function BoardCard({ board, currentUserRole }: BoardCardProps) {
               </span>
             </div>
 
-            <CardTitle className="text-base font-bold text-foreground group-hover:text-primary transition-colors duration-200 truncate pr-16">
+            <CardTitle className="text-base font-bold text-foreground group-hover:text-indigo-500 transition-colors duration-200 truncate pr-16">
               {board.name}
             </CardTitle>
 
@@ -103,14 +116,22 @@ export function BoardCard({ board, currentUserRole }: BoardCardProps) {
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="p-0 mt-5 flex items-center justify-between border-t border-border/40 pt-4">
-            <span
-              className="text-[11px] text-muted-foreground"
-              suppressHydrationWarning
-            >
-              Created: {formattedDate}
-            </span>
-            <span className="flex items-center gap-1 text-[11px] font-bold text-primary opacity-0 group-hover:opacity-100 transition-all duration-300">
+          <CardContent className="p-0 mt-5 flex items-center justify-between border-t border-border/40 pt-4 relative z-10">
+            <div className="flex items-center gap-1.5 overflow-hidden pr-2">
+              <span
+                className="text-[11px] text-muted-foreground truncate"
+                suppressHydrationWarning
+              >
+                Updated: {formattedUpdatedDate}
+              </span>
+              <div 
+                className="text-muted-foreground/50 hover:text-indigo-500 transition-colors cursor-help shrink-0" 
+                title={`Created: ${formattedDate}`}
+              >
+                <Info className="h-3 w-3" />
+              </div>
+            </div>
+            <span className="flex items-center gap-1 text-[11px] font-bold text-indigo-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 shrink-0">
               Open Board{" "}
               <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
             </span>

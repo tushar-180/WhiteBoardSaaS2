@@ -53,7 +53,9 @@ export default function WhiteboardEditor({
         if (error || !member) {
           // No member record found, user is kicked from workspace
           setIsKicked(true);
-          toast.error("Access revoked. You have been removed from this workspace.");
+          toast.error(
+            "Access revoked. You have been removed from this workspace.",
+          );
         } else {
           setLocalIsReadonly(member.role === "viewer");
         }
@@ -78,7 +80,11 @@ export default function WhiteboardEditor({
             // Since DELETE payload.old only contains the primary key ID, we must check if our access was removed
             verifyAccess();
           } else if (payload.eventType === "UPDATE") {
-            const updatedMember = payload.new as { user_id: string; workspace_id: string; role: string };
+            const updatedMember = payload.new as {
+              user_id: string;
+              workspace_id: string;
+              role: string;
+            };
             if (
               updatedMember.user_id === currentUser.id &&
               updatedMember.workspace_id === board.workspace_id
@@ -86,7 +92,10 @@ export default function WhiteboardEditor({
               setLocalIsReadonly(updatedMember.role === "viewer");
             }
           } else if (payload.eventType === "INSERT") {
-            const newMember = payload.new as { user_id: string; workspace_id: string };
+            const newMember = payload.new as {
+              user_id: string;
+              workspace_id: string;
+            };
             if (
               newMember.user_id === currentUser.id &&
               newMember.workspace_id === board.workspace_id
@@ -94,7 +103,7 @@ export default function WhiteboardEditor({
               verifyAccess();
             }
           }
-        }
+        },
       )
       .subscribe();
 

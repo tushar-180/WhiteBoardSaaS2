@@ -200,3 +200,17 @@ export async function leaveWorkspaceAction(workspaceId: string): Promise<void> {
     throw new Error((error as Error).message || "Failed to leave workspace.");
   }
 }
+
+/**
+ * Fetches members of a workspace to display in the UI (e.g. avatar groups).
+ */
+export async function getWorkspaceMembersAction(workspaceId: string) {
+  try {
+    const { user } = await requireActionAuth("You must be logged in to view workspace members.");
+    
+    return await fetchWorkspaceMembers(workspaceId);
+  } catch (error) {
+    console.error("Action error in getWorkspaceMembersAction:", error);
+    return [];
+  }
+}

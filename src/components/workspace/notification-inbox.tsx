@@ -203,7 +203,7 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-popover/95 border border-border/80 rounded-xl shadow-xl p-3 z-50 space-y-3 backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-[70px] sm:top-auto sm:mt-2 w-auto sm:w-80 bg-popover/95 border border-border/80 rounded-xl shadow-xl p-3 z-50 space-y-3 backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center justify-between border-b border-border/40 pb-2">
             <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
               <Inbox className="h-3.5 w-3.5 text-primary/80" />

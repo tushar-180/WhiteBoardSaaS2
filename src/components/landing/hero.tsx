@@ -62,20 +62,20 @@ export default function Hero({ isLoggedIn }: HeroProps) {
         </div>
 
         {/* Interactive Whiteboard Canvas Mockup */}
-        <div className="mt-20 relative mx-auto max-w-5xl rounded-2xl border border-border/80 bg-background/50 p-3 shadow-2xl backdrop-blur-sm group">
+        <div className="mt-16 sm:mt-20 relative mx-auto max-w-5xl rounded-2xl border border-border/80 bg-background/50 p-2 sm:p-3 shadow-2xl backdrop-blur-sm group">
           {/* Main Canvas Area */}
-          <div className="relative rounded-xl border border-border/50 bg-background/40 h-[400px] sm:h-[520px] w-full overflow-hidden select-none">
+          <div className="relative rounded-xl border border-border/50 bg-background/40 h-[320px] sm:h-[520px] w-full overflow-hidden select-none">
             {/* Fine Whiteboard Grid */}
-            <div className="absolute inset-0 bg-[radial-gradient(oklch(var(--muted-foreground)/0.12)_1.2px,transparent_1.2px)] [background-size:20px_20px] bg-background" />
+            <div className="absolute inset-0 bg-[radial-gradient(oklch(var(--muted-foreground)/0.12)_1.2px,transparent_1.2px)] [background-size:16px_16px] sm:[background-size:20px_20px] bg-background" />
 
             {/* Floating Top-Left Page Selection */}
-            <div className="absolute top-4 left-4 flex items-center gap-2 rounded-lg border border-border/60 bg-background/95 px-3 py-1.5 shadow-sm text-xs font-semibold backdrop-blur-md">
+            <div className="hidden sm:flex absolute top-4 left-4 items-center gap-2 rounded-lg border border-border/60 bg-background/95 px-3 py-1.5 shadow-sm text-xs font-semibold backdrop-blur-md">
               <span className="text-muted-foreground">Workspace:</span>
               <span className="text-foreground">Project Alpha</span>
             </div>
 
             {/* Floating Bottom-Left Zoom Widget */}
-            <div className="absolute bottom-4 left-4 flex items-center gap-1 rounded-lg border border-border/60 bg-background/95 p-1 shadow-sm backdrop-blur-md">
+            <div className="hidden sm:flex absolute bottom-4 left-4 items-center gap-1 rounded-lg border border-border/60 bg-background/95 p-1 shadow-sm backdrop-blur-md">
               <Button size="icon-xs" variant="ghost" className="h-7 w-7 rounded-md">
                 <Minus className="h-3 w-3" />
               </Button>
@@ -86,29 +86,29 @@ export default function Hero({ isLoggedIn }: HeroProps) {
             </div>
 
             {/* Floating tldraw-style Center Tool Selection */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-1 rounded-xl border border-border bg-background/95 p-1.5 shadow-xl backdrop-blur-md">
-              <Button size="icon-sm" variant="ghost" className="rounded-lg bg-primary text-primary-foreground">
+            <div className="absolute bottom-4 sm:bottom-auto sm:top-4 left-1/2 -translate-x-1/2 flex items-center gap-1 rounded-xl border border-border bg-background/95 p-1.5 shadow-xl backdrop-blur-md">
+              <Button size="icon-sm" variant="ghost" className="rounded-lg bg-primary text-primary-foreground h-8 w-8 sm:h-9 sm:w-9">
                 <MousePointer className="h-4 w-4" />
               </Button>
-              <Button size="icon-sm" variant="ghost" className="rounded-lg text-muted-foreground hover:text-foreground">
+              <Button size="icon-sm" variant="ghost" className="rounded-lg text-muted-foreground hover:text-foreground h-8 w-8 sm:h-9 sm:w-9">
                 <PenTool className="h-4 w-4" />
               </Button>
-              <Button size="icon-sm" variant="ghost" className="rounded-lg text-muted-foreground hover:text-foreground">
+              <Button size="icon-sm" variant="ghost" className="rounded-lg text-muted-foreground hover:text-foreground h-8 w-8 sm:h-9 sm:w-9">
                 <Square className="h-4 w-4" />
               </Button>
-              <Button size="icon-sm" variant="ghost" className="rounded-lg text-muted-foreground hover:text-foreground">
+              <Button size="icon-sm" variant="ghost" className="rounded-lg text-muted-foreground hover:text-foreground h-8 w-8 sm:h-9 sm:w-9">
                 <Circle className="h-4 w-4" />
               </Button>
-              <Button size="icon-sm" variant="ghost" className="rounded-lg text-muted-foreground hover:text-foreground">
+              <Button size="icon-sm" variant="ghost" className="rounded-lg text-muted-foreground hover:text-foreground hidden sm:inline-flex h-9 w-9">
                 <Type className="h-4 w-4" />
               </Button>
-              <Button size="icon-sm" variant="ghost" className="rounded-lg text-muted-foreground hover:text-foreground">
+              <Button size="icon-sm" variant="ghost" className="rounded-lg text-muted-foreground hover:text-foreground hidden sm:inline-flex h-9 w-9">
                 <Eraser className="h-4 w-4" />
               </Button>
             </div>
 
             {/* Floating Top-Right Utilities */}
-            <div className="absolute top-4 right-4 flex items-center gap-2">
+            <div className="hidden sm:flex absolute top-4 right-4 items-center gap-2">
               <Button size="icon-sm" variant="outline" className="rounded-lg bg-background/95 shadow-sm">
                 <Download className="h-4 w-4 text-muted-foreground" />
               </Button>
@@ -118,7 +118,7 @@ export default function Hero({ isLoggedIn }: HeroProps) {
             </div>
 
             {/* SVGs representing sketchy, hand-drawn vector art */}
-            <svg className="absolute inset-0 h-full w-full pointer-events-none">
+            <svg className="absolute inset-0 h-full w-full pointer-events-none" viewBox="0 0 600 520" preserveAspectRatio="xMidYMid meet">
               <g className="stroke-foreground/90" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
                 {/* Handdrawn styled Rectangle 1 (React Frontend - Moved to top center) */}
                 <path d="M 240 110 L 380 110 Q 382 111 380 113 L 380 180 Q 379 182 378 180 L 240 180 Q 238 179 240 178 L 240 112" className="stroke-primary" />
@@ -141,29 +141,29 @@ export default function Hero({ isLoggedIn }: HeroProps) {
             </svg>
 
             {/* Hand-drawn Mock Sticky Note */}
-            <div className="absolute top-[35%] right-[10%] rotate-3 rounded-lg bg-yellow-100/90 dark:bg-yellow-950/20 border border-yellow-200/60 dark:border-yellow-900/40 p-4 shadow-xl w-40 h-40 flex flex-col justify-between backdrop-blur-xs">
+            <div className="absolute top-[35%] right-[5%] sm:right-[10%] rotate-3 rounded-lg bg-yellow-100/90 dark:bg-yellow-950/20 border border-yellow-200/60 dark:border-yellow-900/40 p-3 sm:p-4 shadow-xl w-32 h-32 sm:w-40 sm:h-40 flex flex-col justify-between backdrop-blur-xs scale-75 sm:scale-100 origin-right">
               <div className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-yellow-400" />
                 <span className="text-[10px] font-bold text-yellow-600 uppercase tracking-wider">Note</span>
               </div>
-              <p className="text-[12px] text-yellow-900 dark:text-yellow-100 font-medium leading-relaxed font-sans">
+              <p className="text-[10px] sm:text-[12px] text-yellow-900 dark:text-yellow-100 font-medium leading-relaxed font-sans">
                 Review the Supabase proxy.ts redirect loop checks. 💡
               </p>
-              <span className="text-[9px] text-yellow-600/70 font-semibold self-end">#release-notes</span>
+              <span className="text-[8px] sm:text-[9px] text-yellow-600/70 font-semibold self-end">#release-notes</span>
             </div>
 
             {/* Collaborative Cursor 1 */}
-            <div className="absolute top-[52%] left-[28%] flex items-center gap-1.5 animate-bounce" style={{ animationDuration: '6s' }}>
-              <MousePointer className="h-5 w-5 text-indigo-500 fill-indigo-500 transform -rotate-15 filter drop-shadow-sm" />
-              <div className="rounded-lg bg-indigo-500 px-2 py-1 text-[10px] font-bold text-white shadow-md border border-indigo-400/20">
+            <div className="absolute top-[52%] left-[10%] sm:left-[28%] flex items-center gap-1.5 animate-bounce" style={{ animationDuration: '6s' }}>
+              <MousePointer className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500 fill-indigo-500 transform -rotate-15 filter drop-shadow-sm" />
+              <div className="rounded-lg bg-indigo-500 px-2 py-1 text-[9px] sm:text-[10px] font-bold text-white shadow-md border border-indigo-400/20 whitespace-nowrap">
                 Sarah (Drawing...)
               </div>
             </div>
 
             {/* Collaborative Cursor 2 */}
-            <div className="absolute bottom-[35%] left-[54%] flex items-center gap-1.5">
-              <MousePointer className="h-5 w-5 text-emerald-500 fill-emerald-500 transform -rotate-15 filter drop-shadow-sm" />
-              <div className="rounded-lg bg-emerald-500 px-2 py-1 text-[10px] font-bold text-white shadow-md border border-emerald-400/20">
+            <div className="absolute bottom-[25%] sm:bottom-[35%] left-[50%] sm:left-[54%] flex items-center gap-1.5">
+              <MousePointer className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500 fill-emerald-500 transform -rotate-15 filter drop-shadow-sm" />
+              <div className="rounded-lg bg-emerald-500 px-2 py-1 text-[9px] sm:text-[10px] font-bold text-white shadow-md border border-emerald-400/20 whitespace-nowrap">
                 Alex (Typing...)
               </div>
             </div>
