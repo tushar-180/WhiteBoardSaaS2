@@ -4,6 +4,17 @@ Zentrox is a high-performance, collaborative workspace-based whiteboard applicat
 
 ---
 
+## 🌐 Live Deployment
+
+| Service | URL |
+| :--- | :--- |
+| **App (Vercel)** | https://zentrox-one.vercel.app |
+| **WebSocket Sync Server (Render)** | https://whiteboardsaas2.onrender.com |
+
+For setup details see the **[Vercel Deployment Guide](docs/DEPLOYMENT.md)**.
+
+---
+
 ## 📂 Repository Documentation
 
 Detailed system architecture and database documentation can be found in the `docs/` folder:
@@ -124,7 +135,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 ## 📦 Build & Deployment
 
-For a full walkthrough on production deployment, see the **[Vercel Deployment Guide](docs/DEPLOYMENT.md)**.
+The app is live at **https://zentrox-one.vercel.app**. For a full walkthrough on production deployment, see the **[Vercel Deployment Guide](docs/DEPLOYMENT.md)**.
 
 ### Build Scripts
 *   `npm run dev`: Starts the Next.js development server with Turbopack.

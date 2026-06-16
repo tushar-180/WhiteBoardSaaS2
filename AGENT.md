@@ -36,6 +36,17 @@ Redux Toolkit is not part of this codebase anymore.
 
 ---
 
+## Live Deployment
+
+| Service | URL |
+| :--- | :--- |
+| **Next.js App (Vercel)** | https://zentrox-one.vercel.app |
+| **WebSocket Sync Server (Render)** | https://whiteboardsaas2.onrender.com |
+
+The environment variable `NEXT_PUBLIC_SYNC_SERVER_URL` must be set to `https://whiteboardsaas2.onrender.com` in Vercel.
+
+---
+
 ## Current Product Scope
 
 The product flow is:
