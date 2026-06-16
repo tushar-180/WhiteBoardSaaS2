@@ -58,17 +58,17 @@ Click **Add** for each variable, then click **Deploy**.
 
 Since this app uses Supabase Auth, you must explicitly allow Supabase to redirect back to your newly deployed Vercel domain.
 
-1. Retrieve your deployment URL from Vercel (e.g., `https://whiteboard-canvas-nine.vercel.app`).
+1. The production Vercel URL is **`https://zentrox-one.vercel.app`**.
 2. Go to the **[Supabase Dashboard](https://supabase.com/dashboard)**.
 3. Navigate to **Authentication** -> **URL Configuration**.
 4. Configure the following:
-   - **Site URL:** Update this to your production Vercel URL:
+   - **Site URL:**
      ```txt
-     https://your-app-name.vercel.app
+     https://zentrox-one.vercel.app
      ```
    - **Redirect URLs:** Add the callback URL to the allowed redirects list:
      ```txt
-     https://your-app-name.vercel.app/auth/callback
+     https://zentrox-one.vercel.app/auth/callback
      ```
 5. Click **Save**.
 
@@ -143,9 +143,9 @@ The Next.js app on Vercel is stateless. To enable real-time collaboration, you m
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 5. Click **Create Web Service**.
-6. Once deployed, copy the Render service URL (e.g., `https://your-sync-server.onrender.com`).
+6. The Render sync server is deployed at **`https://whiteboardsaas2.onrender.com`**.
 7. **Update Vercel:** Go back to your Vercel Dashboard, find your Next.js project's Environment Variables, and add:
-   - `NEXT_PUBLIC_SYNC_SERVER_URL` = `https://your-sync-server.onrender.com`
+   - `NEXT_PUBLIC_SYNC_SERVER_URL` = `https://whiteboardsaas2.onrender.com`
 8. Redeploy your Vercel project so it picks up the new sync server URL.
 
 ---
@@ -153,6 +153,7 @@ The Next.js app on Vercel is stateless. To enable real-time collaboration, you m
 ## 🧪 Verification & Health Check
 
 After deployment, verify that:
-1. You can access the landing page of your app on the Vercel domain.
-2. Sign Up and Login function correctly and redirect you to the `/workspaces` route.
-3. You can create a Workspace and a Board, and drawing data persists after reloading.
+1. **Landing page** loads at https://zentrox-one.vercel.app.
+2. **Auth** — Sign Up and Login redirect correctly to `/workspaces`.
+3. **Canvas** — Create a Workspace and Board; drawing data persists after reloading.
+4. **Real-time sync** — Open the same board in two tabs and confirm strokes appear on both; the sync server at https://whiteboardsaas2.onrender.com should be reachable.

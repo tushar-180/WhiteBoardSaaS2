@@ -4,6 +4,17 @@ Zentrox is a high-performance, collaborative workspace-based whiteboard applicat
 
 ---
 
+## 🌐 Live Deployment
+
+| Service | URL |
+| :--- | :--- |
+| **App (Vercel)** | https://zentrox-one.vercel.app |
+| **WebSocket Sync Server (Render)** | https://whiteboardsaas2.onrender.com |
+
+For setup details see the **[Vercel Deployment Guide](docs/DEPLOYMENT.md)**.
+
+---
+
 ## 📂 Repository Documentation
 
 Detailed system architecture and database documentation can be found in the `docs/` folder:
@@ -21,10 +32,11 @@ Detailed system architecture and database documentation can be found in the `doc
 
 *   **🔐 Multi-Tenant Authentication:** Built on Supabase SSR with secure session validation and public profile syncing.
 *   **🏢 Workspace Isolation:** Isolated spaces for boards and team management, preventing data bleeding.
-*   **👥 Real-Time Collaborators (Stage 3):** Manage team roles (Owner, Admin, Editor, Viewer) with secure token-based workspace invitation flows.
+*   **👥 Real-Time Collaborators (Stage 3):** Manage team roles (Owner, Admin, Editor, Viewer) with secure token-based workspace invitation flows. Manage members directly from the canvas dashboard or globally.
 *   **📋 Board CRUD (Stage 4):** Create, edit, and delete multiple boards per workspace.
 *   **✏️ Vector Sketch Canvas (Stage 5):** Embed dynamic infinite drawing boards with shapes, arrows, text, and vector freehands.
 *   **💾 State Persistence (Stage 5):** Automatic JSONB serialization of whiteboard canvas data directly to Supabase PostgreSQL.
+*   **📱 Mobile-First UX:** Fully responsive layouts for touch devices, including fluid canvas mockups, native UI gestures, and touch-optimized navigation.
 
 ---
 
@@ -36,6 +48,8 @@ Detailed system architecture and database documentation can be found in the `doc
 | **Styling & UI** | Tailwind CSS v4, shadcn/ui, Radix UI Primitives, Lucide Icons, Sonner |
 | **State Management** | Zustand (Client State), Next.js Server Actions & Route Handlers (Server State) |
 | **Database & Auth** | Supabase SSR SDK, Supabase Auth, PostgreSQL |
+| **Analytics & Sessions**| PostHog (Session recording, analytics) |
+| **Emails** | SendGrid (Transactional emails, workspace invites) |
 | **Forms & Validation** | React Hook Form, Zod, `@hookform/resolvers` |
 
 ---
@@ -121,7 +135,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 ## 📦 Build & Deployment
 
-For a full walkthrough on production deployment, see the **[Vercel Deployment Guide](docs/DEPLOYMENT.md)**.
+The app is live at **https://zentrox-one.vercel.app**. For a full walkthrough on production deployment, see the **[Vercel Deployment Guide](docs/DEPLOYMENT.md)**.
 
 ### Build Scripts
 *   `npm run dev`: Starts the Next.js development server with Turbopack.

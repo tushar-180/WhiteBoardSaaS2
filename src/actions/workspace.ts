@@ -5,6 +5,7 @@ import { requireActionAuth, createClient } from "@/utils/supabase/server";
 import { insertWorkspace, deleteWorkspace } from "@/services/workspace";
 import { type Workspace, workspaceSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 
 
@@ -51,6 +52,12 @@ export async function createWorkspaceAction(name: string): Promise<Workspace> {
 
     const newWorkspace = await insertWorkspace(trimmedName, slug, user.id);
 
+    getPostHogClient().capture({
+      distinctId: user.id,
+      event: "workspace_created",
+      properties: { workspace_id: newWorkspace.id, workspace_name: newWorkspace.name },
+    });
+
     // Revalidate the caching of the workspaces list page
     revalidatePath(ROUTES.WORKSPACES);
 
@@ -69,6 +76,12 @@ export async function deleteWorkspaceAction(workspaceId: string): Promise<void> 
     const { user } = await requireActionAuth("You must be logged in to delete a workspace.");
 
     await deleteWorkspace(workspaceId, user.id);
+
+    getPostHogClient().capture({
+      distinctId: user.id,
+      event: "workspace_deleted",
+      properties: { workspace_id: workspaceId },
+    });
 
     // Revalidate the caching of the workspaces list page
     revalidatePath("/workspaces");

@@ -59,6 +59,7 @@ export function InviteForm({
             placeholder="e.g. collaborator@example.com"
             className="h-10 rounded-xl bg-background/50 hover:bg-background/80 focus:bg-background pr-8"
             disabled={loading}
+            maxLength={255}
             {...register("email")}
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => {

@@ -1,7 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, Menu } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import Logout from "./logout";
 import { ASSETS, ROUTES } from "@/lib/constants";
 
@@ -25,7 +31,7 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
             height={42}
             className="object-contain rounded-xl shadow-sm"
           />
-          <span className="font-black tracking-tight text-foreground">
+          <span className="font-black tracking-tight text-foreground hidden sm:inline">
             Zentrox
           </span>
         </Link>
@@ -33,35 +39,81 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
           <Link
-            href="#features"
+            href="/features"
             className="hover:text-foreground transition-colors"
           >
             Features
           </Link>
           <Link
-            href="#pricing"
+            href="/pricing"
             className="hover:text-foreground transition-colors"
           >
             Pricing
           </Link>
           <Link
+            href="/about"
+            className="hover:text-foreground transition-colors"
+          >
+            About
+          </Link>
+          <Link
             href="https://github.com/tushar-180/WhiteBoardSaaS2"
-            target="_blank"
+            target="_self"
             className="hover:text-foreground transition-colors"
           >
             GitHub
           </Link>
         </nav>
 
-        {/* CTA Buttons */}
-        <div className="flex items-center gap-4">
+        {/* CTA Buttons & Mobile Menu */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Mobile Menu */}
+          <div className="md:hidden">
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", size: "icon", className: "h-9 w-9 rounded-xl" })}>
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-md rounded-xl border-border/50">
+                <DropdownMenuItem asChild>
+                  <Link href="/features" className="w-full cursor-pointer">Features</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/pricing" className="w-full cursor-pointer">Pricing</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/about" className="w-full cursor-pointer">About</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/contact" className="w-full cursor-pointer">Contact Us</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="https://github.com/tushar-180/WhiteBoardSaaS2" target="_self" className="w-full cursor-pointer">GitHub</Link>
+                </DropdownMenuItem>
+                {!isLoggedIn && (
+                  <DropdownMenuItem asChild>
+                    <Link href={ROUTES.LOGIN} className="w-full cursor-pointer font-bold text-primary">Sign In</Link>
+                  </DropdownMenuItem>
+                )}
+                {isLoggedIn && (
+                  <DropdownMenuItem asChild>
+                    <Link href={ROUTES.WORKSPACES} className="w-full cursor-pointer font-bold text-primary">Go to App</Link>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           {isLoggedIn ? (
             <>
               <Logout />
-              <Button asChild size="lg">
+              <Button
+                asChild
+                className="hidden sm:inline-flex h-9 px-4 sm:h-11 sm:px-8 sm:text-base rounded-xl font-semibold shadow-xs"
+              >
                 <Link href={ROUTES.WORKSPACES}>
                   Go to App
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-1.5 sm:ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Link>
               </Button>
             </>
@@ -70,15 +122,17 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
               <Button
                 asChild
                 variant="ghost"
-                size="lg"
-                className="hidden sm:inline-flex"
+                className="hidden sm:inline-flex h-9 px-4 sm:h-11 sm:px-8 rounded-xl font-semibold"
               >
                 <Link href={ROUTES.LOGIN}>Sign In</Link>
               </Button>
-              <Button asChild size="lg">
+              <Button
+                asChild
+                className="hidden sm:inline-flex h-9 px-4 sm:h-11 sm:px-8 sm:text-base rounded-xl font-semibold shadow-xs"
+              >
                 <Link href={ROUTES.WORKSPACES}>
                   Get Started
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-1.5 sm:ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Link>
               </Button>
             </>

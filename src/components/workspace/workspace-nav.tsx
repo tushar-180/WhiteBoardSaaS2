@@ -17,7 +17,7 @@ interface WorkspaceNavProps {
 export function WorkspaceNav({ userEmail, userId, logoHref = ROUTES.HOME }: WorkspaceNavProps) {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
-      <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link
           href={logoHref}
           className="flex items-center gap-2 hover:opacity-90 transition-opacity"
@@ -29,12 +29,12 @@ export function WorkspaceNav({ userEmail, userId, logoHref = ROUTES.HOME }: Work
             height={32}
             className="object-contain"
           />
-          <span className="font-black tracking-tight text-lg text-foreground">
+          <span className="font-black tracking-tight text-lg text-foreground hidden sm:inline">
             Zentrox
           </span>
         </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {userEmail && (
             <>
               <NotificationInbox userEmail={userEmail} userId={userId} />
@@ -48,10 +48,10 @@ export function WorkspaceNav({ userEmail, userId, logoHref = ROUTES.HOME }: Work
               variant="ghost"
               size="sm"
               type="submit"
-              className="rounded-xl text-muted-foreground hover:text-foreground gap-1.5 h-9 cursor-pointer"
+              className="rounded-xl text-muted-foreground hover:text-foreground gap-1.5 h-9 cursor-pointer px-2 sm:px-3"
             >
               <LogOut className="h-4 w-4" />
-              Sign Out
+              <span className="hidden sm:inline">Sign Out</span>
             </Button>
           </form>
         </div>

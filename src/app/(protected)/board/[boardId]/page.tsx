@@ -16,7 +16,9 @@ interface PageProps {
 
 export default async function BoardDetailPage({ params }: PageProps) {
   const { boardId } = await params;
-  const { supabase, user } = await requireAuth(`/login?next=${encodeURIComponent(`/board/${boardId}`)}`);
+  const { supabase, user } = await requireAuth(
+    `/login?next=${encodeURIComponent(`/board/${boardId}`)}`,
+  );
 
   // 1. Fetch board details
   const board = await fetchBoardById(boardId);
@@ -30,7 +32,10 @@ export default async function BoardDetailPage({ params }: PageProps) {
     return <UnauthorizedAccess />;
   }
 
-  const workspaceRole = await fetchWorkspaceMemberRole(board.workspace_id, user.id);
+  const workspaceRole = await fetchWorkspaceMemberRole(
+    board.workspace_id,
+    user.id,
+  );
   const isReadonly = workspaceRole === "viewer";
   const licenseKey = process.env.TLDRAW_API;
 
@@ -42,10 +47,7 @@ export default async function BoardDetailPage({ params }: PageProps) {
     .single();
 
   const displayName =
-    profile?.name ||
-    user.user_metadata?.full_name ||
-    user.email ||
-    "Anonymous";
+    profile?.name || user.user_metadata?.full_name || user.email || "Anonymous";
 
   const currentUser = {
     id: user.id,
@@ -61,4 +63,3 @@ export default async function BoardDetailPage({ params }: PageProps) {
     />
   );
 }
-

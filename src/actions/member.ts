@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireActionAuth } from "@/utils/supabase/server";
+import { getPostHogClient } from "@/lib/posthog-server";
 import {
   fetchWorkspaceMemberRole,
   removeWorkspaceMember,
@@ -57,6 +58,16 @@ export async function removeMemberAction(workspaceId: string, memberId: string):
 
     // 5. Perform deletion
     await removeWorkspaceMember(workspaceId, memberId);
+
+    getPostHogClient().capture({
+      distinctId: user.id,
+      event: "workspace_member_removed",
+      properties: {
+        workspace_id: workspaceId,
+        removed_member_id: memberId,
+        removed_member_role: targetMember.role,
+      },
+    });
 
     // Revalidate paths
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
@@ -128,6 +139,17 @@ export async function updateMemberRoleAction(
     // 6. Update role
     await updateWorkspaceMemberRole(workspaceId, memberId, validatedRole);
 
+    getPostHogClient().capture({
+      distinctId: user.id,
+      event: "workspace_member_role_updated",
+      properties: {
+        workspace_id: workspaceId,
+        member_id: memberId,
+        previous_role: targetMember.role,
+        new_role: validatedRole,
+      },
+    });
+
     // Revalidate paths
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
   } catch (error: unknown) {
@@ -165,10 +187,30 @@ export async function leaveWorkspaceAction(workspaceId: string): Promise<void> {
     // 4. Remove the user from the workspace
     await removeWorkspaceMember(workspaceId, currentMember.id);
 
+    getPostHogClient().capture({
+      distinctId: user.id,
+      event: "workspace_left",
+      properties: { workspace_id: workspaceId, role: currentMember.role },
+    });
+
     // Revalidate paths
     revalidatePath(ROUTES.WORKSPACES);
   } catch (error: unknown) {
     console.error("Action error in leaveWorkspaceAction:", error);
     throw new Error((error as Error).message || "Failed to leave workspace.");
+  }
+}
+
+/**
+ * Fetches members of a workspace to display in the UI (e.g. avatar groups).
+ */
+export async function getWorkspaceMembersAction(workspaceId: string) {
+  try {
+    const { user } = await requireActionAuth("You must be logged in to view workspace members.");
+    
+    return await fetchWorkspaceMembers(workspaceId);
+  } catch (error) {
+    console.error("Action error in getWorkspaceMembersAction:", error);
+    return [];
   }
 }
