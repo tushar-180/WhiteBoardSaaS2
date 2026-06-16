@@ -32,6 +32,7 @@ graph TD
     P5 --> P6[Phase 6: Polish + Deploy]
     P6 --> P7[Phase 7: Real-Time Collaboration]
     P7 --> P8[Phase 8: Real-Time Notifications]
+    P8 --> P9[Phase 9: SEO + Accessibility]
 ```
 
 ---
@@ -138,6 +139,17 @@ erDiagram
 - Refactored and modularized invite management UI (`InviteMemberDialog`, `workspace-invites-list`).
 - Enhanced whiteboard access control with real-time revocation monitoring (`KickedOverlay`).
 - New reusable UI components: `DropdownMenu`, `Pagination`.
+
+## Phase 9: SEO, Accessibility, and Codebase Polish ✅
+
+**Goal:** Improve search engine visibility, enhance accessibility, and resolve strict compiler/linter warnings.
+
+- Dynamic `sitemap.ts` and `robots.ts` for SEO.
+- Aceternity UI components (`HoverBorderGradient`) integrated into landing page.
+- Accessibility (A11y) enhancements: improved contrast, ARIA labels, and touch targets.
+- Resolution of React 19 / Next.js 15 compiler warnings (`react-hooks/purity`, `set-state-in-effect`).
+- Strict typing compliance (`any` replaced with `unknown`).
+- Fixed unescaped HTML entities in legal pages and empty states.
 
 ---
 
