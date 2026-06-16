@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://zentrox-one.vercel.app";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://zentrox-one.vercel.app";
 
   return [
     {

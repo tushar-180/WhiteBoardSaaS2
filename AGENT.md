@@ -25,7 +25,7 @@ Do not assume old plans are still active. The current app scope is auth, workspa
 ## Current Stack
 
 - **Framework:** Next.js 16 App Router, React 19, TypeScript
-- **Styling:** Tailwind CSS v4, shadcn/ui, Radix primitives
+- **Styling:** Tailwind CSS v4, shadcn/ui, Aceternity UI, Radix primitives
 - **Icons / Feedback:** lucide-react, Sonner
 - **State:** Zustand
 - **Forms / Validation:** React Hook Form, Zod, `@hookform/resolvers`

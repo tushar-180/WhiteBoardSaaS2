@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail } from "lucide-react";
 import { toast } from "sonner";
@@ -46,8 +46,8 @@ export function InviteMemberDialog({
     handleSubmit,
     reset,
     setValue,
-    watch,
     trigger,
+    control,
     formState: { errors },
   } = useForm<InviteFormData>({
     resolver: zodResolver(inviteSchema),
@@ -61,11 +61,12 @@ export function InviteMemberDialog({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
 
-  const emailValue = watch("email");
+  const emailValue = useWatch({ control, name: "email" }) as string | undefined;
 
   // Debounced search for profiles
   useEffect(() => {
     if (!emailValue || emailValue.trim().length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestions([]);
       return;
     }

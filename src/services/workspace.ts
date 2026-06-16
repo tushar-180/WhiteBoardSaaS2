@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@/utils/supabase/server";
 import { type Workspace, type WorkspaceRole, type WorkspaceMemberPreview } from "@/types/workspace";
 import { isValidUUID } from "@/lib/utils";

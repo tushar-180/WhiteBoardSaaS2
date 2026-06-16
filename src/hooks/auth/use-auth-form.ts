@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createClient } from "@/utils/supabase/client";
 import { authSchema, type AuthFormData } from "@/types/auth";
@@ -49,7 +49,7 @@ export function useAuthForm() {
     }
   }, [errorParam, form]);
 
-  const passwordValue = form.watch("password") || "";
+  const passwordValue = useWatch({ control: form.control, name: "password" }) as string || "";
   const isPasswordValid = passwordValue.length >= 6;
 
   const handleGithubAuth = async () => {

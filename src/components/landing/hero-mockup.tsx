@@ -60,6 +60,7 @@ export default function HeroMockup() {
                   size="icon-sm"
                   variant="ghost"
                   className="rounded-xl bg-indigo-500/20 text-indigo-400 h-9 w-9"
+                  aria-label="Select tool"
                 >
                   <MousePointer className="h-4 w-4" />
                 </Button>
@@ -67,6 +68,7 @@ export default function HeroMockup() {
                   size="icon-sm"
                   variant="ghost"
                   className="rounded-xl text-white/50 hover:text-white hover:bg-white/5 h-9 w-9"
+                  aria-label="Pen tool"
                 >
                   <PenTool className="h-4 w-4" />
                 </Button>
@@ -74,6 +76,7 @@ export default function HeroMockup() {
                   size="icon-sm"
                   variant="ghost"
                   className="rounded-xl text-white/50 hover:text-white hover:bg-white/5 h-9 w-9"
+                  aria-label="Shape tool"
                 >
                   <Square className="h-4 w-4" />
                 </Button>
@@ -81,6 +84,7 @@ export default function HeroMockup() {
                   size="icon-sm"
                   variant="ghost"
                   className="rounded-xl text-white/50 hover:text-white hover:bg-white/5 hidden sm:inline-flex h-9 w-9"
+                  aria-label="Text tool"
                 >
                   <Type className="h-4 w-4" />
                 </Button>
@@ -92,6 +96,7 @@ export default function HeroMockup() {
                   size="icon-xs"
                   variant="ghost"
                   className="h-7 w-7 rounded-lg text-white/50 hover:text-white hover:bg-white/5"
+                  aria-label="Zoom out"
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
@@ -102,6 +107,7 @@ export default function HeroMockup() {
                   size="icon-xs"
                   variant="ghost"
                   className="h-7 w-7 rounded-lg text-white/50 hover:text-white hover:bg-white/5"
+                  aria-label="Zoom in"
                 >
                   <Plus className="h-3 w-3" />
                 </Button>

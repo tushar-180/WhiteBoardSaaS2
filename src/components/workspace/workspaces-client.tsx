@@ -11,7 +11,6 @@ import { WorkspaceList } from "./workspace-list";
 import { CreateWorkspaceDialog } from "./dialogs/create-workspace-dialog";
 import { type Workspace } from "@/types/workspace";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
-import RootLoading from "@/app/loading";
 
 interface WorkspacesClientProps {
   initialWorkspaces: Workspace[];
@@ -39,16 +38,17 @@ export function WorkspacesClient({
       email: userEmail,
       name: userName,
     });
-    setTimeout(() => {
-      setIsMounted(true);
-    }, 0);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
   }, [initialWorkspaces, userId, userEmail, userName]);
-  const workspaces = useWorkspaceStore((state) => state.workspaces);
-  const user = useWorkspaceStore((state) => state.user);
 
-  if (!isMounted) {
-    return <RootLoading />;
-  }
+  const storeWorkspaces = useWorkspaceStore((state) => state.workspaces);
+  const storeUser = useWorkspaceStore((state) => state.user);
+
+  // Use props for SSR and initial hydration to eliminate LCP delay,
+  // then swap to Zustand store state once mounted
+  const workspaces = isMounted && storeWorkspaces.length > 0 ? storeWorkspaces : initialWorkspaces;
+  const currentUser = isMounted && storeUser ? storeUser : { name: userName || "User", email: userEmail || "" };
 
   return (
     <>
@@ -68,7 +68,7 @@ export function WorkspacesClient({
               <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl mb-1">
                 Welcome back,{" "}
                 <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent font-extrabold">
-                  {user?.name || "User"}
+                  {currentUser.name}
                 </span>
                 !
               </h1>
@@ -116,7 +116,7 @@ export function WorkspacesClient({
           </div>
         ) : (
           <div className="flex-1 flex flex-col">
-            <WorkspaceList userId={userId} onCreateClick={() => setOpen(true)} />
+            <WorkspaceList workspaces={workspaces} userId={userId} onCreateClick={() => setOpen(true)} />
           </div>
         )}
 

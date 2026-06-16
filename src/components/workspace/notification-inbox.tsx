@@ -52,6 +52,9 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
 
   // Fetch invites/notifications
   const fetchInvites = useCallback(async () => {
+    // Prevent double-fetching in React Strict Mode
+    if (useNotificationStore.getState().isLoading) return;
+
     setLoading(true);
     try {
       const list = await getUserNotificationsAction();
@@ -195,8 +198,8 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
       >
         <Bell className="h-4 w-4" />
         {notificationCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground animate-pulse shadow-sm">
-            {notificationCount}
+          <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] w-auto px-1 items-center justify-center rounded-full bg-black text-white dark:bg-white dark:text-black text-[9px] font-bold shadow-sm">
+            {notificationCount > 99 ? "99+" : notificationCount}
           </span>
         )}
       </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Search, X, Filter } from "lucide-react";
 import {
   DropdownMenu,
@@ -11,7 +11,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { WorkspaceCard } from "./workspace-card";
-import { useWorkspaceStore } from "@/store/use-workspace-store";
+import { type Workspace } from "@/types/workspace";
 import {
   Pagination,
   PaginationContent,
@@ -23,12 +23,12 @@ import {
 } from "@/components/ui/pagination";
 
 interface WorkspaceListProps {
+  workspaces: Workspace[];
   userId: string;
   onCreateClick: () => void;
 }
 
-export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
-  const workspaces = useWorkspaceStore((state) => state.workspaces);
+export function WorkspaceList({ workspaces, userId, onCreateClick }: WorkspaceListProps) {
   const [filter, setFilter] = useState<"all" | "owned" | "joined">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -57,10 +57,7 @@ export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const activePage = Math.min(currentPage, Math.max(1, totalPages));
 
-  // Reset page to 1 when filter or search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filter, searchQuery]);
+  // Reset page to 1 when filter or search changes is handled in the event handlers
 
   // Calculate items to show
   let pageWorkspaces: typeof filteredWorkspaces = [];
@@ -123,7 +120,7 @@ export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
         {/* Desktop Filters (Hidden on Mobile) */}
         <div className="hidden sm:flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/50 backdrop-blur-xs w-fit">
           <button
-            onClick={() => setFilter("all")}
+            onClick={() => { setFilter("all"); setCurrentPage(1); }}
             className={`shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
               filter === "all"
                 ? "bg-background text-foreground shadow-xs border border-border/50"
@@ -133,7 +130,7 @@ export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
             All Workspaces ({workspaces.length})
           </button>
           <button
-            onClick={() => setFilter("owned")}
+            onClick={() => { setFilter("owned"); setCurrentPage(1); }}
             className={`shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
               filter === "owned"
                 ? "bg-background text-foreground shadow-xs border border-border/50"
@@ -143,7 +140,7 @@ export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
             Owned by Me ({ownedWorkspaces.length})
           </button>
           <button
-            onClick={() => setFilter("joined")}
+            onClick={() => { setFilter("joined"); setCurrentPage(1); }}
             className={`shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
               filter === "joined"
                 ? "bg-background text-foreground shadow-xs border border-border/50"
@@ -165,13 +162,13 @@ export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48 bg-background/95 backdrop-blur-md border-border/60">
-                <DropdownMenuItem onClick={() => setFilter("all")} className={`cursor-pointer ${filter === "all" ? "bg-primary/10 text-primary font-bold" : ""}`}>
+                <DropdownMenuItem onClick={() => { setFilter("all"); setCurrentPage(1); }} className={`cursor-pointer ${filter === "all" ? "bg-primary/10 text-primary font-bold" : ""}`}>
                   All Workspaces ({workspaces.length})
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilter("owned")} className={`cursor-pointer ${filter === "owned" ? "bg-primary/10 text-primary font-bold" : ""}`}>
+                <DropdownMenuItem onClick={() => { setFilter("owned"); setCurrentPage(1); }} className={`cursor-pointer ${filter === "owned" ? "bg-primary/10 text-primary font-bold" : ""}`}>
                   Owned by Me ({ownedWorkspaces.length})
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilter("joined")} className={`cursor-pointer ${filter === "joined" ? "bg-primary/10 text-primary font-bold" : ""}`}>
+                <DropdownMenuItem onClick={() => { setFilter("joined"); setCurrentPage(1); }} className={`cursor-pointer ${filter === "joined" ? "bg-primary/10 text-primary font-bold" : ""}`}>
                   Joined ({joinedWorkspaces.length})
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -184,13 +181,13 @@ export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
             <Input
               placeholder="Search workspaces..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
               maxLength={50}
               className="pl-9 pr-9 h-9 text-xs rounded-xl bg-muted/20 border-border/50 focus-visible:ring-primary/30 w-full"
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery("")}
+                onClick={() => { setSearchQuery(""); setCurrentPage(1); }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none cursor-pointer"
               >
                 <X className="h-3.5 w-3.5" />

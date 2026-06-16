@@ -24,7 +24,7 @@ export default async function PrivacyPage() {
           <div className="prose prose-invert max-w-none text-muted-foreground leading-relaxed space-y-6">
             <p>Last updated: {new Date().toLocaleDateString()}</p>
             <p>
-              Your privacy is important to us. It is Zentrox's policy to respect
+              Your privacy is important to us. It is Zentrox&apos;s policy to respect
               your privacy regarding any information we may collect from you
               across our website, and other sites we own and operate.
             </p>

@@ -46,7 +46,7 @@ export function EmptyBoards({ onCreateClick, currentUserRole = "owner" }: EmptyB
         </>
       ) : (
         <p className="text-xs sm:text-sm text-muted-foreground max-w-xs mb-2 leading-relaxed">
-          This workspace currently doesn't have any boards.
+          This workspace currently doesn&apos;t have any boards.
         </p>
       )}
     </div>

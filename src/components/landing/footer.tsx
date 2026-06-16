@@ -52,11 +52,12 @@ export default function Footer() {
                 alt="Zentrox Logo"
                 width={28}
                 height={28}
-                className="object-contain rounded-md"
+                className="object-contain w-auto h-auto rounded-md"
+                style={{ width: "auto", height: "auto" }}
               />
               <span>Zentrox</span>
             </Link>
-            <p className="text-white/50 text-sm max-w-xs leading-relaxed mb-6 font-light">
+            <p className="text-white/70 text-sm max-w-xs leading-relaxed mb-6 font-light">
               The ultimate collaborative canvas for modern teams. Draw, think,
               and build together in real-time.
             </p>
@@ -80,7 +81,7 @@ export default function Footer() {
           {/* Product Links */}
           <div>
             <h4 className="text-white font-semibold mb-4 text-sm">Product</h4>
-            <ul className="space-y-3 text-sm text-white/50">
+            <ul className="space-y-3 text-sm text-white/70">
               <li>
                 <Link
                   href="/features"
@@ -111,7 +112,7 @@ export default function Footer() {
           {/* Legal Links */}
           <div>
             <h4 className="text-white font-semibold mb-4 text-sm">Legal</h4>
-            <ul className="space-y-3 text-sm text-white/50">
+            <ul className="space-y-3 text-sm text-white/70">
               <li>
                 <Link
                   href="/privacy"
@@ -142,10 +143,10 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="pt-8 pb-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/40">
+          <p className="text-xs text-white/70">
             &copy; {currentYear} Zentrox Inc. All rights reserved.
           </p>
-          <div className="flex items-center gap-2 text-xs text-white/40 font-medium tracking-wide">
+          <div className="flex items-center gap-2 text-xs text-white/70 font-medium tracking-wide">
             <span>Empowering visual collaboration for modern teams.</span>
           </div>
         </div>

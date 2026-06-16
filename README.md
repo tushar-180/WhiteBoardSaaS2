@@ -37,6 +37,7 @@ Detailed system architecture and database documentation can be found in the `doc
 *   **✏️ Vector Sketch Canvas (Stage 5):** Embed dynamic infinite drawing boards with shapes, arrows, text, and vector freehands.
 *   **💾 State Persistence (Stage 5):** Automatic JSONB serialization of whiteboard canvas data directly to Supabase PostgreSQL.
 *   **📱 Mobile-First UX:** Fully responsive layouts for touch devices, including fluid canvas mockups, native UI gestures, and touch-optimized navigation.
+*   **🔍 SEO & Accessibility:** Dynamic sitemap, robots.txt, semantic HTML, and strict A11y compliance.
 
 ---
 
@@ -45,7 +46,7 @@ Detailed system architecture and database documentation can be found in the `doc
 | Layer | Technologies |
 | :--- | :--- |
 | **Core Framework** | Next.js 16 (App Router, Turbopack), React 19, TypeScript |
-| **Styling & UI** | Tailwind CSS v4, shadcn/ui, Radix UI Primitives, Lucide Icons, Sonner |
+| **Styling & UI** | Tailwind CSS v4, shadcn/ui, Aceternity UI, Radix UI Primitives, Lucide Icons, Sonner |
 | **State Management** | Zustand (Client State), Next.js Server Actions & Route Handlers (Server State) |
 | **Database & Auth** | Supabase SSR SDK, Supabase Auth, PostgreSQL |
 | **Analytics & Sessions**| PostHog (Session recording, analytics) |

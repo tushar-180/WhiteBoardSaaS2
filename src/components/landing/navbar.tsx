@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Menu } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +30,8 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
             alt="Zentrox Logo"
             width={42}
             height={42}
-            className="object-contain rounded-xl shadow-sm"
+            className="object-contain w-auto h-auto rounded-xl shadow-sm"
+            style={{ width: "auto", height: "auto" }}
           />
           <span className="font-black tracking-tight text-foreground hidden sm:inline">
             Zentrox
@@ -107,15 +109,16 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
           {isLoggedIn ? (
             <>
               <Logout />
-              <Button
-                asChild
-                className="hidden sm:inline-flex h-9 px-4 sm:h-11 sm:px-8 sm:text-base rounded-xl font-semibold shadow-xs"
-              >
-                <Link href={ROUTES.WORKSPACES}>
+              <Link href={ROUTES.WORKSPACES} className="hidden sm:inline-flex rounded-xl">
+                <HoverBorderGradient
+                  containerClassName="h-11 min-h-[44px] w-full"
+                  className="flex items-center justify-center w-full h-full px-4 sm:px-8 sm:text-base font-semibold bg-background text-foreground cursor-pointer"
+                  as="div"
+                >
                   Go to App
                   <ArrowRight className="ml-1.5 sm:ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                </Link>
-              </Button>
+                </HoverBorderGradient>
+              </Link>
             </>
           ) : (
             <>

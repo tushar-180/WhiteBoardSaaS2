@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireAuth } from "@/utils/supabase/server";
 import { UnauthorizedAccess } from "@/components/shared/unauthorized-access";
@@ -14,6 +15,14 @@ interface PageProps {
   params: Promise<{
     workspaceId: string;
   }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { workspaceId } = await params;
+  const workspace = await fetchWorkspaceById(workspaceId);
+  return {
+    title: workspace ? workspace.name : "Workspace",
+  };
 }
 
 export default async function WorkspaceDetailPage({ params }: PageProps) {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import sgMail from "@sendgrid/mail";
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });

@@ -36,14 +36,14 @@ export default async function TermsPage() {
             </h2>
             <p>
               Permission is granted to temporarily download one copy of the
-              materials (information or software) on Zentrox's website for
+              materials (information or software) on Zentrox&apos;s website for
               personal, non-commercial transitory viewing only.
             </p>
             <h2 className="text-2xl font-bold text-foreground mt-8 mb-4">
               3. Disclaimer
             </h2>
             <p>
-              The materials on Zentrox's website are provided on an 'as is'
+              The materials on Zentrox&apos;s website are provided on an &apos;as is&apos;
               basis. Zentrox makes no warranties, expressed or implied, and
               hereby disclaims and negates all other warranties including,
               without limitation, implied warranties or conditions of

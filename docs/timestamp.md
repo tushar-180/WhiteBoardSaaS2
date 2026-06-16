@@ -17,6 +17,7 @@ Stage 5 -> Whiteboard canvas and canvas_data persistence
 Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 Stage 7 -> Real-Time Collaboration
 Stage 8 -> Real-Time Notifications, Access Controls, and UI Polish
+Stage 9 -> SEO, Accessibility, and Codebase Polish
 ```
 
 ---
@@ -128,6 +129,17 @@ Stage 8 -> Real-Time Notifications, Access Controls, and UI Polish
 - [x] Overhaul landing page (`Hero`, `Features`, `Footer`) to be fully responsive and mobile-first, using SVG `viewBox` scaling.
 - [x] Fix mobile layout bugs for creation dialogs and notification inbox.
 - [x] Integrate `WorkspaceMembersList` into the canvas `EditorHeader` for on-the-fly member management.
+
+## Stage 9: SEO, Accessibility, and Codebase Polish
+
+**Goal:** Improve search engine visibility, enhance accessibility, and resolve strict compiler/linter warnings.
+
+- [x] Add dynamic `sitemap.ts` and `robots.ts` for SEO.
+- [x] Enhance landing page UI with `HoverBorderGradient` from Aceternity UI.
+- [x] Improve accessibility (A11y) across the app: better color contrast, ARIA labels, and touch targets.
+- [x] Resolve all Next.js 15 / React Compiler hydration and purity errors (`react-hooks/purity`, `set-state-in-effect`).
+- [x] Enforce strict typings by replacing `any` with `unknown` in database and email services.
+- [x] Fix unescaped entities across legal pages and empty states.
 
 ## Later / Optional
 
