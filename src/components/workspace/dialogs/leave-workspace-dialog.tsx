@@ -46,7 +46,7 @@ export function LeaveWorkspaceDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
           <div className="flex items-center gap-2">
@@ -57,7 +57,7 @@ export function LeaveWorkspaceDialog({
             Are you sure you want to leave &quot;{workspaceName}&quot;?
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="sm:justify-end gap-2 pt-2">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"

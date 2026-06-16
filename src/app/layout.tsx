@@ -3,39 +3,55 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans", preload: false });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "https://zentrox-one.vercel.app"
+  ),
   title: {
-    default: "Zentrox — Collaborative Whiteboard",
+    default: "Zentrox | The Collaborative Whiteboard for Teams",
     template: "%s | Zentrox",
   },
   description:
-    "Zentrox is a high-performance collaborative whiteboard application. Create workspaces, invite your team, and sketch ideas together in real time.",
+    "Zentrox is a high-performance, real-time collaborative whiteboard. Sketch, plan, and collaborate with your team instantly. Workspace-based, secure, and fast.",
   keywords: [
     "whiteboard",
-    "collaborative workspace",
-    "team canvas",
-    "real-time drawing",
-    "Zentrox",
+    "collaboration",
+    "team workspace",
+    "drawing",
+    "real-time",
+    "saas",
+    "zentrox",
   ],
-  authors: [{ name: "Zentrox" }],
+  authors: [{ name: "Zentrox Team" }],
+  creator: "Zentrox",
   openGraph: {
     type: "website",
     locale: "en_US",
-    title: "Zentrox — Collaborative Whiteboard",
+    url: "https://zentrox-one.vercel.app",
+    title: "Zentrox | The Collaborative Whiteboard for Teams",
     description:
-      "Create workspaces, invite your team, and sketch ideas together on an infinite canvas.",
+      "A high-performance, real-time collaborative whiteboard. Sketch, plan, and collaborate with your team instantly.",
     siteName: "Zentrox",
+    images: [
+      {
+        url: "/whiteboard_banner.png",
+        width: 1200,
+        height: 630,
+        alt: "Zentrox Whiteboard",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zentrox — Collaborative Whiteboard",
+    title: "Zentrox | Collaborative Whiteboard",
     description:
-      "Create workspaces, invite your team, and sketch ideas together on an infinite canvas.",
+      "A high-performance, real-time collaborative whiteboard for modern teams.",
+    images: ["/whiteboard_banner.png"],
+    creator: "@zentrox",
   },
 };
 
@@ -47,12 +63,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full dark", "antialiased", inter.variable, "font-sans")}
+      className={cn("h-full dark antialiased", inter.variable)}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col font-sans overflow-x-hidden">
         {children}
-        <Analytics />
-        <SpeedInsights />
         <Toaster />
       </body>
     </html>

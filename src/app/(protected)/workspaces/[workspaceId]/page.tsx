@@ -1,7 +1,8 @@
-import { redirect, notFound } from "next/navigation";
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { requireAuth } from "@/utils/supabase/server";
+import { UnauthorizedAccess } from "@/components/shared/unauthorized-access";
 import { fetchWorkspaceById, hasWorkspaceAccess } from "@/services/workspace";
-import { ROUTES } from "@/lib/constants";
 import { fetchProfileById } from "@/services/profile";
 import { fetchBoardsByWorkspace } from "@/services/board";
 import { fetchWorkspaceMembers, fetchWorkspaceMemberRole } from "@/services/member";
@@ -16,9 +17,17 @@ interface PageProps {
   }>;
 }
 
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { workspaceId } = await params;
+  const workspace = await fetchWorkspaceById(workspaceId);
+  return {
+    title: workspace ? workspace.name : "Workspace",
+  };
+}
+
 export default async function WorkspaceDetailPage({ params }: PageProps) {
   const { workspaceId } = await params;
-  const { user } = await requireAuth();
+  const { user } = await requireAuth(`/login?next=${encodeURIComponent(`/workspaces/${workspaceId}`)}`);
 
   // 1. Fetch workspace details and check accessibility
   const workspace = await fetchWorkspaceById(workspaceId);
@@ -29,7 +38,7 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
 
   const hasAccess = await hasWorkspaceAccess(workspaceId, user.id);
   if (!hasAccess) {
-    redirect(ROUTES.WORKSPACES);
+    return <UnauthorizedAccess />;
   }
 
   // 2. Fetch current user role and member lists
@@ -50,16 +59,16 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
   const displayEmail = profile?.email || user.email || "";
 
   return (
-<div className="px-4 md:px-8">
-    <WorkspaceDetailsClient
-      workspace={workspace}
-      initialBoards={boards}
-      initialMembers={members}
-      initialInvites={invites}
-      currentUserRole={currentUserRole}
-      userEmail={displayEmail}
-    />
-  </div>
+    <div className="px-4 md:px-8 flex-1 flex flex-col overflow-hidden min-h-0">
+      <WorkspaceDetailsClient
+        workspace={workspace}
+        initialBoards={boards}
+        initialMembers={members}
+        initialInvites={invites}
+        currentUserRole={currentUserRole}
+        userEmail={displayEmail}
+      />
+    </div>
   );
 }
 

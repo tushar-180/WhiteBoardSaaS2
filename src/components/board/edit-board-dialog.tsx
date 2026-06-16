@@ -45,8 +45,8 @@ export function EditBoardDialog({
   const {
     register,
     handleSubmit,
-    setValue,
-    formState: { errors },
+    reset,
+    formState: { errors, isDirty },
   } = useForm<BoardFormData>({
     resolver: zodResolver(boardSchema),
     defaultValues: {
@@ -58,10 +58,12 @@ export function EditBoardDialog({
   // Sync with new initials if dialog target changes
   useEffect(() => {
     if (open) {
-      setValue("name", initialName);
-      setValue("description", initialDescription || "");
+      reset({
+        name: initialName,
+        description: initialDescription || "",
+      });
     }
-  }, [open, initialName, initialDescription, setValue]);
+  }, [open, initialName, initialDescription, reset]);
 
   const onSubmit = async (data: BoardFormData) => {
     setLoading(true);
@@ -88,8 +90,8 @@ export function EditBoardDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+      <DialogContent className="sm:max-w-md rounded-2xl sm:rounded-2xl">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -112,6 +114,7 @@ export function EditBoardDialog({
               type="text"
               className="h-10 rounded-xl bg-background/50 hover:bg-background/80 focus:bg-background"
               disabled={loading}
+              maxLength={50}
               {...register("name")}
             />
             {errors.name && (
@@ -130,6 +133,7 @@ export function EditBoardDialog({
               type="text"
               className="h-10 rounded-xl bg-background/50 hover:bg-background/80 focus:bg-background"
               disabled={loading}
+              maxLength={255}
               {...register("description")}
             />
             {errors.description && (
@@ -139,20 +143,20 @@ export function EditBoardDialog({
             )}
           </div>
 
-          <DialogFooter className="sm:justify-end gap-2 pt-2">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
-              className="h-10 rounded-xl"
+              className="h-10 rounded-xl w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={loading}
-              className="h-10 rounded-xl px-4 font-semibold"
+              disabled={loading || !isDirty}
+              className="h-10 rounded-xl px-4 font-semibold w-full sm:w-auto"
             >
               {loading ? (
                 <>

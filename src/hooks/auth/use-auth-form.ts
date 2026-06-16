@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createClient } from "@/utils/supabase/client";
 import { authSchema, type AuthFormData } from "@/types/auth";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
 import { ROUTES, DEFAULT_REDIRECTS } from "@/lib/constants";
+import posthog from "posthog-js";
 
 export function useAuthForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [emailLoading, setEmailLoading] = useState(false);
   const [githubLoading, setGithubLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -31,7 +33,23 @@ export function useAuthForm() {
     },
   });
 
-  const passwordValue = form.watch("password") || "";
+  const errorParam = searchParams?.get("error");
+
+  useEffect(() => {
+    if (errorParam === "oauth-failed") {
+      form.setError("root", {
+        type: "manual",
+        message: "GitHub authentication failed. Please try again.",
+      });
+    } else if (errorParam) {
+      form.setError("root", {
+        type: "manual",
+        message: decodeURIComponent(errorParam),
+      });
+    }
+  }, [errorParam, form]);
+
+  const passwordValue = useWatch({ control: form.control, name: "password" }) as string || "";
   const isPasswordValid = passwordValue.length >= 6;
 
   const handleGithubAuth = async () => {
@@ -43,6 +61,8 @@ export function useAuthForm() {
       const callbackUrl = new URL(ROUTES.AUTH_CALLBACK, window.location.origin);
       callbackUrl.searchParams.set("next", next);
 
+      posthog.capture("github_auth_started");
+
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "github",
@@ -52,12 +72,14 @@ export function useAuthForm() {
       });
 
       if (error) {
+        posthog.captureException(error);
         form.setError("root", {
           message: error.message,
         });
         setGithubLoading(false);
       }
-    } catch {
+    } catch (err) {
+      posthog.captureException(err);
       form.setError("root", {
         message: "Failed to connect with GitHub. Please try again.",
       });
@@ -92,11 +114,15 @@ export function useAuthForm() {
         });
 
         if (error) {
+          posthog.captureException(error);
           form.setError("root", {
             message: error.message,
           });
           return;
         }
+
+        posthog.identify(data.email, { email: data.email, name: data.name.trim() });
+        posthog.capture("user_signed_up", { email: data.email, method: "email" });
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: data.email,
@@ -104,17 +130,22 @@ export function useAuthForm() {
         });
 
         if (error) {
+          posthog.captureException(error);
           form.setError("root", {
             message: error.message,
           });
           return;
         }
+
+        posthog.identify(data.email, { email: data.email });
+        posthog.capture("user_signed_in", { email: data.email, method: "email" });
       }
 
       const searchParams = new URLSearchParams(window.location.search);
       const next = searchParams.get("next") || (isSignUp ? DEFAULT_REDIRECTS.AFTER_SIGNUP : DEFAULT_REDIRECTS.AFTER_LOGIN);
       router.push(next);
-    } catch {
+    } catch (err) {
+      posthog.captureException(err);
       form.setError("root", {
         message: "Something went wrong. Please try again.",
       });

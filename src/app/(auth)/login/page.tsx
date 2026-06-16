@@ -1,10 +1,21 @@
+import { Metadata } from "next";
+import { Suspense } from "react";
+
+export const metadata: Metadata = {
+  title: "Login",
+  description: "Sign in to your Zentrox account.",
+};
 import LoginPage from "@/components/auth/login-form";
 
 const page = () => {
   return (
-    <div>
+    <Suspense fallback={
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-background text-muted-foreground text-sm">
+        Loading...
+      </div>
+    }>
       <LoginPage />
-    </div>
+    </Suspense>
   );
 };
 

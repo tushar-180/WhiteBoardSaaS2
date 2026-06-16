@@ -2,13 +2,16 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Users, MoreVertical, Trash2, Plus, Loader2 } from "lucide-react";
+import { Users, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { type WorkspaceRole } from "@/types/workspace";
 import { useMemberStore } from "@/store/use-member-store";
 import { removeMemberAction, updateMemberRoleAction } from "@/actions/member";
+import { createClient } from "@/utils/supabase/client";
+import { WorkspaceMemberRow } from "./workspace-member-row";
 
 interface WorkspaceMembersListProps {
   workspaceId: string;
@@ -25,24 +28,64 @@ export function WorkspaceMembersList({
 }: WorkspaceMembersListProps) {
   const router = useRouter();
   const members = useMemberStore((state) => state.members);
+  const removeMember = useMemberStore((state) => state.removeMember);
+  const updateMemberRole = useMemberStore((state) => state.updateMemberRole);
   
-  const [actionLoading, setActionLoading] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [activeMenuMemberId, setActiveMenuMemberId] = useState<string | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [viewAllOpen, setViewAllOpen] = useState(false);
 
-  // Click outside to close dropdown menu
+  // Track members in a ref to check deleted ID without re-subscribing
+  const membersRef = useRef(members);
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setActiveMenuMemberId(null);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    membersRef.current = members;
+  }, [members]);
+
+  // Subscribe to real-time member updates
+  useEffect(() => {
+    const supabase = createClient();
+
+    const channel = supabase
+      .channel(`members-sync-${workspaceId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "workspace_members",
+        },
+        (payload) => {
+          console.log("[Realtime Members List] Change received:", payload);
+          if (payload.eventType === "DELETE") {
+            const deletedId = payload.old.id;
+            const isMemberOfThisWorkspace = membersRef.current.some((m) => m.id === deletedId);
+            if (isMemberOfThisWorkspace) {
+              removeMember(deletedId);
+              router.refresh();
+            }
+          } else if (payload.eventType === "UPDATE") {
+            const updated = payload.new as { id: string; workspace_id: string; role: WorkspaceRole };
+            if (updated.workspace_id === workspaceId) {
+              updateMemberRole(updated.id, updated.role);
+              router.refresh();
+            }
+          } else if (payload.eventType === "INSERT") {
+            const inserted = payload.new as { workspace_id: string };
+            if (inserted.workspace_id === workspaceId) {
+              router.refresh();
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [workspaceId, removeMember, updateMemberRole, router]);
 
   const handleRemoveMember = async (memberId: string) => {
-    setActionLoading(true);
+    setActionLoadingId(memberId);
     setActiveMenuMemberId(null);
     try {
       await removeMemberAction(workspaceId, memberId);
@@ -51,12 +94,12 @@ export function WorkspaceMembersList({
     } catch (err: unknown) {
       toast.error((err as Error).message || "Failed to remove member.");
     } finally {
-      setActionLoading(false);
+      setActionLoadingId(null);
     }
   };
 
   const handleChangeRole = async (memberId: string, newRole: WorkspaceRole) => {
-    setActionLoading(true);
+    setActionLoadingId(memberId);
     setActiveMenuMemberId(null);
     try {
       await updateMemberRoleAction(workspaceId, memberId, newRole);
@@ -65,35 +108,27 @@ export function WorkspaceMembersList({
     } catch (err: unknown) {
       toast.error((err as Error).message || "Failed to update member role.");
     } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const getRoleBadgeClass = (role: WorkspaceRole) => {
-    switch (role) {
-      case "owner":
-        return "bg-amber-500/10 text-amber-500 border border-amber-500/20";
-      case "admin":
-        return "bg-purple-500/10 text-purple-500 border border-purple-500/20";
-      case "editor":
-        return "bg-blue-500/10 text-blue-500 border border-blue-500/20";
-      case "viewer":
-      default:
-        return "bg-muted text-muted-foreground border border-border";
+      setActionLoadingId(null);
     }
   };
 
   const canManage = currentUserRole === "owner" || currentUserRole === "admin";
 
-  return (
-    <div className={`rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur-xs space-y-4 relative ${activeMenuMemberId ? "z-20" : "z-10"}`}>
-      {actionLoading && (
-        <div className="absolute inset-0 z-50 bg-background/30 backdrop-blur-xs flex items-center justify-center rounded-xl">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        </div>
-      )}
+  const sortedMembers = [...members].sort((a, b) => {
+    if (a.role === "owner" && b.role !== "owner") return -1;
+    if (b.role === "owner" && a.role !== "owner") return 1;
+    const timeA = a.joined_at ? new Date(a.joined_at).getTime() : 0;
+    const timeB = b.joined_at ? new Date(b.joined_at).getTime() : 0;
+    return timeA - timeB;
+  });
 
-      <div className="flex items-center justify-between">
+  const INITIAL_VISIBLE_COUNT = 4;
+  const visibleMembers = sortedMembers.slice(0, INITIAL_VISIBLE_COUNT);
+  const hasMore = sortedMembers.length > INITIAL_VISIBLE_COUNT;
+
+  return (
+    <div className={`flex flex-col max-h-[400px] rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur-xs relative ${activeMenuMemberId ? "z-20" : "z-10"}`}>
+      <div className="flex items-center justify-between shrink-0 mb-4">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
           <Users className="h-4 w-4 text-primary/80" />
           Members
@@ -103,113 +138,37 @@ export function WorkspaceMembersList({
         </span>
       </div>
 
-      <div className="space-y-3">
-        {members.map((member) => {
-          const isOwner = member.role === "owner";
-          const isSelf = member.email === userEmail;
-          const canEditThisMember =
-            canManage &&
-            !isSelf &&
-            !isOwner &&
-            !(currentUserRole === "admin" && member.role === "admin");
-
-          const initials = (member.name || member.email)
-            .split("@")[0]
-            .substring(0, 2)
-            .toUpperCase();
-
-          return (
-            <div
-              key={member.id}
-              className="flex items-center justify-between gap-2 group relative"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="h-7 w-7 rounded-full bg-gradient-to-r from-primary to-purple-600 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-xs shrink-0">
-                  {initials}
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-bold text-foreground truncate max-w-[120px] sm:max-w-none">
-                    {member.name || member.email.split("@")[0]}
-                  </span>
-                  <span className="text-[9px] text-muted-foreground truncate max-w-[120px] sm:max-w-none">
-                    {member.email}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span
-                  className={`text-[8px] uppercase tracking-wider px-1.5 py-0.5 rounded-full font-bold font-mono ${getRoleBadgeClass(member.role)}`}
-                >
-                  {member.role}
-                </span>
-
-                {canEditThisMember && (
-                  <div className="relative">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() =>
-                        setActiveMenuMemberId(
-                          member.id === activeMenuMemberId ? null : member.id,
-                        )
-                      }
-                      className="h-6 w-6 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
-                    >
-                      <MoreVertical className="h-3.5 w-3.5" />
-                    </Button>
-
-                    {activeMenuMemberId === member.id && (
-                      <div
-                        ref={menuRef}
-                        className="absolute right-0 mt-1.5 w-36 bg-popover border border-border/80 rounded-xl shadow-lg p-1 z-30 animate-in fade-in slide-in-from-top-1 duration-150"
-                      >
-                        <div className="text-[9px] font-bold text-muted-foreground px-2 py-1 uppercase tracking-wider border-b border-border/40">
-                          Change Role
-                        </div>
-                        <button
-                          onClick={() => handleChangeRole(member.id, "viewer")}
-                          className={`w-full text-left text-xs px-2 py-1.5 rounded-lg hover:bg-muted/80 flex items-center gap-1.5 ${member.role === "viewer" ? "text-primary font-bold" : "text-foreground"}`}
-                        >
-                          Viewer
-                        </button>
-                        <button
-                          onClick={() => handleChangeRole(member.id, "editor")}
-                          className={`w-full text-left text-xs px-2 py-1.5 rounded-lg hover:bg-muted/80 flex items-center gap-1.5 ${member.role === "editor" ? "text-primary font-bold" : "text-foreground"}`}
-                        >
-                          Editor
-                        </button>
-                        {currentUserRole === "owner" && (
-                          <button
-                            onClick={() => handleChangeRole(member.id, "admin")}
-                            className={`w-full text-left text-xs px-2 py-1.5 rounded-lg hover:bg-muted/80 flex items-center gap-1.5 ${member.role === "admin" ? "text-primary font-bold" : "text-foreground"}`}
-                          >
-                            Admin
-                          </button>
-                        )}
-                        <div className="border-t border-border/40 my-1" />
-                        <button
-                          onClick={() => handleRemoveMember(member.id)}
-                          className="w-full text-left text-xs px-2 py-1.5 rounded-lg text-destructive hover:bg-destructive/10 flex items-center gap-1.5 font-semibold"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                          Kick Out
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+      <div className="space-y-3 overflow-y-auto flex-1 min-h-0 pr-1 pb-1 custom-scrollbar">
+        {visibleMembers.map((member) => (
+          <WorkspaceMemberRow
+            key={member.id}
+            member={member}
+            currentUserRole={currentUserRole}
+            userEmail={userEmail}
+            activeMenuMemberId={activeMenuMemberId}
+            setActiveMenuMemberId={setActiveMenuMemberId}
+            handleChangeRole={handleChangeRole}
+            handleRemoveMember={handleRemoveMember}
+            actionLoadingId={actionLoadingId}
+          />
+        ))}
+        {hasMore && (
+          <Button
+            variant="ghost"
+            onClick={() => setViewAllOpen(true)}
+            className="w-full h-8 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 cursor-pointer"
+          >
+            View all ({sortedMembers.length})
+          </Button>
+        )}
       </div>
 
       {canManage && (
-        <div className="pt-2">
+        <div className="pt-4 shrink-0 mt-2 border-t border-border/40">
           <Button
             onClick={onInviteClick}
             variant="outline"
+            disabled={actionLoadingId !== null}
             className="w-full h-8 rounded-xl text-xs font-semibold cursor-pointer border-dashed border-primary/40 text-primary hover:bg-primary/5 hover:border-primary/60 transition-all duration-200"
           >
             <Plus className="mr-1 h-3.5 w-3.5" />
@@ -217,6 +176,38 @@ export function WorkspaceMembersList({
           </Button>
         </div>
       )}
+
+      <Dialog open={viewAllOpen} onOpenChange={setViewAllOpen}>
+        <DialogContent className="w-[calc(100%-2rem)] sm:w-full max-w-md sm:max-w-xl max-h-[85vh] flex flex-col p-0 gap-0 border-border/50 bg-card/95 backdrop-blur-md">
+          <DialogHeader className="p-5 border-b border-border/40 pb-4 shrink-0">
+            <DialogTitle className="flex items-center gap-2 text-foreground">
+              <Users className="h-5 w-5 text-primary/80" />
+              All Workspace Members
+              <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold ml-1">
+                {sortedMembers.length}
+              </span>
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Complete list of all members in this workspace.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto p-5 pt-4 space-y-3 min-h-0 custom-scrollbar">
+            {sortedMembers.map((member) => (
+              <WorkspaceMemberRow
+                key={member.id}
+                member={member}
+                currentUserRole={currentUserRole}
+                userEmail={userEmail}
+                activeMenuMemberId={activeMenuMemberId}
+                setActiveMenuMemberId={setActiveMenuMemberId}
+                handleChangeRole={handleChangeRole}
+                handleRemoveMember={handleRemoveMember}
+                actionLoadingId={actionLoadingId}
+              />
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -15,6 +15,9 @@ Stage 3 -> Workspace members, invites, and access control
 Stage 4 -> Board CRUD inside workspaces
 Stage 5 -> Whiteboard canvas and canvas_data persistence
 Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
+Stage 7 -> Real-Time Collaboration
+Stage 8 -> Real-Time Notifications, Access Controls, and UI Polish
+Stage 9 -> SEO, Accessibility, and Codebase Polish
 ```
 
 ---
@@ -107,6 +110,36 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 - [x] Show live avatar stack (user avatars + names) in the board toolbar when others are present.
 - [x] Refactor client-side and sync server codebases into clean modular architectures.
 - [x] Implement server-side user profile fetching and props threading.
+
+## Stage 8: Real-Time Notifications, Access Controls, and UI Polish
+
+**Goal:** Provide live feedback for workspace events, enhance access control dynamics, and improve core UI components.
+
+- [x] Create a `NotificationInbox` to display workspace activities in real-time.
+- [x] Add `use-notification-store.ts` for managing global notification state.
+- [x] Enable Supabase Realtime subscriptions for `workspace_invites` and `workspace_members`.
+- [x] Add an `inviter_seen` field to track and notify inviter about accepted invites.
+- [x] Refactor `InviteMemberDialog` into modular components (`invite-form`, `invite-success`, `invite-suggestions`).
+- [x] Implement real-time access revocation monitoring inside the whiteboard editor.
+- [x] Add `KickedOverlay` to handle users losing permissions mid-session.
+- [x] Refactor `WorkspaceMembersList` and introduce `WorkspaceMemberRow`.
+- [x] Add generic reusable `DropdownMenu` and `Pagination` UI components.
+- [x] Integrate pagination into `BoardList` and `WorkspaceList`.
+- [x] Resolve React 18 passive event listener warnings for mobile touch gestures on the whiteboard canvas.
+- [x] Overhaul landing page (`Hero`, `Features`, `Footer`) to be fully responsive and mobile-first, using SVG `viewBox` scaling.
+- [x] Fix mobile layout bugs for creation dialogs and notification inbox.
+- [x] Integrate `WorkspaceMembersList` into the canvas `EditorHeader` for on-the-fly member management.
+
+## Stage 9: SEO, Accessibility, and Codebase Polish
+
+**Goal:** Improve search engine visibility, enhance accessibility, and resolve strict compiler/linter warnings.
+
+- [x] Add dynamic `sitemap.ts` and `robots.ts` for SEO.
+- [x] Enhance landing page UI with `HoverBorderGradient` from Aceternity UI.
+- [x] Improve accessibility (A11y) across the app: better color contrast, ARIA labels, and touch targets.
+- [x] Resolve all Next.js 15 / React Compiler hydration and purity errors (`react-hooks/purity`, `set-state-in-effect`).
+- [x] Enforce strict typings by replacing `any` with `unknown` in database and email services.
+- [x] Fix unescaped entities across legal pages and empty states.
 
 ## Later / Optional
 

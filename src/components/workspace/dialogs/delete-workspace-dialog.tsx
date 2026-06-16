@@ -49,7 +49,7 @@ export function DeleteWorkspaceDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
           <div className="flex items-center gap-2">
@@ -63,7 +63,7 @@ export function DeleteWorkspaceDialog({
             This action cannot be undone. All boards and data in this workspace will be permanently deleted.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="sm:justify-end gap-2 pt-2">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"

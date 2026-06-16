@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireActionAuth } from "@/utils/supabase/server";
+import { requireActionAuth, createClient } from "@/utils/supabase/server";
 import {
   fetchBoardsByWorkspace,
   insertBoard,
@@ -12,6 +12,7 @@ import {
 import { hasWorkspaceAccess } from "@/services/workspace";
 import { type Board, boardSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 /**
  * Retrieves all boards belonging to a workspace.
@@ -54,12 +55,40 @@ export async function createBoardAction(
     }
     const { name: trimmedName, description: validatedDescription } = validated.data;
 
+    // Check if a board with this name already exists in the workspace (case-insensitive)
+    const supabase = await createClient();
+    const { data: existingBoard, error: checkError } = await supabase
+      .from("boards")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .ilike("name", trimmedName.trim())
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("Database error checking existing board:", checkError);
+    }
+
+    if (existingBoard) {
+      throw new Error(`A board named "${trimmedName}" already exists in this workspace.`);
+    }
+
     const board = await insertBoard(
       workspaceId,
       trimmedName,
       validatedDescription || null,
       user.id,
     );
+
+    getPostHogClient().capture({
+      distinctId: user.id,
+      event: "board_created",
+      properties: {
+        board_id: board.id,
+        board_name: board.name,
+        workspace_id: workspaceId,
+        has_description: !!validatedDescription,
+      },
+    });
 
     // Revalidate the workspace details route
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
@@ -93,6 +122,24 @@ export async function updateBoardAction(
       throw new Error(validated.error.issues[0].message);
     }
     const { name: trimmedName, description: validatedDescription } = validated.data;
+
+    // Check if a board with this name already exists in the workspace (excluding current boardId) (case-insensitive)
+    const supabase = await createClient();
+    const { data: existingBoard, error: checkError } = await supabase
+      .from("boards")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .neq("id", boardId)
+      .ilike("name", trimmedName.trim())
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("Database error checking existing board:", checkError);
+    }
+
+    if (existingBoard) {
+      throw new Error(`A board named "${trimmedName}" already exists in this workspace.`);
+    }
 
     const board = await updateBoard(boardId, trimmedName, validatedDescription || null);
 
@@ -148,6 +195,13 @@ export async function updateBoardCanvasAction(
     }
 
     const board = await updateBoardCanvas(boardId, canvasData);
+
+    getPostHogClient().capture({
+      distinctId: user.id,
+      event: "board_canvas_saved",
+      properties: { board_id: boardId, workspace_id: workspaceId },
+    });
+
     return board;
   } catch (error: unknown) {
     console.error("Action error in updateBoardCanvasAction:", error);

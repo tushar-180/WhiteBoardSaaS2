@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, FolderPlus } from "lucide-react";
@@ -20,7 +20,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createWorkspaceAction } from "@/actions/workspace";
 import { workspaceSchema, type WorkspaceFormData } from "@/types/workspace";
-import { ROUTES } from "@/lib/constants";
 
 interface CreateWorkspaceDialogProps {
   open: boolean;
@@ -28,7 +27,7 @@ interface CreateWorkspaceDialogProps {
 }
 
 export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDialogProps) {
-  const router = useRouter();
+
   const [loading, setLoading] = useState(false);
 
   const {
@@ -50,7 +49,7 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
       toast.success(`Workspace "${newWorkspace.name}" created successfully!`);
       reset();
       onOpenChange(false);
-      router.push(`${ROUTES.WORKSPACES}/${newWorkspace.id}`);
+      // router.push(`${ROUTES.WORKSPACES}/${newWorkspace.id}`);
     } catch (error: unknown) {
       toast.error((error as Error).message || "Failed to create workspace. Please try again.");
     } finally {
@@ -59,8 +58,8 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+      <DialogContent className="sm:max-w-md rounded-2xl sm:rounded-2xl">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -84,6 +83,7 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
               placeholder="e.g. Acme Corporation, Side Project"
               className="h-10 rounded-xl bg-background/50 hover:bg-background/80 focus:bg-background"
               disabled={loading}
+              maxLength={50}
               {...register("name")}
             />
             {errors.name && (
@@ -93,20 +93,20 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
             )}
           </div>
 
-          <DialogFooter className="sm:justify-end gap-2 pt-2">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
-              className="h-10 rounded-xl"
+              className="h-10 rounded-xl w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="h-10 rounded-xl px-4 font-semibold"
+              className="h-10 rounded-xl px-4 font-semibold w-full sm:w-auto"
             >
               {loading ? (
                 <>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, LayoutGrid } from "lucide-react";
@@ -35,7 +35,7 @@ export function CreateBoardDialog({
   onOpenChange,
   onSuccess,
 }: CreateBoardDialogProps) {
-  const router = useRouter();
+
   const [loading, setLoading] = useState(false);
 
   const {
@@ -66,7 +66,7 @@ export function CreateBoardDialog({
       if (onSuccess) {
         onSuccess();
       }
-      router.push(`/board/${newBoard.id}`);
+      // router.push(`/board/${newBoard.id}`);
     } catch (error: unknown) {
       toast.error(
         (error as Error).message || "Failed to create board. Please try again."
@@ -78,7 +78,7 @@ export function CreateBoardDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[95vw] max-w-md rounded-2xl sm:rounded-2xl p-5 sm:p-6 overflow-hidden">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -102,6 +102,7 @@ export function CreateBoardDialog({
               placeholder="e.g. User Journey Map, Architecture Sketch"
               className="h-10 rounded-xl bg-background/50 hover:bg-background/80 focus:bg-background"
               disabled={loading}
+              maxLength={50}
               {...register("name")}
             />
             {errors.name && (
@@ -121,6 +122,7 @@ export function CreateBoardDialog({
               placeholder="Brief summary of the board's purpose"
               className="h-10 rounded-xl bg-background/50 hover:bg-background/80 focus:bg-background"
               disabled={loading}
+              maxLength={255}
               {...register("description")}
             />
             {errors.description && (
@@ -136,14 +138,14 @@ export function CreateBoardDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
-              className="h-10 rounded-xl"
+              className="h-10 rounded-xl w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="h-10 rounded-xl px-4 font-semibold"
+              className="h-10 rounded-xl px-4 font-semibold w-full sm:w-auto"
             >
               {loading ? (
                 <>

@@ -31,6 +31,8 @@ graph TD
     P4 --> P5[Phase 5: Canvas Persistence]
     P5 --> P6[Phase 6: Polish + Deploy]
     P6 --> P7[Phase 7: Real-Time Collaboration]
+    P7 --> P8[Phase 8: Real-Time Notifications]
+    P8 --> P9[Phase 9: SEO + Accessibility]
 ```
 
 ---
@@ -127,6 +129,27 @@ erDiagram
 - Test concurrent edits across multiple browser sessions
 - TLSocketRoom presence channel on the sync server to track active collaborators
 - Live avatar stack and join/leave toast notifications showing who is currently on the canvas
+
+## Phase 8: Real-Time Notifications and Advanced Controls ✅
+
+**Goal:** Provide live feedback for workspace events and enhance access control dynamics.
+
+- Real-time notification inbox for workspace activities (e.g. invites).
+- Supabase Realtime subscriptions for `workspace_invites` and `workspace_members`.
+- Refactored and modularized invite management UI (`InviteMemberDialog`, `workspace-invites-list`).
+- Enhanced whiteboard access control with real-time revocation monitoring (`KickedOverlay`).
+- New reusable UI components: `DropdownMenu`, `Pagination`.
+
+## Phase 9: SEO, Accessibility, and Codebase Polish ✅
+
+**Goal:** Improve search engine visibility, enhance accessibility, and resolve strict compiler/linter warnings.
+
+- Dynamic `sitemap.ts` and `robots.ts` for SEO.
+- Aceternity UI components (`HoverBorderGradient`) integrated into landing page.
+- Accessibility (A11y) enhancements: improved contrast, ARIA labels, and touch targets.
+- Resolution of React 19 / Next.js 15 compiler warnings (`react-hooks/purity`, `set-state-in-effect`).
+- Strict typing compliance (`any` replaced with `unknown`).
+- Fixed unescaped HTML entities in legal pages and empty states.
 
 ---
 

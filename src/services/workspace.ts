@@ -1,25 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@/utils/supabase/server";
-import { type Workspace, type WorkspaceRole } from "@/types/workspace";
+import { type Workspace, type WorkspaceRole, type WorkspaceMemberPreview } from "@/types/workspace";
 import { isValidUUID } from "@/lib/utils";
 
-/**
- * Fetches all workspaces owned by a specific user.
- */
-export async function fetchWorkspacesByOwner(userId: string): Promise<Workspace[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("workspaces")
-    .select("*")
-    .eq("owner_id", userId)
-    .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Database error in fetchWorkspacesByOwner:", error);
-    throw new Error(error.message);
-  }
-
-  return data || [];
-}
 
 /**
  * Fetches all workspaces the user has access to (owned or joined) with owner information.
@@ -30,7 +14,19 @@ export async function fetchAllUserWorkspaces(userId: string): Promise<Workspace[
   // 1. Get workspaces owned by user
   const { data: ownedWorkspaces, error: ownedError } = await supabase
     .from("workspaces")
-    .select("*")
+    .select(`
+      *,
+      workspace_members (
+        id,
+        user_id,
+        role,
+        profiles:user_id (
+          email,
+          name,
+          avatar_url
+        )
+      )
+    `)
     .eq("owner_id", userId)
     .order("created_at", { ascending: false });
 
@@ -52,7 +48,17 @@ export async function fetchAllUserWorkspaces(userId: string): Promise<Workspace[
         slug,
         owner_id,
         created_at,
-        updated_at
+        updated_at,
+        workspace_members (
+          id,
+          user_id,
+          role,
+          profiles:user_id (
+            email,
+            name,
+            avatar_url
+          )
+        )
       )
     `
     )
@@ -74,8 +80,23 @@ export async function fetchAllUserWorkspaces(userId: string): Promise<Workspace[
       owner_id: string;
       created_at: string;
       updated_at: string;
+      workspace_members?: any[];
     }[] | null;
   }
+
+  const mapMembers = (membersArray: any[]): WorkspaceMemberPreview[] => {
+    return (membersArray || []).map((m: any) => {
+      const p = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
+      return {
+        id: m.id,
+        user_id: m.user_id,
+        role: m.role as WorkspaceRole,
+        email: p?.email || "",
+        name: p?.name || null,
+        avatar_url: p?.avatar_url || null,
+      };
+    });
+  };
 
   const joinedWorkspacesList = (memberWorkspaces || [])
     .flatMap((m) => {
@@ -87,6 +108,7 @@ export async function fetchAllUserWorkspaces(userId: string): Promise<Workspace[
       return workspacesArray.map((w) => ({
         ...w,
         currentUserRole: role,
+        members_preview: mapMembers(w.workspace_members || []),
       })) as Workspace[];
     });
 
@@ -94,6 +116,7 @@ export async function fetchAllUserWorkspaces(userId: string): Promise<Workspace[
   const ownedWorkspacesWithRole = (ownedWorkspaces || []).map((w) => ({
     ...w,
     currentUserRole: "owner" as WorkspaceRole,
+    members_preview: mapMembers((w as any).workspace_members || []),
   }));
   const allWorkspaces = [...ownedWorkspacesWithRole, ...joinedWorkspacesList];
   const uniqueOwnerIds = [...new Set(allWorkspaces.map((w) => w.owner_id))];

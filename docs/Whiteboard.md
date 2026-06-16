@@ -155,6 +155,8 @@ Phase 3 -> Workspace members and invites
 Phase 4 -> Boards
 Phase 5 -> Canvas persistence through boards.canvas_data
 Phase 6 -> Polish and deployment readiness
+Phase 7 -> Real-Time Collaboration
+Phase 8 -> Real-Time Notifications and Advanced Controls
 ```
 
 See [PHASES.md](PHASES.md) and [timestamp.md](timestamp.md) for the current task breakdown.

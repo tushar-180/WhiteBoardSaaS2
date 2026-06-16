@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+export interface WorkspaceMemberPreview {
+  id: string;
+  user_id: string;
+  role: WorkspaceRole;
+  email: string;
+  name: string | null;
+  avatar_url: string | null;
+}
+
 export interface Workspace {
   id: string;
   name: string;
@@ -9,6 +18,7 @@ export interface Workspace {
   currentUserRole?: WorkspaceRole;
   created_at: string;
   updated_at: string;
+  members_preview?: WorkspaceMemberPreview[];
 }
 
 export type WorkspaceRole = "owner" | "admin" | "editor" | "viewer";
@@ -30,6 +40,7 @@ export interface WorkspaceInvite {
   created_by: string;
   accepted_by: string | null;
   role: WorkspaceRole;
+  inviter_seen?: boolean;
 }
 
 export interface Board {
@@ -89,6 +100,8 @@ export interface WorkspaceMemberWithProfile {
 
 export interface WorkspaceInviteWithWorkspace extends WorkspaceInvite {
   workspace_name: string;
+  inviter_name?: string;
+  invitee_name?: string;
 }
 
 
