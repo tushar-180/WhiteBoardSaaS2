@@ -1,12 +1,24 @@
 import { z } from "zod";
 
+export interface WorkspaceMemberPreview {
+  id: string;
+  user_id: string;
+  role: WorkspaceRole;
+  email: string;
+  name: string | null;
+  avatar_url: string | null;
+}
+
 export interface Workspace {
   id: string;
   name: string;
   slug: string;
   owner_id: string;
+  owner_name?: string;
+  currentUserRole?: WorkspaceRole;
   created_at: string;
   updated_at: string;
+  members_preview?: WorkspaceMemberPreview[];
 }
 
 export type WorkspaceRole = "owner" | "admin" | "editor" | "viewer";
@@ -24,10 +36,11 @@ export interface WorkspaceInvite {
   workspace_id: string;
   email: string;
   token: string;
-  status: "pending" | "accepted" | "expired" | "revoked";
+  status: "pending" | "accepted" | "expired" | "revoked" | "rejected";
   created_by: string;
   accepted_by: string | null;
   role: WorkspaceRole;
+  inviter_seen?: boolean;
 }
 
 export interface Board {
@@ -40,6 +53,8 @@ export interface Board {
   updated_at: string;
   canvas_data: unknown; // jsonb representation
 }
+
+export const workspaceRoleSchema = z.enum(["owner", "admin", "editor", "viewer"] as const);
 
 export const workspaceSchema = z.object({
   name: z
@@ -64,4 +79,30 @@ export const boardSchema = z.object({
 });
 
 export type BoardFormData = z.infer<typeof boardSchema>;
+
+export const inviteSchema = z.object({
+  email: z.email("Please enter a valid email address."),
+  role: z.enum(["admin", "editor", "viewer"] as const),
+});
+
+export type InviteFormData = z.infer<typeof inviteSchema>;
+
+export interface WorkspaceMemberWithProfile {
+  id: string;
+  workspace_id: string;
+  user_id: string;
+  joined_at: string;
+  role: WorkspaceRole;
+  email: string;
+  name: string | null;
+  avatar_url: string | null;
+}
+
+export interface WorkspaceInviteWithWorkspace extends WorkspaceInvite {
+  workspace_name: string;
+  inviter_name?: string;
+  invitee_name?: string;
+}
+
+
 

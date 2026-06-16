@@ -25,7 +25,7 @@ Do not assume old plans are still active. The current app scope is auth, workspa
 ## Current Stack
 
 - **Framework:** Next.js 16 App Router, React 19, TypeScript
-- **Styling:** Tailwind CSS v4, shadcn/ui, Radix primitives
+- **Styling:** Tailwind CSS v4, shadcn/ui, Aceternity UI, Radix primitives
 - **Icons / Feedback:** lucide-react, Sonner
 - **State:** Zustand
 - **Forms / Validation:** React Hook Form, Zod, `@hookform/resolvers`
@@ -36,6 +36,17 @@ Redux Toolkit is not part of this codebase anymore.
 
 ---
 
+## Live Deployment
+
+| Service | URL |
+| :--- | :--- |
+| **Next.js App (Vercel)** | https://zentrox-one.vercel.app |
+| **WebSocket Sync Server (Render)** | https://whiteboardsaas2.onrender.com |
+
+The environment variable `NEXT_PUBLIC_SYNC_SERVER_URL` must be set to `https://whiteboardsaas2.onrender.com` in Vercel.
+
+---
+
 ## Current Product Scope
 
 The product flow is:
@@ -43,9 +54,9 @@ The product flow is:
 ```txt
 Login / Register
   -> Workspaces
-  -> Members / Invites
-  -> Boards
-  -> Whiteboard canvas
+  -> Members / Invites (owners/editors/viewers)
+  -> Boards (owner-only creation)
+  -> Whiteboard canvas (read-only for editors/viewers)
   -> Save/load boards.canvas_data
 ```
 
@@ -59,14 +70,14 @@ AI, comments, large realtime collaboration, and advanced scaling are later ideas
 src/
 ├── actions/              # Server Actions
 ├── app/                  # Next.js App Router pages and route handlers
-│   ├── (auth)/           # login/register routes
-│   ├── (protected)/      # protected workspace and board routes
-│   └── auth/callback/    # Supabase OAuth callback
 ├── components/
 │   ├── auth/             # Auth UI
 │   ├── board/            # Board cards, lists, and form dialogs
 │   ├── landing/          # Landing page UI
 │   ├── ui/               # shadcn/ui components
+│   ├── whiteboard/       # Whiteboard canvas wrapper and sub-modules
+│   │   ├── hooks/        # Whiteboard collaboration hooks
+│   │   └── utils/        # Whiteboard WebSocket helpers
 │   └── workspace/        # Workspace dashboard UI
 ├── hooks/                # Custom React hooks (e.g. hooks/auth/)
 ├── lib/                  # Shared utilities (e.g. constants.ts)
@@ -75,6 +86,16 @@ src/
 ├── types/                # TypeScript types and Zod schemas
 ├── utils/supabase/       # Supabase browser/server clients
 └── proxy.ts              # Auth route guard
+
+sync-server/              # Multiplayer WS Sync Server (Modular)
+├── config.ts             # Configurations and env setup
+├── types.ts              # Sync types
+├── database.ts           # Supabase client helper
+├── auth.ts               # Authenticated board verification
+├── connection.ts         # Socket routing and connection queues
+├── rooms.ts              # Room registry and autosave loops
+├── persistence.ts        # Database snapshot savers
+└── server.ts             # Main entry point
 ```
 
 ---
@@ -88,6 +109,7 @@ src/
   - `getCurrentUser()`: Fetches the Supabase client and authenticated user (no throws or redirects).
   - `requireAuth(redirectTo)`: Used in Server Components (pages); redirects if not logged in.
   - `requireActionAuth(errorMessage)`: Used in Server Actions; throws an error if not logged in.
+- **Server-Side Hydration (Profiles & Members):** When loading protected details (like board pages), the server component (`page.tsx`) queries the user profile `displayName` and the `workspaceMembers`, then propagates them via `currentUser` and `initialMembers` props to the editor components. This avoids redundant client-side Supabase auth and lookup calls, ensuring the canvas mounts instantly with correct preferences and the member store is fully hydrated.
 - `src/proxy.ts` uses `createMiddlewareClient` from `src/utils/supabase/server.ts`.
 
 ### Constants & Routes
@@ -109,9 +131,11 @@ src/
 - Do not duplicate validation rules inside components if a schema already exists.
 
 ### Client State & Hydration
-- Use Zustand stores in `src/store/` (`useWorkspaceStore`, `useBoardStore`, `useWhiteboardStore`).
+- Use Zustand stores in `src/store/` (`useWorkspaceStore`, `useBoardStore`, `useWhiteboardStore`, `useMemberStore`, `useNotificationStore`).
 - Keep server-fetched data authoritative; hydrate Zustand only for interactive client UI.
 - When loading a parent page, hydrate the Zustand store via `useWorkspaceStore.setState(...)` or `useBoardStore.setState(...)` inside an effect or component mount phase. Do not recreate independent react state for fetched lists or user auth details.
+- `useMemberStore` manages workspace member and invite lists with optimistic updates (add/remove/role-change) for the `WorkspaceDetailsClient`.
+- `useNotificationStore` manages real-time workspace activity notifications across the application.
 - Do not add Redux providers, slices, or RTK Query.
 
 ### React Hooks
@@ -119,7 +143,7 @@ src/
 - Group related hooks under feature-based subdirectories (e.g., `src/hooks/auth/`).
 
 ### UI
-- Use existing shadcn/ui components from `src/components/ui/`.
+- Use existing shadcn/ui components from `src/components/ui/` (e.g. `DropdownMenu`, `Pagination`).
 - Use lucide-react icons where icons are needed.
 - Use Sonner for user-facing toast feedback.
 - Keep UI patterns consistent with existing auth and workspace components.
@@ -141,9 +165,17 @@ Examples:
 - Workspace mutations belong in `src/actions/workspace.ts`.
 - Workspace types and schemas belong in `src/types/workspace.ts`.
 - Workspace UI belongs in `src/components/workspace/`.
+- Member DB logic belongs in `src/services/member.ts`.
+- Member mutations belong in `src/actions/member.ts`.
+- Invite DB logic belongs in `src/services/invite.ts`.
+- Invite mutations belong in `src/actions/invite.ts`.
+- Notifications UI belongs in `src/components/workspace/` (e.g. `notification-inbox.tsx`).
 - Board DB logic belongs in `src/services/board.ts`.
 - Board mutations belong in `src/actions/board.ts`.
 - Board UI belongs in `src/components/board/`.
+- Whiteboard hooks belong in `src/components/whiteboard/hooks/`.
+- Whiteboard utils belong in `src/components/whiteboard/utils/`.
+- Whiteboard UI/canvas belongs in `src/components/whiteboard/`.
 
 ---
 

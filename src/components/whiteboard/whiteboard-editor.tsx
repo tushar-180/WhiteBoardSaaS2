@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { getSnapshot, type Editor } from "tldraw";
 import { useWhiteboardStore } from "@/store/use-whiteboard-store";
 import { updateBoardCanvasAction } from "@/actions/board";
 import { toast } from "sonner";
 import { type WhiteboardEditorProps } from "@/types/whiteboard";
-import { ROUTES } from "@/lib/constants";
-import WhiteboardSaveStatus from "./whiteboard-save-status";
+import { createClient } from "@/utils/supabase/client";
+import { KickedOverlay } from "./kicked-overlay";
+import { EditorHeader } from "./editor-header";
+import posthog from "posthog-js";
 
 // Dynamically import the tldraw component with SSR disabled
 const WhiteboardCanvas = dynamic(() => import("./whiteboard-canvas"), {
@@ -19,13 +20,108 @@ const WhiteboardCanvas = dynamic(() => import("./whiteboard-canvas"), {
 
 export default function WhiteboardEditor({
   board,
+  currentUser,
   licenseKey,
+  isReadonly,
 }: WhiteboardEditorProps) {
+  const router = useRouter();
   const editorRef = useRef<Editor | null>(null);
   const saveStatus = useWhiteboardStore((state) => state.saveStatus);
   const setSaveStatus = useWhiteboardStore((state) => state.setSaveStatus);
   const setLastSavedAt = useWhiteboardStore((state) => state.setLastSavedAt);
   const resetStore = useWhiteboardStore((state) => state.reset);
+
+  const [localIsReadonly, setLocalIsReadonly] = useState(isReadonly);
+  const [isKicked, setIsKicked] = useState(false);
+
+  // Subscribe to real-time changes to the user's role/membership in the workspace
+  useEffect(() => {
+    const supabase = createClient();
+    let isMounted = true;
+
+    const verifyAccess = async () => {
+      try {
+        const { data: member, error } = await supabase
+          .from("workspace_members")
+          .select("role")
+          .eq("workspace_id", board.workspace_id)
+          .eq("user_id", currentUser.id)
+          .maybeSingle();
+
+        if (!isMounted) return;
+
+        if (error || !member) {
+          // No member record found, user is kicked from workspace
+          setIsKicked(true);
+          toast.error(
+            "Access revoked. You have been removed from this workspace.",
+          );
+        } else {
+          setLocalIsReadonly(member.role === "viewer");
+        }
+      } catch (err) {
+        console.error("[Realtime Check] Failed to verify user role:", err);
+      }
+    };
+
+    // Listen to changes on workspace_members
+    const channel = supabase
+      .channel(`member-role-${board.workspace_id}-${currentUser.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "workspace_members",
+        },
+        (payload) => {
+          console.log("[Realtime] Received workspace member update:", payload);
+          if (payload.eventType === "DELETE") {
+            // Since DELETE payload.old only contains the primary key ID, we must check if our access was removed
+            verifyAccess();
+          } else if (payload.eventType === "UPDATE") {
+            const updatedMember = payload.new as {
+              user_id: string;
+              workspace_id: string;
+              role: string;
+            };
+            if (
+              updatedMember.user_id === currentUser.id &&
+              updatedMember.workspace_id === board.workspace_id
+            ) {
+              setLocalIsReadonly(updatedMember.role === "viewer");
+            }
+          } else if (payload.eventType === "INSERT") {
+            const newMember = payload.new as {
+              user_id: string;
+              workspace_id: string;
+            };
+            if (
+              newMember.user_id === currentUser.id &&
+              newMember.workspace_id === board.workspace_id
+            ) {
+              verifyAccess();
+            }
+          }
+        },
+      )
+      .subscribe();
+
+    // Verify status immediately on mount to capture any race conditions
+    verifyAccess();
+
+    // Recheck status when window regains focus (e.g., coming back from lock or background)
+    const handleFocus = () => {
+      verifyAccess();
+    };
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [board.workspace_id, currentUser.id, router]);
 
   // Clean up the store state on unmount
   useEffect(() => {
@@ -62,51 +158,48 @@ export default function WhiteboardEditor({
     try {
       const { document } = getSnapshot(editorRef.current.store);
       const cleanDocument = JSON.parse(JSON.stringify(document));
-      await updateBoardCanvasAction(board.workspace_id, board.id, cleanDocument);
+      await updateBoardCanvasAction(
+        board.workspace_id,
+        board.id,
+        cleanDocument,
+      );
       setSaveStatus("saved");
       setLastSavedAt(new Date());
+      posthog.capture("board_saved_manually", {
+        board_id: board.id,
+        workspace_id: board.workspace_id,
+      });
       toast.success("Board saved to cloud successfully!");
     } catch (error) {
       console.error("Manual save error:", error);
+      posthog.captureException(error);
       setSaveStatus("error");
-      toast.error("Failed to save board drawing. Please check your connection.");
+      toast.error(
+        "Failed to save board drawing. Please check your connection.",
+      );
     }
   };
+
+  if (isKicked) {
+    return <KickedOverlay />;
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden relative select-none">
       {/* Top Header */}
-      <header className="h-16 border-b border-border/40 bg-background/80 backdrop-blur-md z-40 flex items-center justify-between px-6 shrink-0">
-        <div className="flex items-center gap-4 min-w-0">
-          <Link
-            href={`${ROUTES.WORKSPACES}/${board.workspace_id}`}
-            className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-border/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200"
-            title="Back to Workspace"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm font-bold text-foreground truncate">
-              {board.name}
-            </span>
-            <span className="text-[10px] text-muted-foreground truncate max-w-[250px]">
-              {board.description || "No description"}
-            </span>
-          </div>
-        </div>
-
-        {/* Real-time Save Status Indicators */}
-        <WhiteboardSaveStatus onSave={handleManualSave} />
-      </header>
+      <EditorHeader board={board} onSave={handleManualSave} />
 
       {/* Drawing Canvas Container */}
       <main className="flex-1 w-full h-[calc(100vh-64px)] relative bg-muted/20">
         <WhiteboardCanvas
+          key={`${board.id}-${localIsReadonly}`}
           boardId={board.id}
           workspaceId={board.workspace_id}
           initialCanvasData={board.canvas_data}
           editorRef={editorRef}
+          currentUser={currentUser}
           licenseKey={licenseKey}
+          isReadonly={localIsReadonly}
         />
       </main>
     </div>

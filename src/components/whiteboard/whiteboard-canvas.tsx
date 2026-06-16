@@ -1,98 +1,125 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { Tldraw, getSnapshot, loadSnapshot, type Editor } from "tldraw";
+import { useEffect, useState } from "react";
+import { Tldraw, type Editor } from "tldraw";
 import "tldraw/tldraw.css";
-import { useWhiteboardStore } from "@/store/use-whiteboard-store";
-import { updateBoardCanvasAction } from "@/actions/board";
-import { toast } from "sonner";
-import { debounce } from "@/lib/utils";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { type WhiteboardCanvasProps } from "@/types/whiteboard";
+import { useWhiteboardSync } from "./hooks/use-whiteboard-sync";
+import { useCollaboratorNotifications } from "./hooks/use-collaborator-notifications";
 
+/**
+ * Clean & modular component rendering the collaborative whiteboard canvas.
+ */
 export default function WhiteboardCanvas({
   boardId,
-  workspaceId,
-  initialCanvasData,
+  isReadonly,
   editorRef,
+  currentUser,
   licenseKey,
 }: WhiteboardCanvasProps) {
-  const [editor, setEditor] = useState<Editor | null>(null);
-  const setSaveStatus = useWhiteboardStore((state) => state.setSaveStatus);
-  const setLastSavedAt = useWhiteboardStore((state) => state.setLastSavedAt);
+  const syncStore = useWhiteboardSync({ boardId });
+  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
 
-  // Set the external ref when the internal editor changes
+  useCollaboratorNotifications({
+    store: syncStore.store,
+    userId: currentUser.id,
+    userName: currentUser.name,
+  });
+
+  // Handle editor mount
+  const handleMount = (editorInstance: Editor) => {
+    editorRef.current = editorInstance;
+    editorInstance.updateInstanceState({ isReadonly: !!isReadonly });
+    editorInstance.user.updateUserPreferences({
+      id: currentUser.id,
+      name: currentUser.name,
+    });
+  };
+
+  // Keep editor user preferences in sync
   useEffect(() => {
-    editorRef.current = editor;
-  }, [editor, editorRef]);
-
-  // Persist the debounced auto-save function across renders while keeping latest parameters
-  const debouncedSaveRef = useRef<((editorInstance: Editor) => void) | null>(
-    null,
-  );
-
-  useEffect(() => {
-    debouncedSaveRef.current = debounce(async (editorInstance: Editor) => {
-      setSaveStatus("saving");
-      try {
-        const { document } = getSnapshot(editorInstance.store);
-        const cleanDocument = JSON.parse(JSON.stringify(document));
-        await updateBoardCanvasAction(workspaceId, boardId, cleanDocument);
-        setSaveStatus("saved");
-        setLastSavedAt(new Date());
-      } catch (error) {
-        console.error("Auto-save error:", error);
-        setSaveStatus("error");
-        toast.error(
-          "Failed to auto-save drawing changes. Your progress is kept in browser memory.",
-        );
-      }
-    }, 2000);
-  }, [boardId, workspaceId, setSaveStatus, setLastSavedAt]);
-
-  // Handle load snapshot and change listener when editor is ready
-  useEffect(() => {
-    if (!editor) return;
-
-    // 1. Load initial data if present and not empty
-    if (
-      initialCanvasData &&
-      typeof initialCanvasData === "object" &&
-      Object.keys(initialCanvasData).length > 0
-    ) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        loadSnapshot(editor.store, { document: initialCanvasData as any });
-      } catch (error) {
-        console.error("Error loading canvas snapshot:", error);
-      }
+    if (editorRef.current) {
+      editorRef.current.user.updateUserPreferences({
+        id: currentUser.id,
+        name: currentUser.name,
+      });
     }
+  }, [currentUser.name, currentUser.id, editorRef]);
 
-    // Mark as initially saved once loaded
-    setSaveStatus("saved");
+  // Sync readonly state when prop changes
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.updateInstanceState({ isReadonly: !!isReadonly });
+    }
+  }, [isReadonly, editorRef]);
 
-    // 2. Listen to document store changes (excluding viewport camera moves, selection, cursors)
-    const cleanup = editor.store.listen(
-      () => {
-        setSaveStatus("unsaved");
-        if (debouncedSaveRef.current) {
-          debouncedSaveRef.current(editor);
-        }
-      },
-      { source: "user", scope: "document" },
+  // Monitor connection loading duration to identify offline sync servers
+  useEffect(() => {
+    if (syncStore.status === "loading") {
+      const timer = setTimeout(() => {
+        setShowTimeoutWarning(true);
+      }, 10000); // 5 seconds connection timeout
+      return () => {
+        clearTimeout(timer);
+        setShowTimeoutWarning(false);
+      };
+    }
+  }, [syncStore.status]);
+
+  if (syncStore.status === "loading") {
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/10 z-50">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <p className="text-sm font-medium">Connecting...</p>
+        </div>
+        {showTimeoutWarning && (
+          <div className="flex flex-col items-center gap-3 mt-6 p-4 bg-background rounded-xl border shadow-sm max-w-sm mx-4">
+            <div className="flex items-center gap-2 text-amber-500">
+              <AlertCircle className="h-4 w-4" />
+              <p className="text-sm font-semibold">Connection delayed</p>
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              The sync server is taking longer than expected. It might be sleeping or unreachable.
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              size="sm"
+              variant="outline"
+              className="w-full mt-2"
+            >
+              Retry Connection
+            </Button>
+          </div>
+        )}
+      </div>
     );
+  }
 
-    return () => {
-      cleanup();
-    };
-  }, [editor, initialCanvasData, setSaveStatus]);
+  if (syncStore.status === "error") {
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 backdrop-blur-sm z-50">
+        <div className="flex flex-col items-center gap-2 text-center px-4">
+          <p className="text-sm font-semibold text-destructive">
+            Connection failed
+          </p>
+          <p className="text-xs text-muted-foreground max-w-[250px]">
+            We are having trouble connecting to the realtime sync server.
+            Retrying...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full relative">
       <Tldraw
+        store={syncStore.store}
         licenseKey={licenseKey}
-        onMount={(editorInstance) => {
-          setEditor(editorInstance);
-        }}
+        onMount={handleMount}
       />
     </div>
   );

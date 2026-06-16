@@ -2,42 +2,63 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, ArrowLeft, Users, Calendar, Hash, Shield } from "lucide-react";
+import { Plus, ArrowLeft, Calendar, Hash, Shield } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { BoardList } from "@/components/board/board-list";
 import { EmptyBoards } from "@/components/board/empty-boards";
 import { CreateBoardDialog } from "@/components/board/create-board-dialog";
-import { type Workspace, type Board } from "@/types/workspace";
+import { InviteMemberDialog } from "@/components/workspace/dialogs/invite-member-dialog";
+import { WorkspaceMembersList } from "@/components/workspace/members/workspace-members-list";
+import { WorkspaceInvitesList } from "@/components/workspace/invite/workspace-invites-list";
+import {
+  type Workspace,
+  type Board,
+  type WorkspaceInvite,
+  type WorkspaceRole,
+  type WorkspaceMemberWithProfile,
+} from "@/types/workspace";
 import { useBoardStore } from "@/store/use-board-store";
+import { useMemberStore } from "@/store/use-member-store";
 import RootLoading from "@/app/loading";
 import { ROUTES } from "@/lib/constants";
 
 interface WorkspaceDetailsClientProps {
   workspace: Workspace;
   initialBoards: Board[];
+  initialMembers: WorkspaceMemberWithProfile[];
+  initialInvites: WorkspaceInvite[];
+  currentUserRole: WorkspaceRole;
   userEmail?: string;
-  userName?: string;
 }
 
 export function WorkspaceDetailsClient({
   workspace,
   initialBoards,
+  initialMembers,
+  initialInvites,
+  currentUserRole,
   userEmail,
-  userName,
 }: WorkspaceDetailsClientProps) {
-  const [open, setOpen] = useState(false);
+  const [boardOpen, setBoardOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+
+  const [mobileTab, setMobileTab] = useState<"boards" | "settings">("boards");
 
   // Sync server data with client-side Zustand store on mount/update
   useEffect(() => {
     useBoardStore.setState({
       boards: initialBoards,
     });
+    useMemberStore.setState({
+      members: initialMembers,
+      invites: initialInvites,
+    });
     setTimeout(() => {
       setIsMounted(true);
     }, 0);
-  }, [initialBoards]);
+  }, [initialBoards, initialMembers, initialInvites]);
 
   const boards = useBoardStore((state) => state.boards);
 
@@ -46,7 +67,7 @@ export function WorkspaceDetailsClient({
   }
 
   const formattedDate = new Date(workspace.created_at).toLocaleDateString(
-    undefined,
+    "en-US",
     {
       year: "numeric",
       month: "short",
@@ -54,59 +75,92 @@ export function WorkspaceDetailsClient({
     },
   );
 
+  const canManage = currentUserRole === "owner" || currentUserRole === "admin";
+
   return (
     <>
       {/* Main Container */}
-      <main className="flex-1 container mx-auto px-6 py-10 max-w-7xl">
+      <main className="flex-1 flex flex-col container mx-auto px-4 sm:px-6 lg:px-8 pb-6 pt-4 max-w-7xl relative overflow-hidden min-h-0">
         {/* Back navigation */}
         <Link
           href={ROUTES.WORKSPACES}
-          className="inline-flex items-center gap-1.5 text-xs mb-6 font-semibold text-muted-foreground hover:text-foreground transition-all w-fit hover:-translate-x-0.5 duration-200"
+          className="inline-flex items-center gap-1.5 text-xs mb-4 font-semibold text-muted-foreground hover:text-foreground transition-all w-fit hover:-translate-x-0.5 duration-200 shrink-0"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Workspaces
         </Link>
 
-        {/* Workspace Title & Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left / Center - Boards Content (Col Span 3) */}
-          <div className="lg:col-span-3 space-y-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl mb-1.5">
-                  {workspace.name}
-                </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground/80 font-mono leading-relaxed">
-                  /{workspace.slug}
-                </p>
-              </div>
+        {/* Workspace Header & Mobile Tabs */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between shrink-0 mb-6 gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl mb-1.5">
+              {workspace.name}
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground/80 font-mono leading-relaxed">
+              /{workspace.slug}
+            </p>
+          </div>
 
-              {boards.length > 0 && (
-                <Button
-                  onClick={() => setOpen(true)}
-                  size="sm"
-                  className="rounded-xl font-semibold shadow-xs active:scale-[0.99] transition-all duration-200 cursor-pointer"
-                >
-                  <Plus className="mr-1 h-4 w-4" />
-                  New Board
-                </Button>
-              )}
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            {/* Mobile Tab Toggle */}
+            <div className="flex lg:hidden bg-muted/40 p-1 rounded-xl border border-border/50 backdrop-blur-xs flex-1 sm:flex-initial">
+              <button
+                onClick={() => setMobileTab("boards")}
+                className={`flex-1 sm:px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                  mobileTab === "boards" ? "bg-background text-foreground shadow-xs border border-border/50" : "text-muted-foreground hover:text-foreground hover:bg-muted/20 border border-transparent"
+                }`}
+              >
+                Boards
+              </button>
+              <button
+                onClick={() => setMobileTab("settings")}
+                className={`flex-1 sm:px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                  mobileTab === "settings" ? "bg-background text-foreground shadow-xs border border-border/50" : "text-muted-foreground hover:text-foreground hover:bg-muted/20 border border-transparent"
+                }`}
+              >
+                Settings
+              </button>
             </div>
 
-            <div className="border-t border-border/40 pt-6">
+            {/* New Board Button */}
+            {boards.length > 0 && currentUserRole !== "viewer" && currentUserRole !== "editor" && (
+              <Button
+                onClick={() => setBoardOpen(true)}
+                size="sm"
+                className={`rounded-xl font-semibold shadow-xs active:scale-[0.99] transition-all duration-200 shrink-0 ${mobileTab === "settings" ? "hidden lg:flex" : "flex"}`}
+              >
+                <Plus className="sm:mr-1 h-4 w-4" />
+                <span className="hidden sm:inline">New Board</span>
+                <span className="sm:hidden ml-1">New</span>
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Layout Grid */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-8 overflow-hidden min-h-0">
+          {/* Left / Center - Boards Content (Col Span 3) */}
+          <div className={`lg:col-span-3 flex-col overflow-hidden min-h-0 ${mobileTab === "boards" ? "flex" : "hidden lg:flex"}`}>
+            <div className="flex-1 flex flex-col overflow-hidden min-h-0 lg:border-t lg:border-border/40 lg:pt-2">
               {boards.length === 0 ? (
-                <EmptyBoards onCreateClick={() => setOpen(true)} />
+                <div className="flex-1 flex items-center justify-center overflow-y-auto">
+                  <EmptyBoards 
+                    onCreateClick={() => setBoardOpen(true)} 
+                    currentUserRole={currentUserRole}
+                  />
+                </div>
               ) : (
                 <BoardList
                   boards={boards}
-                  onCreateClick={() => setOpen(true)}
+                  currentUserRole={currentUserRole}
+                  onCreateClick={() => setBoardOpen(true)}
                 />
               )}
             </div>
           </div>
 
           {/* Right - Sidebar Metadata (Col Span 1) */}
-          <div className="space-y-6 lg:border-l lg:border-border/40 lg:pl-8">
+          <div className={`lg:col-span-1 space-y-6 lg:border-l lg:border-border/40 lg:pl-8 overflow-y-auto pr-1.5 pb-4 min-h-0 shrink-0 lg:shrink ${mobileTab === "settings" ? "block" : "hidden lg:block"}`}>
             {/* Workspace Info Card */}
             <div className="rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur-xs space-y-4">
               <h3 className="text-sm font-bold text-foreground">
@@ -119,53 +173,40 @@ export function WorkspaceDetailsClient({
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4 shrink-0 text-primary/70" />
-                  <span>Created {formattedDate}</span>
+                  <span suppressHydrationWarning>Created {formattedDate}</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Shield className="h-4 w-4 shrink-0 text-primary/70" />
-                  <span>Role: Owner</span>
+                  <span className="capitalize">Role: {currentUserRole}</span>
                 </div>
               </div>
             </div>
 
-            {/* Members Card Placeholder (Ready for Stage 3) */}
-            <div className="rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                  <Users className="h-4 w-4 text-primary/80" />
-                  Members
-                </h3>
-                <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold">
-                  1
-                </span>
-              </div>
+            {/* Active Members Card */}
+            <WorkspaceMembersList
+              workspaceId={workspace.id}
+              currentUserRole={currentUserRole}
+              userEmail={userEmail}
+              onInviteClick={() => setInviteOpen(true)}
+            />
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-7 w-7 rounded-full bg-gradient-to-r from-primary to-purple-600 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-xs">
-                    {(userName || userEmail || "U")
-                      .substring(0, 2)
-                      .toUpperCase()}
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-xs font-bold text-foreground truncate">
-                      {userName || "User"}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground truncate">
-                      {userEmail}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Pending Invites Card (Visible only to owners/admins) */}
+            {canManage && <WorkspaceInvitesList workspaceId={workspace.id} />}
           </div>
         </div>
 
         {/* Create Board Modal Dialog */}
         <CreateBoardDialog
           workspaceId={workspace.id}
-          open={open}
-          onOpenChange={setOpen}
+          open={boardOpen}
+          onOpenChange={setBoardOpen}
+        />
+
+        {/* Invite Member Dialog */}
+        <InviteMemberDialog
+          workspaceId={workspace.id}
+          open={inviteOpen}
+          onOpenChange={setInviteOpen}
         />
       </main>
     </>

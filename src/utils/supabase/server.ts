@@ -41,7 +41,7 @@ export const createMiddlewareClient = (request: NextRequest) => {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) =>
+        cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value),
         );
         supabaseResponse = NextResponse.next({
@@ -73,7 +73,7 @@ export const getCurrentUser = async () => {
  * Validates authentication for Server Components (pages).
  * Redirects the user to the specified path (default '/login') if unauthenticated.
  */
-export const requireAuth = async (redirectTo = ROUTES.LOGIN) => {
+export const requireAuth = async (redirectTo: string = ROUTES.LOGIN) => {
   const { supabase, user } = await getCurrentUser();
   if (!user) {
     redirect(redirectTo);

@@ -12,6 +12,7 @@ interface AuthInputProps {
   register: UseFormRegisterReturn;
   error?: FieldError;
   disabled?: boolean;
+  maxLength?: number;
   rightElement?: ReactNode;
 }
 
@@ -23,6 +24,7 @@ export function AuthInput({
   register,
   error,
   disabled = false,
+  maxLength,
   rightElement,
 }: AuthInputProps) {
   return (
@@ -41,6 +43,7 @@ export function AuthInput({
             rightElement ? "pr-10" : "pr-3"
           }`}
           disabled={disabled}
+          maxLength={maxLength}
           {...register}
         />
         {rightElement && (

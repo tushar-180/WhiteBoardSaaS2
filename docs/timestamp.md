@@ -15,6 +15,9 @@ Stage 3 -> Workspace members, invites, and access control
 Stage 4 -> Board CRUD inside workspaces
 Stage 5 -> Whiteboard canvas and canvas_data persistence
 Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
+Stage 7 -> Real-Time Collaboration
+Stage 8 -> Real-Time Notifications, Access Controls, and UI Polish
+Stage 9 -> SEO, Accessibility, and Codebase Polish
 ```
 
 ---
@@ -46,11 +49,19 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 
 **Goal:** Use the existing `workspace_members` and `workspace_invites` tables for collaboration access.
 
-- [ ] Add service functions for workspace members.
-- [ ] Show workspace owner/member list on the workspace detail page.
-- [ ] Add invite creation UI and Server Action.
-- [ ] Add invite accept route using `workspace_invites.token`.
-- [ ] Enforce workspace access by checking `owner_id` or `workspace_members`.
+- [x] Add service functions for workspace members (`src/services/member.ts`).
+- [x] Add service functions for workspace invites (`src/services/invite.ts`).
+- [x] Add member Server Actions in `src/actions/member.ts` (list, remove, update role, leave workspace).
+- [x] Add invite Server Actions in `src/actions/invite.ts` (create, accept, revoke, list).
+- [x] Extend workspace service with membership queries in `src/services/workspace.ts`.
+- [x] Show workspace owner/member list on the workspace detail page (`WorkspaceDetailsClient`).
+- [x] Add `InviteMemberDialog` — invite creation UI with role selection.
+- [x] Add invite accept route at `/invite/[token]` with `InviteAcceptClient` component.
+- [x] Add `useMemberStore` Zustand store for member/invite client state.
+- [x] Enforce role-based access: board creation restricted to owners only.
+- [x] Add read-only canvas mode for editors and viewers (`isReadonly` on tldraw editor).
+- [x] Add `LeaveWorkspaceDialog` component for non-owner members to leave a workspace.
+- [x] Add Vercel Analytics to `src/app/layout.tsx`.
 
 ## Stage 4: Board CRUD
 
@@ -80,16 +91,59 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 - [x] Refactor repeating Supabase client/auth calls into reusable server helpers.
 - [x] Extract shared layout, background gradients, and navigation headers into workspaces route layout.
 - [x] Centralize route configuration targets and asset paths into constants file.
-- [ ] Review empty states, not-found states, and protected-route redirects.
-- [ ] Tighten form validation and server-side error messages.
-- [ ] Run lint/build verification.
-- [ ] Document required environment variables.
-- [ ] Prepare deployment notes.
+- [x] Review empty states, not-found states, and protected-route redirects.
+- [x] Tighten form validation and server-side error messages.
+- [x] Run lint/build verification.
+- [x] Document required environment variables.
+- [x] Prepare deployment notes.
+
+## Stage 7: Real-Time Collaboration
+
+**Goal:** Enable multiple users to collaborate live on the same board using a custom tldraw WebSocket sync server and TLSocketRoom presence.
+
+- [x] Set up a tldraw sync backend (WebSocket server via `@tldraw/sync @tldraw/sync-core`).
+- [x] Replace single-user `Tldraw` with `useSync` hook in `WhiteboardCanvas` for multi-user room state.
+- [x] Configure an asset store for file/image uploads within the canvas.
+- [x] Handle room persistence and reconnection on the backend.
+- [x] Test concurrent edits across multiple browser sessions.
+- [x] Add live cursor presence for connected users.
+- [x] Show live avatar stack (user avatars + names) in the board toolbar when others are present.
+- [x] Refactor client-side and sync server codebases into clean modular architectures.
+- [x] Implement server-side user profile fetching and props threading.
+
+## Stage 8: Real-Time Notifications, Access Controls, and UI Polish
+
+**Goal:** Provide live feedback for workspace events, enhance access control dynamics, and improve core UI components.
+
+- [x] Create a `NotificationInbox` to display workspace activities in real-time.
+- [x] Add `use-notification-store.ts` for managing global notification state.
+- [x] Enable Supabase Realtime subscriptions for `workspace_invites` and `workspace_members`.
+- [x] Add an `inviter_seen` field to track and notify inviter about accepted invites.
+- [x] Refactor `InviteMemberDialog` into modular components (`invite-form`, `invite-success`, `invite-suggestions`).
+- [x] Implement real-time access revocation monitoring inside the whiteboard editor.
+- [x] Add `KickedOverlay` to handle users losing permissions mid-session.
+- [x] Refactor `WorkspaceMembersList` and introduce `WorkspaceMemberRow`.
+- [x] Add generic reusable `DropdownMenu` and `Pagination` UI components.
+- [x] Integrate pagination into `BoardList` and `WorkspaceList`.
+- [x] Resolve React 18 passive event listener warnings for mobile touch gestures on the whiteboard canvas.
+- [x] Overhaul landing page (`Hero`, `Features`, `Footer`) to be fully responsive and mobile-first, using SVG `viewBox` scaling.
+- [x] Fix mobile layout bugs for creation dialogs and notification inbox.
+- [x] Integrate `WorkspaceMembersList` into the canvas `EditorHeader` for on-the-fly member management.
+
+## Stage 9: SEO, Accessibility, and Codebase Polish
+
+**Goal:** Improve search engine visibility, enhance accessibility, and resolve strict compiler/linter warnings.
+
+- [x] Add dynamic `sitemap.ts` and `robots.ts` for SEO.
+- [x] Enhance landing page UI with `HoverBorderGradient` from Aceternity UI.
+- [x] Improve accessibility (A11y) across the app: better color contrast, ARIA labels, and touch targets.
+- [x] Resolve all Next.js 15 / React Compiler hydration and purity errors (`react-hooks/purity`, `set-state-in-effect`).
+- [x] Enforce strict typings by replacing `any` with `unknown` in database and email services.
+- [x] Fix unescaped entities across legal pages and empty states.
 
 ## Later / Optional
 
-- [ ] Supabase Realtime presence or live cursors.
-- [ ] Multiplayer canvas sync.
 - [ ] AI features.
 - [ ] Comments.
+- [ ] Realtime board chat (chat panel per board).
 - [ ] Advanced scaling infrastructure.

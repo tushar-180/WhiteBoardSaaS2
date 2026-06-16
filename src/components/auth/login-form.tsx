@@ -55,8 +55,8 @@ export default function LoginPage() {
           alt="Zentrox Logo"
           width={96}
           height={96}
-          className="object-contain"
-          style={{ height: "auto" }}
+          className="object-contain w-auto h-auto"
+          style={{ width: "auto", height: "auto" }}
           priority
         />
       </Link>
@@ -108,6 +108,7 @@ export default function LoginPage() {
               register={register("name")}
               error={errors.name}
               disabled={isFormDisabled}
+              maxLength={50}
             />
           )}
 
@@ -119,6 +120,7 @@ export default function LoginPage() {
             register={register("email")}
             error={errors.email}
             disabled={isFormDisabled}
+            maxLength={100}
           />
 
           <AuthInput
@@ -129,6 +131,7 @@ export default function LoginPage() {
             register={register("password")}
             error={errors.password}
             disabled={isFormDisabled}
+            maxLength={72}
             rightElement={
               <button
                 type="button"

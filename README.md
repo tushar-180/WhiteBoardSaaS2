@@ -4,6 +4,17 @@ Zentrox is a high-performance, collaborative workspace-based whiteboard applicat
 
 ---
 
+## 🌐 Live Deployment
+
+| Service | URL |
+| :--- | :--- |
+| **App (Vercel)** | https://zentrox-one.vercel.app |
+| **WebSocket Sync Server (Render)** | https://whiteboardsaas2.onrender.com |
+
+For setup details see the **[Vercel Deployment Guide](docs/DEPLOYMENT.md)**.
+
+---
+
 ## 📂 Repository Documentation
 
 Detailed system architecture and database documentation can be found in the `docs/` folder:
@@ -21,10 +32,12 @@ Detailed system architecture and database documentation can be found in the `doc
 
 *   **🔐 Multi-Tenant Authentication:** Built on Supabase SSR with secure session validation and public profile syncing.
 *   **🏢 Workspace Isolation:** Isolated spaces for boards and team management, preventing data bleeding.
-*   **👥 Real-Time Collaborators (Stage 3):** Manage team roles (Owner, Admin, Editor, Viewer) with secure token-based workspace invitation flows.
+*   **👥 Real-Time Collaborators (Stage 3):** Manage team roles (Owner, Admin, Editor, Viewer) with secure token-based workspace invitation flows. Manage members directly from the canvas dashboard or globally.
 *   **📋 Board CRUD (Stage 4):** Create, edit, and delete multiple boards per workspace.
 *   **✏️ Vector Sketch Canvas (Stage 5):** Embed dynamic infinite drawing boards with shapes, arrows, text, and vector freehands.
 *   **💾 State Persistence (Stage 5):** Automatic JSONB serialization of whiteboard canvas data directly to Supabase PostgreSQL.
+*   **📱 Mobile-First UX:** Fully responsive layouts for touch devices, including fluid canvas mockups, native UI gestures, and touch-optimized navigation.
+*   **🔍 SEO & Accessibility:** Dynamic sitemap, robots.txt, semantic HTML, and strict A11y compliance.
 
 ---
 
@@ -33,9 +46,11 @@ Detailed system architecture and database documentation can be found in the `doc
 | Layer | Technologies |
 | :--- | :--- |
 | **Core Framework** | Next.js 16 (App Router, Turbopack), React 19, TypeScript |
-| **Styling & UI** | Tailwind CSS v4, shadcn/ui, Radix UI Primitives, Lucide Icons, Sonner |
+| **Styling & UI** | Tailwind CSS v4, shadcn/ui, Aceternity UI, Radix UI Primitives, Lucide Icons, Sonner |
 | **State Management** | Zustand (Client State), Next.js Server Actions & Route Handlers (Server State) |
 | **Database & Auth** | Supabase SSR SDK, Supabase Auth, PostgreSQL |
+| **Analytics & Sessions**| PostHog (Session recording, analytics) |
+| **Emails** | SendGrid (Transactional emails, workspace invites) |
 | **Forms & Validation** | React Hook Form, Zod, `@hookform/resolvers` |
 
 ---
@@ -47,14 +62,14 @@ src/
 ├── actions/             # Server Actions for authenticated mutations & cache revalidations
 ├── api/                 # Next.js API Route Handlers
 ├── app/                 # Next.js App Router (Layouts, pages, route segments)
-│   ├── (auth)/          # Authenticated route groups (Login, Register)
-│   ├── (protected)/     # Protected route groups (Workspaces, Boards)
-│   └── auth/callback/   # Supabase OAuth callbacks
 ├── components/          # React components
 │   ├── auth/            # Auth forms & layouts
 │   ├── board/           # Board cards, lists, and form dialogs
 │   ├── landing/         # Marketing landing page sections
 │   ├── ui/              # Reusable shadcn/ui components
+│   ├── whiteboard/      # Whiteboard canvas wrapper and sub-modules
+│   │   ├── hooks/       # Custom hooks (e.g. use-whiteboard-sync, use-collaborator-notifications)
+│   │   └── utils/       # Utility helpers (e.g. sync-uri.ts)
 │   └── workspace/       # Workspace dashboard layouts & list views
 ├── hooks/               # Custom reusable React hooks
 ├── lib/                 # Shared utilities, helper libraries (e.g. cn tailwind-merge)
@@ -121,7 +136,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 ## 📦 Build & Deployment
 
-For a full walkthrough on production deployment, see the **[Vercel Deployment Guide](docs/DEPLOYMENT.md)**.
+The app is live at **https://zentrox-one.vercel.app**. For a full walkthrough on production deployment, see the **[Vercel Deployment Guide](docs/DEPLOYMENT.md)**.
 
 ### Build Scripts
 *   `npm run dev`: Starts the Next.js development server with Turbopack.
@@ -135,3 +150,172 @@ To compile the production build, run:
 npm run build
 ```
 The output directory will be created at `.next/`.
+
+```
+whiteboard-canvas
+├─ .next
+├─ AGENT.md
+├─ CLAUDE.md
+├─ README.md
+├─ client.ts
+├─ components.json
+├─ docs
+│  ├─ DATABASE.md
+│  ├─ DEPLOYMENT.md
+│  ├─ PHASES.md
+│  ├─ Whiteboard.md
+│  └─ timestamp.md
+├─ eslint.config.mjs
+├─ next.config.ts
+├─ package-lock.json
+├─ package.json
+├─ postcss.config.mjs
+├─ public
+│  ├─ file.svg
+│  ├─ globe.svg
+│  ├─ logo.png
+│  ├─ next.svg
+│  ├─ vercel.svg
+│  ├─ whiteboard_banner.png
+│  └─ window.svg
+├─ src
+│  ├─ actions
+│  │  ├─ auth.ts
+│  │  ├─ board.ts
+│  │  ├─ invite.ts
+│  │  ├─ member.ts
+│  │  └─ workspace.ts
+│  ├─ app
+│  │  ├─ (auth)
+│  │  │  ├─ login
+│  │  │  │  └─ page.tsx
+│  │  │  └─ register
+│  │  │     └─ page.tsx
+│  │  ├─ (protected)
+│  │  │  ├─ board
+│  │  │  │  └─ [boardId]
+│  │  │  │     ├─ loading.tsx
+│  │  │  │     └─ page.tsx
+│  │  │  ├─ invite
+│  │  │  │  └─ [token]
+│  │  │  │     └─ page.tsx
+│  │  │  └─ workspaces
+│  │  │     ├─ [workspaceId]
+│  │  │     │  ├─ loading.tsx
+│  │  │     │  └─ page.tsx
+│  │  │     ├─ layout.tsx
+│  │  │     ├─ loading.tsx
+│  │  │     └─ page.tsx
+│  │  ├─ apple-icon.png
+│  │  ├─ auth
+│  │  │  └─ callback
+│  │  │     └─ route.ts
+│  │  ├─ favicon.ico
+│  │  ├─ globals.css
+│  │  ├─ icon.png
+│  │  ├─ layout.tsx
+│  │  ├─ loading.tsx
+│  │  ├─ not-found.tsx
+│  │  └─ page.tsx
+│  ├─ components
+│  │  ├─ auth
+│  │  │  ├─ auth-decorations.tsx
+│  │  │  ├─ auth-input.tsx
+│  │  │  ├─ auth-tab-toggle.tsx
+│  │  │  ├─ github-button.tsx
+│  │  │  ├─ github-icon.tsx
+│  │  │  └─ login-form.tsx
+│  │  ├─ board
+│  │  │  ├─ board-card.tsx
+│  │  │  ├─ board-list.tsx
+│  │  │  ├─ create-board-dialog.tsx
+│  │  │  ├─ delete-board-dialog.tsx
+│  │  │  ├─ edit-board-dialog.tsx
+│  │  │  └─ empty-boards.tsx
+│  │  ├─ landing
+│  │  │  ├─ features.tsx
+│  │  │  ├─ footer.tsx
+│  │  │  ├─ hero.tsx
+│  │  │  ├─ logout.tsx
+│  │  │  └─ navbar.tsx
+│  │  ├─ ui
+│  │  │  ├─ avatar.tsx
+│  │  │  ├─ button.tsx
+│  │  │  ├─ card.tsx
+│  │  │  ├─ dialog.tsx
+│  │  │  ├─ field.tsx
+│  │  │  ├─ input.tsx
+│  │  │  ├─ label.tsx
+│  │  │  ├─ separator.tsx
+│  │  │  ├─ skeleton.tsx
+│  │  │  └─ sonner.tsx
+│  │  ├─ whiteboard
+│  │  │  ├─ hooks
+│  │  │  │  ├─ use-collaborator-notifications.ts
+│  │  │  │  └─ use-whiteboard-sync.ts
+│  │  │  ├─ utils
+│  │  │  │  └─ sync-uri.ts
+│  │  │  ├─ whiteboard-canvas.tsx
+│  │  │  ├─ whiteboard-editor.tsx
+│  │  │  └─ whiteboard-save-status.tsx
+│  │  └─ workspace
+│  │     ├─ dialogs
+│  │     │  ├─ create-workspace-dialog.tsx
+│  │     │  ├─ delete-workspace-dialog.tsx
+│  │     │  ├─ invite-member-dialog.tsx
+│  │     │  └─ leave-workspace-dialog.tsx
+│  │     ├─ empty-state.tsx
+│  │     ├─ invite
+│  │     │  ├─ invite-accept-client.tsx
+│  │     │  └─ workspace-invites-list.tsx
+│  │     ├─ members
+│  │     │  └─ workspace-members-list.tsx
+│  │     ├─ workspace-card.tsx
+│  │     ├─ workspace-details-client.tsx
+│  │     ├─ workspace-list.tsx
+│  │     ├─ workspace-nav.tsx
+│  │     └─ workspaces-client.tsx
+│  ├─ contexts
+│  ├─ hooks
+│  │  └─ auth
+│  │     └─ use-auth-form.ts
+│  ├─ lib
+│  │  ├─ constants.ts
+│  │  └─ utils.ts
+│  ├─ proxy.ts
+│  ├─ services
+│  │  ├─ board.ts
+│  │  ├─ invite.ts
+│  │  ├─ member.ts
+│  │  ├─ profile.ts
+│  │  └─ workspace.ts
+│  ├─ store
+│  │  ├─ use-board-store.ts
+│  │  ├─ use-member-store.ts
+│  │  ├─ use-whiteboard-store.ts
+│  │  └─ use-workspace-store.ts
+│  ├─ types
+│  │  ├─ auth.ts
+│  │  ├─ profile.ts
+│  │  ├─ whiteboard.ts
+│  │  └─ workspace.ts
+│  └─ utils
+│     └─ supabase
+│        ├─ client.ts
+│        └─ server.ts
+├─ supabase
+│  └─ migrations
+│     └─ 20260604000000_create_profiles_table_and_trigger.sql
+├─ sync-server
+│  ├─ auth.ts
+│  ├─ config.ts
+│  ├─ connection.ts
+│  ├─ database.ts
+│  ├─ persistence.ts
+│  ├─ rooms.ts
+│  ├─ server.ts
+│  └─ types.ts
+├─ tsconfig.json
+└─ vercel.json
+
+```
