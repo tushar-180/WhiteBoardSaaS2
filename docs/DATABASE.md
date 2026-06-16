@@ -56,6 +56,9 @@ Public profile data synced from Supabase Auth.
 | `created_at` | `timestamptz` |  |
 | `updated_at` | `timestamptz` |  |
 
+**Indexes:**
+- `profiles_email_trgm_idx`: A GIN index using `gin_trgm_ops` from the `pg_trgm` extension on the `email` column. This optimizes `ILIKE '%query%'` substring searches used in the invite user suggestions dropdown.
+
 ## Table `workspaces`
 
 Top-level container for boards and collaborators.

@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/utils/supabase/server";
 import Navbar from "@/components/landing/navbar";
 import Hero from "@/components/landing/hero";
 import Features from "@/components/landing/features";
+import HeroMockup from "@/components/landing/hero-mockup";
 import Footer from "@/components/landing/footer";
 
 export default async function HomePage() {
@@ -15,6 +16,7 @@ export default async function HomePage() {
       <Navbar isLoggedIn={isLoggedIn} />
       <main className="flex-1">
         <Hero isLoggedIn={isLoggedIn} />
+        <HeroMockup />
         <Features />
       </main>
       <Footer />

@@ -116,9 +116,9 @@ export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+    <div className="flex-1 flex flex-col">
       {/* Filters Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4 shrink-0 w-full min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-2 shrink-0 w-full min-w-0">
         
         {/* Desktop Filters (Hidden on Mobile) */}
         <div className="hidden sm:flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/50 backdrop-blur-xs w-fit">
@@ -158,7 +158,7 @@ export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           {/* Mobile Filter Dropdown */}
           <div className="sm:hidden">
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center justify-center h-9 w-10 shrink-0 bg-muted/20 border border-border/50 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
                   <Filter className="h-4 w-4" />
@@ -185,6 +185,7 @@ export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
               placeholder="Search workspaces..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              maxLength={50}
               className="pl-9 pr-9 h-9 text-xs rounded-xl bg-muted/20 border-border/50 focus-visible:ring-primary/30 w-full"
             />
             {searchQuery && (
@@ -200,7 +201,7 @@ export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
       </div>
 
       {/* Content wrapper with scrollable grid */}
-      <div className="flex-1 flex flex-col overflow-hidden min-h-0 py-4">
+      <div className="flex-1 flex flex-col py-2">
         <div className="flex items-center gap-2 mb-2 shrink-0">
           <span
             className={`h-1.5 w-1.5 rounded-full transition-colors duration-300 ${
@@ -216,15 +217,15 @@ export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
           </h3>
         </div>
 
-       <div className="flex-1 overflow-y-auto min-h-0 px-1 pt-2 pb-4 -mx-1">
+       <div className="flex-1 pt-1 pb-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {/* Create New Workspace Action Card - Show for All or Owned on Page 1 */}
             {showCreateCardOnPage && (
               <button
                 onClick={onCreateClick}
-                className="block text-left group h-full cursor-pointer focus:outline-none"
+                className="block text-left group h-full w-full cursor-pointer focus:outline-none"
               >
-                <Card className="h-full min-h-[160px] border border-dashed border-border/100 bg-background/30 transition-all duration-300 hover:border-primary/60 hover:bg-muted/10 rounded-xl p-5 flex flex-col items-center justify-center text-center gap-2 ring-0">
+                <Card className="h-full min-h-[140px] border border-dashed border-border/100 bg-background/30 transition-all duration-300 hover:border-primary/60 hover:bg-muted/10 rounded-xl p-5 flex flex-col items-center justify-center text-center gap-2 ring-0">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/60 border border-border/80 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all duration-300 shadow-xs">
                     <Plus className="h-5 w-5" />
                   </div>
@@ -253,7 +254,7 @@ export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
                 <span className="text-sm font-semibold text-muted-foreground">
                   {searchQuery ? "No workspaces found" : "No workspaces"}
                 </span>
-                <span className="text-xs text-muted-foreground/80 max-w-sm">
+                <span className="text-xs text-muted-foreground/80 max-w-sm break-words">
                   {searchQuery
                     ? `No workspaces match your search "${searchQuery}".`
                     : filter === "joined"
@@ -266,7 +267,7 @@ export function WorkspaceList({ userId, onCreateClick }: WorkspaceListProps) {
           
           {/* Pagination Controls - Moved inside scroll area for mobile */}
           {totalPages > 1 && (
-            <div className="mt-8 mb-4 pt-4 border-t border-border/20 flex justify-center">
+            <div className="mt-4 mb-2 pt-2 border-t border-border/20 flex justify-center">
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>

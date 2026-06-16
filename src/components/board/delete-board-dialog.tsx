@@ -55,8 +55,8 @@ export function DeleteBoardDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+      <DialogContent className="sm:max-w-md rounded-2xl sm:rounded-2xl">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
@@ -69,13 +69,13 @@ export function DeleteBoardDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="sm:justify-end gap-2 pt-4">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={loading}
-            className="h-10 rounded-xl"
+            className="h-10 rounded-xl w-full sm:w-auto"
           >
             Cancel
           </Button>
@@ -84,7 +84,7 @@ export function DeleteBoardDialog({
             variant="destructive"
             onClick={handleDelete}
             disabled={loading}
-            className="h-10 rounded-xl px-4 font-semibold cursor-pointer"
+            className="h-10 rounded-xl px-4 font-semibold cursor-pointer w-full sm:w-auto"
           >
             {loading ? (
               <>

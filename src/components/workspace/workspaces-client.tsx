@@ -53,8 +53,8 @@ export function WorkspacesClient({
   return (
     <>
       {/* Dashboard Main Workspace View */}
-      <main className="flex-1 flex flex-col container mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8 pt-4 max-w-6xl overflow-hidden min-h-0">
-        <div className="flex flex-col gap-4 mb-6 shrink-0">
+      <main className="flex-1 flex flex-col container mx-auto px-4 sm:px-6 lg:px-8 pb-2 sm:pb-4 pt-2 max-w-6xl">
+        <div className="flex flex-col gap-4 mb-4 shrink-0">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-xs mb-3 font-semibold text-muted-foreground hover:text-foreground transition-all w-fit hover:-translate-x-0.5 duration-200"
@@ -111,11 +111,11 @@ export function WorkspacesClient({
         </div>
 
         {workspaces.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center overflow-y-auto">
+          <div className="flex-1 flex items-center justify-center min-h-[400px]">
             <EmptyState onCreateClick={() => setOpen(true)} />
           </div>
         ) : (
-          <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+          <div className="flex-1 flex flex-col">
             <WorkspaceList userId={userId} onCreateClick={() => setOpen(true)} />
           </div>
         )}

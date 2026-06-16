@@ -90,8 +90,8 @@ export function EditBoardDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-md rounded-2xl sm:rounded-2xl p-5 sm:p-6 overflow-hidden">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+      <DialogContent className="sm:max-w-md rounded-2xl sm:rounded-2xl">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -143,7 +143,7 @@ export function EditBoardDialog({
             )}
           </div>
 
-          <DialogFooter className="sm:justify-end gap-2 pt-2">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"

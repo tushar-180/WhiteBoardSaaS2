@@ -127,7 +127,7 @@ export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps)
       </div>
 
       <Dialog open={viewAllOpen} onOpenChange={setViewAllOpen}>
-        <DialogContent className="max-w-md sm:max-w-xl max-h-[85vh] flex flex-col p-0 gap-0 border-border/50 bg-card/95 backdrop-blur-md">
+        <DialogContent className="w-[calc(100%-2rem)] sm:w-full max-w-md sm:max-w-xl max-h-[85vh] flex flex-col p-0 gap-0 border-border/50 bg-card/95 backdrop-blur-md">
           <DialogHeader className="p-5 border-b border-border/40 pb-4 shrink-0">
             <DialogTitle className="flex items-center gap-2 text-foreground">
               <ShieldAlert className="h-5 w-5 text-primary/80" />

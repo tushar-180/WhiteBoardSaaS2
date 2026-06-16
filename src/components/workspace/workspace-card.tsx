@@ -15,6 +15,7 @@ import { type Workspace } from "@/types/workspace";
 import { DeleteWorkspaceDialog } from "./dialogs/delete-workspace-dialog";
 import { ROUTES } from "@/lib/constants";
 import { WorkspaceAvatarGroup } from "./workspace-avatar-group";
+import { GlowingStarsBackgroundCard } from "@/components/ui/glowing-stars";
 
 
 interface WorkspaceCardProps {
@@ -63,11 +64,9 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
     <>
       <Link
         href={`${ROUTES.WORKSPACES}/${workspace.id}`}
-        className="block group h-full"
+        className="block group h-full w-full"
       >
-        <Card className="h-full flex flex-col border border-border/60 bg-card/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0">
-          {/* Decorative corner shape */}
-          <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full translate-x-4 -translate-y-4 group-hover:scale-125 transition-transform duration-300" />
+        <GlowingStarsBackgroundCard className="h-full max-w-none max-h-none flex flex-col border border-border/60 bg-card/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0">
 
           {/* Delete Icon Button - Only for Owner */}
           {isOwner && (
@@ -107,10 +106,10 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
                 )}
               </div>
             </div>
-            <CardTitle className="text-base font-bold text-foreground group-hover:text-primary transition-colors duration-200 truncate pr-4">
+            <CardTitle className="text-base font-bold text-foreground group-hover:text-primary transition-colors duration-200 truncate pr-16 relative z-10">
               {workspace.name}
             </CardTitle>
-            <CardDescription className="text-xs text-muted-foreground mt-1 font-mono">
+            <CardDescription className="text-xs text-muted-foreground mt-1 font-mono truncate pr-16 relative z-10">
               /{workspace.slug}
             </CardDescription>
           </CardHeader>
@@ -137,7 +136,7 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
               </span>
             </div>
           </CardContent>
-        </Card>
+        </GlowingStarsBackgroundCard>
       </Link>
 
       <DeleteWorkspaceDialog

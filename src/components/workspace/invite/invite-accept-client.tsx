@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserPlus, Loader2, AlertCircle, CheckCircle2, LogOut } from "lucide-react";
+import { UserPlus, Loader2, AlertCircle, CheckCircle2, LogOut, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { acceptInviteAction, rejectInviteAction } from "@/actions/invite";
 import { type WorkspaceInviteWithWorkspace } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
+import Link from "next/link";
 
 interface InviteAcceptClientProps {
   invite: WorkspaceInviteWithWorkspace;
@@ -58,7 +59,10 @@ export function InviteAcceptClient({
     invite.email.toLowerCase() !== currentUserEmail.toLowerCase();
 
   return (
-    <div className="w-full max-w-md p-8 rounded-2xl border border-border/40 bg-card/60 backdrop-blur-md shadow-xl space-y-6 animate-in fade-in zoom-in duration-300">
+    <div className="relative w-full max-w-md p-5 sm:p-8 rounded-2xl border border-border/40 bg-card/60 backdrop-blur-md shadow-xl space-y-6 animate-in fade-in zoom-in duration-300">
+      <Link href={ROUTES.WORKSPACES} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground hover:bg-muted p-1.5 rounded-full transition-colors">
+        <X className="h-5 w-5" />
+      </Link>
       <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-xs">
         <UserPlus className="h-7 w-7" />
       </div>

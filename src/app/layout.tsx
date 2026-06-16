@@ -22,7 +22,7 @@ export default function RootLayout({
       className={cn("h-full dark antialiased", inter.variable)}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col font-sans overflow-x-hidden">
         {children}
         <Toaster />
       </body>

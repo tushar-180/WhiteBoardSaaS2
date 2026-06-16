@@ -124,6 +124,10 @@ Stage 8 -> Real-Time Notifications, Access Controls, and UI Polish
 - [x] Refactor `WorkspaceMembersList` and introduce `WorkspaceMemberRow`.
 - [x] Add generic reusable `DropdownMenu` and `Pagination` UI components.
 - [x] Integrate pagination into `BoardList` and `WorkspaceList`.
+- [x] Resolve React 18 passive event listener warnings for mobile touch gestures on the whiteboard canvas.
+- [x] Overhaul landing page (`Hero`, `Features`, `Footer`) to be fully responsive and mobile-first, using SVG `viewBox` scaling.
+- [x] Fix mobile layout bugs for creation dialogs and notification inbox.
+- [x] Integrate `WorkspaceMembersList` into the canvas `EditorHeader` for on-the-fly member management.
 
 ## Later / Optional
 

@@ -98,7 +98,7 @@ sync-server/              # Multiplayer WS Sync Server (Modular)
   - `getCurrentUser()`: Fetches the Supabase client and authenticated user (no throws or redirects).
   - `requireAuth(redirectTo)`: Used in Server Components (pages); redirects if not logged in.
   - `requireActionAuth(errorMessage)`: Used in Server Actions; throws an error if not logged in.
-- **Server-Side User Profile Fetch:** When loading protected details (like board pages), the server component (`page.tsx`) queries the user profile `displayName` and propagates a synchronous `currentUser` prop to the editor and canvas components. This avoids redundant client-side Supabase auth and profile lookups, ensuring the canvas mounts instantly with correct preferences.
+- **Server-Side Hydration (Profiles & Members):** When loading protected details (like board pages), the server component (`page.tsx`) queries the user profile `displayName` and the `workspaceMembers`, then propagates them via `currentUser` and `initialMembers` props to the editor components. This avoids redundant client-side Supabase auth and lookup calls, ensuring the canvas mounts instantly with correct preferences and the member store is fully hydrated.
 - `src/proxy.ts` uses `createMiddlewareClient` from `src/utils/supabase/server.ts`.
 
 ### Constants & Routes

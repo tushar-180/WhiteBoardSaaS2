@@ -13,6 +13,7 @@ import {
 import { type Board, type WorkspaceRole } from "@/types/workspace";
 import { EditBoardDialog } from "./edit-board-dialog";
 import { DeleteBoardDialog } from "./delete-board-dialog";
+import { Meteors } from "@/components/ui/meteors";
 
 
 
@@ -66,11 +67,16 @@ export function BoardCard({ board, currentUserRole }: BoardCardProps) {
 
   return (
     <>
-      <Link href={`/board/${board.id}`} className="block group">
+      <Link href={`/board/${board.id}`} className="block group w-full">
         <Card className="h-full min-h-[160px] flex flex-col border border-border/60 bg-card/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0 group cursor-pointer focus-within:ring-2 focus-within:ring-primary/50">
+          {/* Meteors effect on hover */}
+          <div className="absolute inset-0 z-0 overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+            <Meteors number={12} />
+          </div>
+          
           {/* Decorative corner shape */}
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/5 rounded-bl-full translate-x-4 -translate-y-4 group-hover:scale-125 transition-transform duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/5 rounded-bl-full translate-x-4 -translate-y-4 group-hover:scale-125 transition-transform duration-500 pointer-events-none" />
 
           {/* Action buttons (revealed on hover) */}
           <div className="absolute top-4 right-4 z-20 flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300">
