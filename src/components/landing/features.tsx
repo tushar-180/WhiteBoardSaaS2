@@ -108,7 +108,7 @@ export default function Features() {
                 <div className="absolute top-10 left-6 w-14 h-6 bg-white/5 rounded-[1px]" />
                 <div className="absolute top-8 left-24 w-6 h-6 bg-white/10 rounded-[1px]" />
               </div>
-              <div className="absolute bottom-3 right-3 text-[9px] font-bold text-white/40 bg-[#121214] px-1.5 py-0.5 rounded">
+              <div className="absolute bottom-3 right-3 text-[9px] font-bold text-white/70 bg-[#121214] px-1.5 py-0.5 rounded">
                 250%
               </div>
             </div>

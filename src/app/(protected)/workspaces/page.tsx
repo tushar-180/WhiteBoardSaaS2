@@ -1,4 +1,10 @@
+import { Metadata } from "next";
 import { requireAuth } from "@/utils/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Workspaces",
+  description: "Manage your Zentrox workspaces and boards.",
+};
 import { fetchAllUserWorkspaces } from "@/services/workspace";
 import { fetchProfileById } from "@/services/profile";
 import { WorkspacesClient } from "@/components/workspace/workspaces-client";

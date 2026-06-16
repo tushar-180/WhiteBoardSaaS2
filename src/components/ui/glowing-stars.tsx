@@ -66,13 +66,17 @@ export const Illustration = ({ mouseEnter }: { mouseEnter: boolean }) => {
   const stars = 108;
   const columns = 18;
 
-  const [glowingStars, setGlowingStars] = useState<number[]>(() =>
-    Array.from({ length: 7 }, () => Math.floor(Math.random() * stars))
-  );
+  const [glowingStars, setGlowingStars] = useState<number[]>([]);
 
   const highlightedStars = useRef<number[]>([]);
 
   useEffect(() => {
+    // Generate initial random stars on client mount to prevent SSR hydration mismatch
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setGlowingStars(
+      Array.from({ length: 7 }, () => Math.floor(Math.random() * stars))
+    );
+
     const interval = setInterval(() => {
       highlightedStars.current = Array.from({ length: 15 }, () =>
         Math.floor(Math.random() * stars)

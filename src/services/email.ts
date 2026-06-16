@@ -14,7 +14,7 @@ export interface SendEmailOptions {
  */
 export async function sendEmail(
   options: SendEmailOptions,
-): Promise<{ success: boolean; data?: any; error?: string }> {
+): Promise<{ success: boolean; data?: unknown; error?: string }> {
   const apiKey = process.env.SENDGRID_API_KEY;
 
   if (!apiKey) {
@@ -63,7 +63,8 @@ export async function sendEmail(
 
     console.log("[Email Service] Email successfully sent to", options.to);
     return { success: true, data: response };
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as Error & { response?: { body: unknown } };
     console.error("[Email Service] Failed to send email via SendGrid:", error.message);
     if (error.response) {
       console.error("[Email Service] SendGrid Response Error:", error.response.body);
@@ -82,7 +83,7 @@ export async function sendWorkspaceInviteEmail(
   inviteLink: string,
   inviterEmail: string,
   inviteId: string,
-): Promise<{ success: boolean; data?: any; error?: string }> {
+): Promise<{ success: boolean; data?: unknown; error?: string }> {
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
       <div style="background-color: #09090b; padding: 32px 40px; text-align: center;">

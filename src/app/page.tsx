@@ -1,4 +1,11 @@
+import { Metadata } from "next";
 import { getCurrentUser } from "@/utils/supabase/server";
+
+export const metadata: Metadata = {
+  title: {
+    absolute: "Zentrox | The Collaborative Whiteboard for Teams",
+  },
+};
 
 import Navbar from "@/components/landing/navbar";
 import Hero from "@/components/landing/hero";

@@ -1,8 +1,10 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireAuth } from "@/utils/supabase/server";
 import { UnauthorizedAccess } from "@/components/shared/unauthorized-access";
 import { fetchBoardById } from "@/services/board";
 import { hasWorkspaceAccess } from "@/services/workspace";
+import ReactDOM from "react-dom";
 import WhiteboardEditor from "@/components/whiteboard/whiteboard-editor";
 import { fetchWorkspaceMemberRole } from "@/services/member";
 
@@ -12,6 +14,14 @@ interface PageProps {
   params: Promise<{
     boardId: string;
   }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { boardId } = await params;
+  const board = await fetchBoardById(boardId);
+  return {
+    title: board ? board.name : "Board",
+  };
 }
 
 export default async function BoardDetailPage({ params }: PageProps) {
@@ -53,6 +63,9 @@ export default async function BoardDetailPage({ params }: PageProps) {
     id: user.id,
     name: displayName,
   };
+
+  // Preconnect to Tldraw's CDN to speed up the massive font payload downloads
+  ReactDOM.preconnect("https://cdn.tldraw.com", { crossOrigin: "anonymous" });
 
   return (
     <WhiteboardEditor

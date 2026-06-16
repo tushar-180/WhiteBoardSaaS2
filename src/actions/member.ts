@@ -206,7 +206,7 @@ export async function leaveWorkspaceAction(workspaceId: string): Promise<void> {
  */
 export async function getWorkspaceMembersAction(workspaceId: string) {
   try {
-    const { user } = await requireActionAuth("You must be logged in to view workspace members.");
+    await requireActionAuth("You must be logged in to view workspace members.");
     
     return await fetchWorkspaceMembers(workspaceId);
   } catch (error) {

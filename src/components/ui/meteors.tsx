@@ -11,6 +11,12 @@ export const Meteors = ({
   className?: string;
 }) => {
   const meteors = new Array(number || 20).fill(true);
+  const [styles] = React.useState(() => 
+    meteors.map(() => ({
+      animationDelay: Math.random() * 5 + "s",
+      animationDuration: Math.floor(Math.random() * (10 - 5) + 5) + "s",
+    }))
+  );
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -31,10 +37,10 @@ export const Meteors = ({
               className,
             )}
             style={{
-              top: "-40px", // Start above the container
+              top: "-40px",
               left: position + "px",
-              animationDelay: Math.random() * 5 + "s", // Random delay between 0-5s
-              animationDuration: Math.floor(Math.random() * (10 - 5) + 5) + "s", // Keep some randomness in duration
+              animationDelay: styles[idx].animationDelay,
+              animationDuration: styles[idx].animationDuration,
             }}
           ></span>
         );

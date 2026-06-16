@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { MoreVertical, Trash2, Loader2, User, Eye, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type WorkspaceRole, type WorkspaceMemberWithProfile } from "@/types/workspace";

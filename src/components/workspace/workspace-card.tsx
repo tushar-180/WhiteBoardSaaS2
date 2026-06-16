@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Folder, ArrowRight, Trash2, LogOut } from "lucide-react";
 import { LeaveWorkspaceDialog } from "./dialogs/leave-workspace-dialog";
 import {
-  Card,
   CardHeader,
   CardTitle,
   CardDescription,
@@ -73,7 +72,7 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
             <button
               type="button"
               onClick={handleDeleteClick}
-              className="absolute top-4 right-4 z-20 p-2 rounded-lg bg-background/80 hover:bg-destructive/10 text-muted-foreground hover:text-destructive border border-border/50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 cursor-pointer"
+              className="absolute top-1 right-1 z-20 p-2 rounded-lg bg-background/80 hover:bg-destructive/10 text-muted-foreground hover:text-destructive border border-border/50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 cursor-pointer"
               title="Delete Workspace"
             >
               <Trash2 className="h-4 w-4" />
@@ -83,7 +82,7 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
             <button
               type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenLeaveDialog(true); }}
-              className="absolute top-4 right-4 z-20 p-2 rounded-lg bg-background/80 hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600 border border-border/50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200 cursor-pointer"
+              className="absolute top-1 right-1 z-20 p-2 rounded-lg bg-background/80 hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600 border border-border/50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200 cursor-pointer"
               title="Leave Workspace"
             >
               <LogOut className="h-4 w-4" />
