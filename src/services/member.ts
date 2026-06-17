@@ -176,3 +176,56 @@ export async function updateWorkspaceMemberRole(
 
   return data;
 }
+
+/**
+ * Removes multiple members from a workspace.
+ */
+export async function bulkRemoveWorkspaceMembers(workspaceId: string, memberIds: string[]): Promise<void> {
+  if (!memberIds.length) return;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("workspace_members")
+    .delete()
+    .eq("workspace_id", workspaceId)
+    .in("id", memberIds);
+
+  if (error) {
+    console.error("Database error in bulkRemoveWorkspaceMembers:", error);
+    throw new Error(error.message);
+  }
+}
+
+/**
+ * Leaves a workspace by removing the current user from workspace_members.
+ */
+export async function leaveWorkspace(workspaceId: string, userId: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("workspace_members")
+    .delete()
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("Database error in leaveWorkspace:", error);
+    throw new Error(error.message);
+  }
+}
+
+/**
+ * Leaves multiple workspaces by removing the current user from their workspace_members.
+ */
+export async function bulkLeaveWorkspaces(workspaceIds: string[], userId: string): Promise<void> {
+  if (!workspaceIds.length) return;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("workspace_members")
+    .delete()
+    .eq("user_id", userId)
+    .in("workspace_id", workspaceIds);
+
+  if (error) {
+    console.error("Database error in bulkLeaveWorkspaces:", error);
+    throw new Error(error.message);
+  }
+}

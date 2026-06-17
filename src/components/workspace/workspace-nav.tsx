@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSettingsStore } from "@/store/settings-store";
 import { signOutAction } from "@/actions/auth";
 import { ROUTES, ASSETS } from "@/lib/constants";
 import { NotificationInbox } from "./notification-inbox";
@@ -15,6 +16,8 @@ interface WorkspaceNavProps {
 }
 
 export function WorkspaceNav({ userEmail, userId, logoHref = ROUTES.HOME }: WorkspaceNavProps) {
+  const { setIsOpen } = useSettingsStore();
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -39,6 +42,17 @@ export function WorkspaceNav({ userEmail, userId, logoHref = ROUTES.HOME }: Work
           {userEmail && (
             <>
               <NotificationInbox userEmail={userEmail} userId={userId} />
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsOpen(true)}
+                className="rounded-full text-muted-foreground hover:text-foreground h-9 w-9 cursor-pointer"
+              >
+                <Settings className="h-5 w-5" />
+                <span className="sr-only">Settings</span>
+              </Button>
+
               <span className="text-xs text-muted-foreground hidden sm:inline-block font-medium">
                 {userEmail}
               </span>

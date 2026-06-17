@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { redirect } from "next/navigation";
@@ -29,6 +30,24 @@ export const createClient = async () => {
     },
   });
 };
+
+/**
+ * Admin client using the service role key — bypasses RLS.
+ * Only use in trusted Server Actions / Route Handlers after auth is validated.
+ */
+export const createAdminClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Missing Supabase URL or service role key.");
+  }
+
+  return createSupabaseClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
+};
+
 
 export const createMiddlewareClient = (request: NextRequest) => {
   let supabaseResponse = NextResponse.next({

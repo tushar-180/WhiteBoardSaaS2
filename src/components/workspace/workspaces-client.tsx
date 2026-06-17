@@ -17,6 +17,7 @@ interface WorkspacesClientProps {
   userId: string;
   userEmail?: string;
   userName?: string;
+  userAvatarUrl?: string | null;
 }
 
 export function WorkspacesClient({
@@ -24,6 +25,7 @@ export function WorkspacesClient({
   userId,
   userEmail,
   userName,
+  userAvatarUrl,
 }: WorkspacesClientProps) {
   const [open, setOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -32,7 +34,7 @@ export function WorkspacesClient({
   useEffect(() => {
     useWorkspaceStore.setState({
       workspaces: initialWorkspaces,
-      user: userEmail ? { email: userEmail, name: userName || "" } : null,
+      user: userEmail ? { id: userId, email: userEmail, name: userName || "", avatar_url: userAvatarUrl ?? null } : null,
     });
     posthog.identify(userId, {
       email: userEmail,
@@ -48,7 +50,7 @@ export function WorkspacesClient({
   // Use props for SSR and initial hydration to eliminate LCP delay,
   // then swap to Zustand store state once mounted
   const workspaces = isMounted && storeWorkspaces.length > 0 ? storeWorkspaces : initialWorkspaces;
-  const currentUser = isMounted && storeUser ? storeUser : { name: userName || "User", email: userEmail || "" };
+  const currentUser = isMounted && storeUser ? storeUser : { id: userId, name: userName || "User", email: userEmail || "" };
 
   return (
     <>

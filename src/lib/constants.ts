@@ -5,6 +5,7 @@ export const ROUTES = {
   WORKSPACES: "/workspaces",
   BOARD: "/board",
   AUTH_CALLBACK: "/auth/callback",
+  SETTINGS: "/settings",
 } as const;
 
 export const ASSETS = {

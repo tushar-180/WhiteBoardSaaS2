@@ -20,6 +20,7 @@ import {
 } from "@/types/workspace";
 import { useBoardStore } from "@/store/use-board-store";
 import { useMemberStore } from "@/store/use-member-store";
+import { useWorkspaceStore } from "@/store/use-workspace-store";
 import RootLoading from "@/app/loading";
 import { ROUTES } from "@/lib/constants";
 
@@ -29,7 +30,11 @@ interface WorkspaceDetailsClientProps {
   initialMembers: WorkspaceMemberWithProfile[];
   initialInvites: WorkspaceInvite[];
   currentUserRole: WorkspaceRole;
+  userId: string;
   userEmail?: string;
+  userName: string;
+  userAvatarUrl?: string | null;
+  initialWorkspaces: Workspace[];
 }
 
 export function WorkspaceDetailsClient({
@@ -38,7 +43,11 @@ export function WorkspaceDetailsClient({
   initialMembers,
   initialInvites,
   currentUserRole,
+  userId,
   userEmail,
+  userName,
+  userAvatarUrl,
+  initialWorkspaces,
 }: WorkspaceDetailsClientProps) {
   const [boardOpen, setBoardOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -55,10 +64,20 @@ export function WorkspaceDetailsClient({
       members: initialMembers,
       invites: initialInvites,
     });
+    useWorkspaceStore.setState((state) => ({
+      workspaces: state.workspaces.length > 0 ? state.workspaces : initialWorkspaces,
+      user:
+        state.user || {
+          id: userId,
+          email: userEmail || "",
+          name: userName || "User",
+          avatar_url: userAvatarUrl ?? null,
+        },
+    }));
     setTimeout(() => {
       setIsMounted(true);
     }, 0);
-  }, [initialBoards, initialMembers, initialInvites]);
+  }, [initialBoards, initialMembers, initialInvites, workspace, userId, userEmail, userName, userAvatarUrl, initialWorkspaces]);
 
   const boards = useBoardStore((state) => state.boards);
 
