@@ -84,22 +84,22 @@ export function NotificationsSettings() {
             <h3 className="font-semibold text-lg border-b border-border/50 pb-2">Workspace Invitations</h3>
             <div className="space-y-3">
               {incoming.map(invite => (
-                <div key={invite.id} className="p-4 rounded-lg border border-border/50 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <p className="font-medium">
+                <div key={invite.id} className="p-4 rounded-lg border border-border/50 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium break-words">
                       <span className="font-bold">{invite.inviter_name}</span> invited you to join <span className="font-bold">{invite.workspace_name}</span>
                     </p>
-                    <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                      <Building className="w-4 h-4" />
+                    <div className="flex items-center gap-2 mt-1 text-xs sm:text-sm text-muted-foreground">
+                      <Building className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="capitalize">{invite.role}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Button variant="outline" size="sm" onClick={() => handleReject(invite.token)}>
-                      <X className="w-4 h-4 mr-2" /> Decline
+                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                    <Button variant="outline" size="sm" onClick={() => handleReject(invite.token)} className="flex-1 sm:flex-initial text-xs sm:text-sm">
+                      <X className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Decline
                     </Button>
-                    <Button size="sm" onClick={() => handleAccept(invite.token)}>
-                      <Check className="w-4 h-4 mr-2" /> Accept
+                    <Button size="sm" onClick={() => handleAccept(invite.token)} className="flex-1 sm:flex-initial text-xs sm:text-sm">
+                      <Check className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Accept
                     </Button>
                   </div>
                 </div>
@@ -113,14 +113,14 @@ export function NotificationsSettings() {
             <h3 className="font-semibold text-lg border-b border-border/50 pb-2">Invitation Updates</h3>
             <div className="space-y-3">
               {outgoingStatuses.map(invite => (
-                <div key={invite.id} className="p-4 rounded-lg border border-border/50 bg-card flex items-center justify-between gap-4">
-                  <div>
-                    <p className="font-medium">
+                <div key={invite.id} className="p-4 rounded-lg border border-border/50 bg-card flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium break-words">
                       <span className="font-bold">{invite.invitee_name}</span> {invite.status === "accepted" ? "accepted" : "declined"} your invitation to <span className="font-bold">{invite.workspace_name}</span>.
                     </p>
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => handleDismiss(invite.id)} className="shrink-0 text-muted-foreground hover:text-foreground">
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4 sm:w-5 sm:h-5" />
                   </Button>
                 </div>
               ))}

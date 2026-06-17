@@ -74,8 +74,8 @@ export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps)
             key={invite.id}
             className="flex items-center justify-between gap-2 p-2 rounded-lg border border-transparent hover:bg-muted/40 hover:border-border/50 transition-all group"
           >
-            <div className="flex flex-col min-w-0 px-1">
-              <span className="text-sm font-medium text-foreground truncate max-w-[140px] sm:max-w-none">
+            <div className="flex flex-col min-w-0 flex-1 px-1">
+              <span className="text-sm font-medium text-foreground truncate">
                 {invite.email}
               </span>
               <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-wider font-semibold mt-0.5">
@@ -83,7 +83,7 @@ export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps)
               </span>
             </div>
 
-            <div className="flex items-center gap-1 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-1 shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
@@ -146,8 +146,8 @@ export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps)
                 key={invite.id}
                 className="flex items-center justify-between gap-2 p-2 rounded-lg border border-transparent hover:bg-muted/40 hover:border-border/50 transition-all group"
               >
-                <div className="flex flex-col min-w-0 px-1">
-                  <span className="text-sm font-medium text-foreground truncate max-w-[140px] sm:max-w-none">
+                <div className="flex flex-col min-w-0 flex-1 px-1">
+                  <span className="text-sm font-medium text-foreground truncate">
                     {invite.email}
                   </span>
                   <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-wider font-semibold mt-0.5">
@@ -155,7 +155,7 @@ export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps)
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 shrink-0">
                   <Button
                     variant="ghost"
                     size="icon"

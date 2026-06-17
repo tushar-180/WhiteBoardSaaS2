@@ -7,6 +7,7 @@ import { useSettingsStore } from "@/store/settings-store";
 import { bulkDeleteWorkspacesAction, bulkLeaveWorkspacesAction } from "@/actions/workspace";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Trash2, LogOut, Loader2, AlertTriangle } from "lucide-react";
 
@@ -17,6 +18,7 @@ export function DangerZoneTab({ workspace, isOwner }: { workspace: Workspace, is
   const [confirmName, setConfirmName] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [confirmLeaveOpen, setConfirmLeaveOpen] = useState(false);
 
   const handleDelete = async () => {
     if (confirmName !== workspace.name) return;
@@ -35,7 +37,11 @@ export function DangerZoneTab({ workspace, isOwner }: { workspace: Workspace, is
   };
 
   const handleLeave = async () => {
-    if (!confirm("Are you sure you want to leave this workspace?")) return;
+    setConfirmLeaveOpen(true);
+  };
+
+  const executeLeave = async () => {
+    setConfirmLeaveOpen(false);
 
     try {
       setIsLeaving(true);
@@ -109,6 +115,17 @@ export function DangerZoneTab({ workspace, isOwner }: { workspace: Workspace, is
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmLeaveOpen}
+        onOpenChange={setConfirmLeaveOpen}
+        title="Leave Workspace"
+        description="Are you sure you want to leave this workspace? You will lose access to all boards in this workspace."
+        confirmText="Leave Workspace"
+        onConfirm={executeLeave}
+        variant="destructive"
+        loading={isLeaving}
+      />
     </div>
   );
 }

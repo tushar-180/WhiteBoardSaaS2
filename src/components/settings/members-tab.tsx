@@ -6,6 +6,7 @@ import { type WorkspaceMemberWithProfile } from "@/types/workspace";
 import { getWorkspaceMembersAction, bulkRemoveMembersAction, updateMemberRoleAction } from "@/actions/member";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { UserCircle, Trash2, Loader2, ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -14,6 +15,7 @@ export function MembersTab({ workspace, currentUserRole }: { workspace: Workspac
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
 
   useEffect(() => {
     async function loadMembers() {
@@ -47,7 +49,11 @@ export function MembersTab({ workspace, currentUserRole }: { workspace: Workspac
 
   const handleBulkRemove = async () => {
     if (!selectedIds.length) return;
-    if (!confirm(`Are you sure you want to remove ${selectedIds.length} member(s)?`)) return;
+    setConfirmRemoveOpen(true);
+  };
+
+  const executeBulkRemove = async () => {
+    setConfirmRemoveOpen(false);
 
     try {
       setIsRemoving(true);
@@ -82,12 +88,12 @@ export function MembersTab({ workspace, currentUserRole }: { workspace: Workspac
 
   return (
     <div className="relative pb-24 h-full">
-      <div className="border border-border/50 rounded-lg overflow-hidden">
+      <div className="border border-border/50 rounded-lg overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="bg-muted/50 border-b border-border/50 text-muted-foreground">
             <tr>
               {isOwner && (
-                <th className="p-4 w-12 font-medium">
+                <th className="p-3 sm:p-4 w-10 sm:w-12 font-medium">
                   <input 
                     type="checkbox"
                     className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
@@ -96,8 +102,8 @@ export function MembersTab({ workspace, currentUserRole }: { workspace: Workspac
                   />
                 </th>
               )}
-              <th className="p-4 font-medium">Member</th>
-              <th className="p-4 font-medium">Role</th>
+              <th className="p-3 sm:p-4 font-medium">Member</th>
+              <th className="p-3 sm:p-4 font-medium">Role</th>
             </tr>
           </thead>
           <tbody>
@@ -109,7 +115,7 @@ export function MembersTab({ workspace, currentUserRole }: { workspace: Workspac
               return (
                 <tr key={member.id} className="border-b border-border/20 last:border-0 hover:bg-muted/20 transition-colors">
                   {isOwner && (
-                    <td className="p-4">
+                    <td className="p-3 sm:p-4">
                       <input 
                         type="checkbox"
                         className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
@@ -119,27 +125,27 @@ export function MembersTab({ workspace, currentUserRole }: { workspace: Workspac
                       />
                     </td>
                   )}
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0 border border-border/50">
+                  <td className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0 border border-border/50">
                         {member.avatar_url ? (
                           <img src={member.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                         ) : (
-                          <UserCircle className="w-5 h-5 text-muted-foreground" />
+                          <UserCircle className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                         )}
                       </div>
-                      <div>
-                        <p className="font-medium">{member.name || "Unknown"}</p>
-                        <p className="text-xs text-muted-foreground">{member.email}</p>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm truncate max-w-[100px] sm:max-w-none">{member.name || "Unknown"}</p>
+                        <p className="text-xs text-muted-foreground truncate max-w-[100px] sm:max-w-none">{member.email}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="p-4">
+                  <td className="p-3 sm:p-4">
                     {canChangeRole ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="h-8 capitalize">
-                            {member.role} <ChevronDown className="w-4 h-4 ml-2 opacity-50" />
+                          <Button variant="outline" size="sm" className="h-7 sm:h-8 capitalize text-xs sm:text-sm">
+                            {member.role} <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2 opacity-50" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start">
@@ -162,14 +168,25 @@ export function MembersTab({ workspace, currentUserRole }: { workspace: Workspac
       </div>
 
       {isOwner && selectedIds.length > 0 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-popover border shadow-lg rounded-full px-6 py-3 flex items-center gap-4 animate-in slide-in-from-bottom-5">
-          <span className="text-sm font-medium mr-2">{selectedIds.length} selected</span>
-          <Button variant="destructive" size="sm" onClick={handleBulkRemove} disabled={isRemoving}>
-            {isRemoving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
+        <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 bg-popover border shadow-lg rounded-full px-4 sm:px-6 py-3 flex items-center gap-2 sm:gap-4 animate-in slide-in-from-bottom-5 max-w-[95vw] sm:max-w-none">
+          <span className="text-xs sm:text-sm font-medium shrink-0">{selectedIds.length} selected</span>
+          <Button variant="destructive" size="sm" onClick={handleBulkRemove} disabled={isRemoving} className="shrink-0 text-xs sm:text-sm">
+            {isRemoving ? <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" /> : <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />}
             Remove {selectedIds.length}
           </Button>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmRemoveOpen}
+        onOpenChange={setConfirmRemoveOpen}
+        title="Remove Members"
+        description={`Are you sure you want to remove ${selectedIds.length} member(s)?`}
+        confirmText={`Remove ${selectedIds.length}`}
+        onConfirm={executeBulkRemove}
+        variant="destructive"
+        loading={isRemoving}
+      />
     </div>
   );
 }

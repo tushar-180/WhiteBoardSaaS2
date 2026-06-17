@@ -36,7 +36,7 @@ export function WorkspaceDetailPanel() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b border-border/50 bg-background sticky top-0 z-10 px-6 md:px-8 pt-6 pb-0">
+      <div className="border-b border-border/50 bg-background sticky top-0 z-10 px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 pb-0">
         <Button 
           variant="ghost" 
           className="mb-4 -ml-4 text-muted-foreground hover:text-foreground" 
@@ -46,18 +46,18 @@ export function WorkspaceDetailPanel() {
           Back to Workspaces
         </Button>
         
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">{workspace.name}</h1>
-          <p className="text-muted-foreground text-sm mt-1">/{workspace.slug}</p>
+        <div className="mb-6 max-w-full overflow-hidden">
+          <h1 className="text-xl sm:text-2xl font-bold truncate" title={workspace.name}>{workspace.name}</h1>
+          <p className="text-muted-foreground text-sm mt-1 truncate">/{workspace.slug}</p>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6 overflow-x-auto scrollbar-none">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveWorkspaceTab(tab.id as any)}
               className={cn(
-                "pb-3 text-sm font-medium border-b-2 transition-colors cursor-pointer",
+                "pb-3 text-sm font-medium border-b-2 transition-colors cursor-pointer shrink-0 whitespace-nowrap",
                 activeWorkspaceTab === tab.id
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"

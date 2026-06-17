@@ -6,6 +6,7 @@ import { deleteAccountAction } from "@/actions/profile";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { LogOut, Trash2, Loader2, ShieldAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -17,6 +18,7 @@ export function AccountSettings() {
   const [confirmEmail, setConfirmEmail] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -33,8 +35,12 @@ export function AccountSettings() {
 
   const handleDeleteAccount = async () => {
     if (confirmEmail !== user?.email) return;
-    if (!confirm("Are you absolutely sure you want to delete your account? This action cannot be undone and will delete all your workspaces and data.")) return;
-    
+    setConfirmDeleteOpen(true);
+  };
+
+  const executeDeleteAccount = async () => {
+    setConfirmDeleteOpen(false);
+
     try {
       setIsDeleting(true);
       await deleteAccountAction(confirmEmail);
@@ -99,6 +105,17 @@ export function AccountSettings() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="Delete Account"
+        description="Are you absolutely sure you want to delete your account? This action cannot be undone and will delete all your workspaces and data."
+        confirmText="Delete Account"
+        onConfirm={executeDeleteAccount}
+        variant="destructive"
+        loading={isDeleting}
+      />
     </div>
   );
 }

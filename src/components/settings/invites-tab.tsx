@@ -6,6 +6,7 @@ import { type WorkspaceInvite } from "@/types/workspace";
 import { getPendingInvitesAction, bulkRevokeInvitesAction, bulkInviteUsersAction } from "@/actions/invite";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Trash2, Loader2, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -21,6 +22,7 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isRevoking, setIsRevoking] = useState(false);
+  const [confirmRevokeOpen, setConfirmRevokeOpen] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
   const [emailsInput, setEmailsInput] = useState("");
 
@@ -56,7 +58,11 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
 
   const handleBulkRevoke = async () => {
     if (!selectedIds.length) return;
-    if (!confirm(`Are you sure you want to revoke ${selectedIds.length} invite(s)?`)) return;
+    setConfirmRevokeOpen(true);
+  };
+
+  const executeBulkRevoke = async () => {
+    setConfirmRevokeOpen(false);
 
     try {
       setIsRevoking(true);
@@ -105,8 +111,8 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
   }
 
   return (
-    <div className="relative pb-24 h-full flex flex-col gap-8">
-      <form onSubmit={handleInvite} className="flex gap-4 items-start">
+    <div className="relative pb-24 h-full flex flex-col gap-6 sm:gap-8">
+      <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-start">
         <div className="flex-1 space-y-2">
           <Input 
             placeholder="email@example.com, another@example.com..." 
@@ -115,7 +121,7 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
           />
           <p className="text-xs text-muted-foreground">Separate multiple emails with commas. Sent as viewer by default.</p>
         </div>
-        <Button type="submit" disabled={isInviting || !emailsInput.trim()}>
+        <Button type="submit" disabled={isInviting || !emailsInput.trim()} className="w-full sm:w-auto">
           {isInviting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
           Send Invites
         </Button>
@@ -126,11 +132,11 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
           No pending invites.
         </div>
       ) : (
-        <div className="border border-border/50 rounded-lg overflow-hidden flex-1 max-h-[400px] overflow-y-auto">
+        <div className="border border-border/50 rounded-lg overflow-hidden flex-1 overflow-y-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-muted/50 border-b border-border/50 text-muted-foreground sticky top-0">
               <tr>
-                <th className="p-4 w-12 font-medium">
+                <th className="p-3 sm:p-4 w-10 sm:w-12 font-medium">
                   <input 
                     type="checkbox"
                     className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
@@ -138,15 +144,15 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
                     onChange={handleSelectAll} 
                   />
                 </th>
-                <th className="p-4 font-medium">Email</th>
-                <th className="p-4 font-medium">Role</th>
-                <th className="p-4 font-medium hidden sm:table-cell">Sent At</th>
+                <th className="p-3 sm:p-4 font-medium">Email</th>
+                <th className="p-3 sm:p-4 font-medium">Role</th>
+                <th className="p-3 sm:p-4 font-medium hidden sm:table-cell">Sent At</th>
               </tr>
             </thead>
             <tbody>
               {invites.map(invite => (
                 <tr key={invite.id} className="border-b border-border/20 last:border-0 hover:bg-muted/20 transition-colors">
-                  <td className="p-4">
+                  <td className="p-3 sm:p-4">
                     <input 
                       type="checkbox"
                       className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
@@ -154,9 +160,9 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
                       onChange={(e) => handleSelect(invite.id, e.target.checked)} 
                     />
                   </td>
-                  <td className="p-4 font-medium">{invite.email}</td>
-                  <td className="p-4 capitalize">{invite.role}</td>
-                  <td className="p-4 text-muted-foreground hidden sm:table-cell">
+                  <td className="p-3 sm:p-4 font-medium max-w-[120px] sm:max-w-none truncate">{invite.email}</td>
+                  <td className="p-3 sm:p-4 capitalize">{invite.role}</td>
+                  <td className="p-3 sm:p-4 text-muted-foreground hidden sm:table-cell">
                     {formatDate(invite.created_at)}
                   </td>
                 </tr>
@@ -167,14 +173,25 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
       )}
 
       {selectedIds.length > 0 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-popover border shadow-lg rounded-full px-6 py-3 flex items-center gap-4 animate-in slide-in-from-bottom-5">
-          <span className="text-sm font-medium mr-2">{selectedIds.length} selected</span>
-          <Button variant="destructive" size="sm" onClick={handleBulkRevoke} disabled={isRevoking}>
-            {isRevoking ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
+        <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 bg-popover border shadow-lg rounded-full px-4 sm:px-6 py-3 flex items-center gap-2 sm:gap-4 animate-in slide-in-from-bottom-5 max-w-[95vw] sm:max-w-none">
+          <span className="text-xs sm:text-sm font-medium shrink-0">{selectedIds.length} selected</span>
+          <Button variant="destructive" size="sm" onClick={handleBulkRevoke} disabled={isRevoking} className="shrink-0 text-xs sm:text-sm">
+            {isRevoking ? <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" /> : <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />}
             Revoke {selectedIds.length}
           </Button>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmRevokeOpen}
+        onOpenChange={setConfirmRevokeOpen}
+        title="Revoke Invites"
+        description={`Are you sure you want to revoke ${selectedIds.length} invite(s)?`}
+        confirmText={`Revoke ${selectedIds.length}`}
+        onConfirm={executeBulkRevoke}
+        variant="destructive"
+        loading={isRevoking}
+      />
     </div>
   );
 }

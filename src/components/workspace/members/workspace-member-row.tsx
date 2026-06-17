@@ -64,14 +64,22 @@ export function WorkspaceMemberRow({
   return (
     <div className="flex items-center justify-between gap-2 group relative">
       <div className="flex items-center gap-2.5 min-w-0">
-        <div className="h-7 w-7 rounded-full bg-gradient-to-r from-primary to-purple-600 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-xs shrink-0">
-          {initials}
-        </div>
-        <div className="flex flex-col min-w-0">
-          <span className="text-xs font-bold text-foreground truncate max-w-[120px] sm:max-w-none">
+        {member.avatar_url ? (
+          <img
+            src={member.avatar_url}
+            alt={member.name || member.email}
+            className="h-7 w-7 rounded-full object-cover shrink-0 border border-border/50"
+          />
+        ) : (
+          <div className="h-7 w-7 rounded-full bg-gradient-to-r from-primary to-purple-600 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-xs shrink-0">
+            {initials}
+          </div>
+        )}
+        <div className="flex flex-col min-w-0 flex-1">
+          <span className="text-xs font-bold text-foreground truncate">
             {member.name || member.email.split("@")[0]}
           </span>
-          <span className="text-[9px] text-muted-foreground truncate max-w-[120px] sm:max-w-none">
+          <span className="text-[9px] text-muted-foreground truncate">
             {member.email}
           </span>
         </div>

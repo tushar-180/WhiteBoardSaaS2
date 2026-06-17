@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,8 +16,9 @@ import { cn } from "@/lib/utils";
 
 export function ProfileSettings() {
   const { user } = useWorkspaceStore();
-  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof updateProfileSchema>>({
@@ -29,45 +30,71 @@ export function ProfileSettings() {
 
   async function onSubmit(data: z.infer<typeof updateProfileSchema>) {
     try {
+      setIsSaving(true);
+
+      let newAvatarUrl = user?.avatar_url;
+
+      // Upload pending avatar if one was selected
+      if (pendingAvatarFile) {
+        const formData = new FormData();
+        formData.append("file", pendingAvatarFile);
+        const updatedProfile = await uploadAvatarAction(formData);
+        newAvatarUrl = updatedProfile?.avatar_url ?? newAvatarUrl;
+      }
+
+      // Update profile name
       await updateProfileAction(data);
+
+      // Update local store (both avatar and name atomically)
       if (user) {
         useWorkspaceStore.setState({
-          user: { ...user, name: data.name || user.name },
+          user: { ...user, name: data.name || user.name, avatar_url: newAvatarUrl },
         });
       }
+
+      // Clean up pending avatar state *after* store is updated
+      if (pendingAvatarFile) {
+        setPendingAvatarFile(null);
+        if (localPreview) {
+          URL.revokeObjectURL(localPreview);
+        }
+        setLocalPreview(null);
+      }
+
       toast.success("Profile updated successfully");
     } catch (error: any) {
       toast.error(error.message);
+    } finally {
+      setIsSaving(false);
     }
   }
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Show local preview immediately
+    // Clean up previous preview
+    if (localPreview) {
+      URL.revokeObjectURL(localPreview);
+    }
+
+    // Show local preview only — upload happens on save
     const objectUrl = URL.createObjectURL(file);
     setLocalPreview(objectUrl);
+    setPendingAvatarFile(file);
 
-    try {
-      setIsUploading(true);
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const updatedProfile = await uploadAvatarAction(formData);
-      if (user && updatedProfile) {
-        useWorkspaceStore.setState({
-          user: { ...user, avatar_url: updatedProfile.avatar_url },
-        });
-      }
-      toast.success("Avatar updated successfully");
-    } catch (error: any) {
-      toast.error(error.message);
-      setLocalPreview(null); // revert preview on failure
-    } finally {
-      setIsUploading(false);
-    }
+    // Reset the input so the same file can be re-selected if needed
+    e.target.value = "";
   }
+
+  // Clean up object URL when it changes or on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (localPreview) {
+        URL.revokeObjectURL(localPreview);
+      }
+    };
+  }, [localPreview]);
 
   const avatarSrc = localPreview || user?.avatar_url;
 
@@ -82,52 +109,50 @@ export function ProfileSettings() {
         {/* Avatar */}
         <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
           <div className="relative shrink-0">
-            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-border bg-muted flex items-center justify-center">
+            <div className={cn(
+              "w-24 h-24 rounded-full overflow-hidden border-2 border-border bg-muted flex items-center justify-center",
+              pendingAvatarFile && "ring-2 ring-primary ring-offset-2"
+            )}>
               {avatarSrc ? (
                 <img
                   src={avatarSrc}
                   alt="Avatar"
-                  className={cn("w-full h-full object-cover transition-opacity", isUploading && "opacity-50")}
+                  className="w-full h-full object-cover"
                 />
               ) : (
-                <UserCircle className={cn("w-12 h-12 text-muted-foreground", isUploading && "opacity-50")} />
+                <UserCircle className="w-12 h-12 text-muted-foreground" />
               )}
             </div>
 
-            {/* Upload button / spinner overlay */}
+            {/* Upload button */}
             <button
               type="button"
-              onClick={() => !isUploading && fileInputRef.current?.click()}
-              disabled={isUploading}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isSaving}
               className={cn(
                 "absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center border-2 border-background shadow-md transition-transform cursor-pointer",
-                !isUploading && "hover:scale-110"
+                !isSaving && "hover:scale-110"
               )}
             >
-              {isUploading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Camera className="w-4 h-4" />
-              )}
+              <Camera className="w-4 h-4" />
             </button>
 
-            
             <input
-  ref={fileInputRef}
-  type="file"
-  accept="image/*"
-  multiple={false}
-  className="hidden"
-  onChange={handleFileChange}
-  disabled={isUploading}
-/>
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple={false}
+              className="hidden"
+              onChange={handleFileChange}
+              disabled={isSaving}
+            />
           </div>
 
           <div className="space-y-1">
             <h3 className="font-medium">Profile Image</h3>
             <p className="text-sm text-muted-foreground">Upload a square image. JPG, GIF, or PNG, max 5MB.</p>
-            {isUploading && (
-              <p className="text-xs text-primary font-medium animate-pulse">Uploading…</p>
+            {pendingAvatarFile && (
+              <p className="text-xs text-primary font-medium">New image selected — save changes to apply</p>
             )}
           </div>
         </div>
@@ -149,8 +174,8 @@ export function ProfileSettings() {
             )}
           </div>
 
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button type="submit" disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Changes
           </Button>
         </form>

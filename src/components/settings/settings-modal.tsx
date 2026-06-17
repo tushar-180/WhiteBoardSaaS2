@@ -13,7 +13,7 @@ export function SettingsModal() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent 
-        className="sm:max-w-[1000px] max-w-[1000px] w-[95vw] h-[85vh] p-0 flex flex-col md:flex-row overflow-hidden bg-background border-border/50 shadow-2xl rounded-xl"
+        className="sm:max-w-[1000px] w-full sm:w-[95vw] h-[100dvh] sm:h-[85vh] p-0 flex flex-col md:flex-row overflow-hidden bg-background border-border/50 shadow-2xl rounded-none sm:rounded-xl"
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">Settings</DialogTitle>
