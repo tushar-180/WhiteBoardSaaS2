@@ -49,7 +49,6 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
       toast.success(`Workspace "${newWorkspace.name}" created successfully!`);
       reset();
       onOpenChange(false);
-      // router.push(`${ROUTES.WORKSPACES}/${newWorkspace.id}`);
     } catch (error: unknown) {
       toast.error((error as Error).message || "Failed to create workspace. Please try again.");
     } finally {

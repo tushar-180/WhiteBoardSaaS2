@@ -263,7 +263,7 @@ export async function searchProfilesAction(query: string): Promise<Profile[]> {
     return await searchProfilesByEmail(query);
   } catch (error) {
     console.error("Action error in searchProfilesAction:", error);
-    return [];
+    throw new Error("Failed to search profiles. Please try again.");
   }
 }
 
@@ -278,7 +278,7 @@ export async function getUserNotificationsAction(): Promise<WorkspaceInviteWithW
     return await fetchUserNotifications(user.email, user.id);
   } catch (error) {
     console.error("Action error in getUserNotificationsAction:", error);
-    return [];
+    throw new Error("Failed to fetch notifications. Please try again.");
   }
 }
 
@@ -406,7 +406,7 @@ export async function getPendingInvitesAction(workspaceId: string) {
     return await fetchPendingInvitesByWorkspace(workspaceId);
   } catch (error) {
     console.error("Action error in getPendingInvitesAction:", error);
-    return [];
+    throw new Error("Failed to fetch pending invites. Please try again.");
   }
 }
 

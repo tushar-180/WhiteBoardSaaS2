@@ -8,10 +8,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { bulkDeleteWorkspacesAction, bulkLeaveWorkspacesAction } from "@/actions/workspace";
 import { toast } from "sonner";
 import { LogOut, Trash2, Loader2, Building } from "lucide-react";
-
-const formatDate = (dateString: string) => {
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(dateString));
-};
+import { formatDate } from "@/lib/utils";
 
 export function WorkspacesSettings() {
   const { workspaces, user, deleteWorkspace } = useWorkspaceStore();

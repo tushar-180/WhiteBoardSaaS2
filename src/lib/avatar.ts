@@ -7,26 +7,6 @@
  *   With transformation, we get a properly sized WebP thumbnail (~3-8 KiB).
  * GitHub: adds ?s=size to request a smaller pre-rendered image.
  */
-// export function getOptimizedAvatarUrl(
-//   url: string | null | undefined,
-//   size: number = 48,
-// ): string | undefined {
-//   if (!url) return undefined;
-
-//   // GitHub avatars: append s=size to existing params (preserves cache-busting v=4 param)
-//   if (url.includes("avatars.githubusercontent.com")) {
-//     const separator = url.includes("?") ? "&" : "?";
-//     return `${url}${separator}s=${size}`;
-//   }
-
-//   // Supabase storage: use image transformation params
-//   if (url.includes("supabase.co/storage")) {
-//     const base = url.split("?")[0];
-//     return `${base}?width=${size}&height=${size}&resize=cover&format=webp&quality=80`;
-//   }
-
-//   return url;
-// }
 export function getOptimizedAvatarUrl(
   url: string | null | undefined,
   size = 48,

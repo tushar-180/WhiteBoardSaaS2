@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { MembersTab } from "./members-tab";
 import { InvitesTab } from "./invites-tab";
 import { DangerZoneTab } from "./danger-zone-tab";
-import { cn } from "@/lib/utils";
+import { cn, hasManagePermission } from "@/lib/utils";
 import { type WorkspaceRole } from "@/types/workspace";
 
 export function WorkspaceDetailPanel() {
@@ -27,7 +27,7 @@ export function WorkspaceDetailPanel() {
 
   const isOwner = workspace.owner_id === user?.id;
   const role = workspace.currentUserRole || (isOwner ? "owner" : "member");
-  const showInvites = role === "owner" || role === "admin";
+  const showInvites = hasManagePermission(role);
 
   const tabs = [
     { id: "members", label: "Members" },

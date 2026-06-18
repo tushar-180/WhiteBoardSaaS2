@@ -6,6 +6,7 @@ import { fetchWorkspaceById, fetchAllUserWorkspaces, hasWorkspaceAccess } from "
 import { fetchBoardsByWorkspace } from "@/services/board";
 import { fetchWorkspaceMembers, fetchWorkspaceMemberRole } from "@/services/member";
 import { fetchPendingInvitesByWorkspace } from "@/services/invite";
+import { hasManagePermission } from "@/lib/utils";
 import { WorkspaceDetailsClient } from "@/components/workspace/workspace-details-client";
 
 export const revalidate = 0;
@@ -52,7 +53,7 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
   const [boards, members, invites, workspaces] = await Promise.all([
     fetchBoardsByWorkspace(workspaceId),
     fetchWorkspaceMembers(workspaceId),
-    currentUserRole === "owner" || currentUserRole === "admin"
+    hasManagePermission(currentUserRole)
       ? fetchPendingInvitesByWorkspace(workspaceId)
       : Promise.resolve([]),
     fetchAllUserWorkspaces(user.id),

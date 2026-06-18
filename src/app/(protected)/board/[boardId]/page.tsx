@@ -4,7 +4,7 @@ import { requireAuth } from "@/utils/supabase/server";
 import { UnauthorizedAccess } from "@/components/shared/unauthorized-access";
 import { fetchBoardById } from "@/services/board";
 import { hasWorkspaceAccess } from "@/services/workspace";
-import ReactDOM from "react-dom";
+import { preconnect } from "react-dom";
 import WhiteboardEditor from "@/components/whiteboard/whiteboard-editor";
 import { fetchWorkspaceMemberRole } from "@/services/member";
 
@@ -68,7 +68,7 @@ export default async function BoardDetailPage({ params }: PageProps) {
   };
 
   // Preconnect to Tldraw's CDN to speed up the massive font payload downloads
-  ReactDOM.preconnect("https://cdn.tldraw.com", { crossOrigin: "anonymous" });
+  preconnect("https://cdn.tldraw.com", { crossOrigin: "anonymous" });
 
   return (
     <WhiteboardEditor

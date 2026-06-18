@@ -23,6 +23,7 @@ import { useMemberStore } from "@/store/use-member-store";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
 import RootLoading from "@/app/loading";
 import { ROUTES } from "@/lib/constants";
+import { hasManagePermission } from "@/lib/utils";
 
 interface WorkspaceDetailsClientProps {
   workspace: Workspace;
@@ -81,7 +82,7 @@ export function WorkspaceDetailsClient({
     },
   );
 
-  const canManage = currentUserRole === "owner" || currentUserRole === "admin";
+  const canManage = hasManagePermission(currentUserRole);
 
   return (
     <>

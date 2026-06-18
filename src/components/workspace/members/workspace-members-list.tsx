@@ -12,6 +12,7 @@ import { useMemberStore } from "@/store/use-member-store";
 import { removeMemberAction, updateMemberRoleAction } from "@/actions/member";
 import { createClient } from "@/utils/supabase/client";
 import { WorkspaceMemberRow } from "./workspace-member-row";
+import { hasManagePermission } from "@/lib/utils";
 
 interface WorkspaceMembersListProps {
   workspaceId: string;
@@ -112,7 +113,7 @@ export function WorkspaceMembersList({
     }
   };
 
-  const canManage = currentUserRole === "owner" || currentUserRole === "admin";
+  const canManage = hasManagePermission(currentUserRole);
 
   const sortedMembers = [...members].sort((a, b) => {
     if (a.role === "owner" && b.role !== "owner") return -1;

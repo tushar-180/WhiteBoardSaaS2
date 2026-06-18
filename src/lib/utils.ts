@@ -21,3 +21,19 @@ export function isValidUUID(id: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidRegex.test(id);
 }
+
+export function formatDate(dateString: string | null | undefined): string {
+  if (!dateString) return "—";
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return "—";
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(d);
+}
+
+/**
+ * Checks whether a workspace role has manage permissions (owner or admin).
+ */
+export function hasManagePermission(role: string | undefined | null): boolean {
+  return role === "owner" || role === "admin";
+}
+
+

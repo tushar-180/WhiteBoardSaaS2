@@ -114,6 +114,7 @@ Stores pending or completed invitations to join a workspace. Enabled for Supabas
 | `accepted_by` | `uuid` | Nullable |
 | `role` | `WorkspaceRole` |  |
 | `inviter_seen` | `boolean` | Default false |
+| `created_at` | `timestamptz` | Default `now()`, Not Null |
 
 ## Table `boards`
 

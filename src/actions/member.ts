@@ -212,7 +212,7 @@ export async function getWorkspaceMembersAction(workspaceId: string) {
     return await fetchWorkspaceMembers(workspaceId);
   } catch (error) {
     console.error("Action error in getWorkspaceMembersAction:", error);
-    return [];
+    throw new Error("Failed to fetch workspace members. Please try again.");
   }
 }
 

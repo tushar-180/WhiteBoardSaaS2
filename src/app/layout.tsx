@@ -63,10 +63,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full dark antialiased", inter.variable)}
-      suppressHydrationWarning
+      className={cn("h-full dark antialiased font-sans", inter.variable)}
     >
-      <body className="min-h-full flex flex-col font-sans overflow-x-hidden">
+      <body className="min-h-full flex flex-col overflow-x-hidden">
         {children}
         <Toaster />
       </body>

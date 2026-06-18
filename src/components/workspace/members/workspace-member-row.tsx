@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { hasManagePermission } from "@/lib/utils";
 
 interface WorkspaceMemberRowProps {
   member: WorkspaceMemberWithProfile;
@@ -50,7 +51,7 @@ export function WorkspaceMemberRow({
 
   const isOwner = member.role === "owner";
   const isSelf = member.email === userEmail;
-  const canManage = currentUserRole === "owner" || currentUserRole === "admin";
+  const canManage = hasManagePermission(currentUserRole);
   const canEditThisMember =
     canManage &&
     !isSelf &&

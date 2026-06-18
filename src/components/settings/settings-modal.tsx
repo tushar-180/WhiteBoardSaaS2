@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useSettingsStore } from "@/store/settings-store";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
 import { getSettingsDataAction } from "@/actions/settings";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 const SettingsSidebar = dynamic(() => import("./settings-sidebar").then((m) => ({ default: m.SettingsSidebar })), { ssr: false });
 const SettingsContent = dynamic(() => import("./settings-content").then((m) => ({ default: m.SettingsContent })), { ssr: false });
@@ -42,6 +42,9 @@ export function SettingsModal() {
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">Settings</DialogTitle>
+        <DialogDescription className="sr-only">
+          Manage your account, workspaces, notifications, appearance, and account settings.
+        </DialogDescription>
         <SettingsSidebar />
         <SettingsContent />
       </DialogContent>

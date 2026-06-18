@@ -85,7 +85,7 @@ export async function deleteWorkspaceAction(workspaceId: string): Promise<void> 
     });
 
     // Revalidate the caching of the workspaces list page
-    revalidatePath("/workspaces");
+    revalidatePath(ROUTES.WORKSPACES);
   } catch (error: unknown) {
     console.error("Action error in deleteWorkspaceAction:", error);
     throw new Error((error as Error).message || "Failed to delete workspace.");
@@ -102,7 +102,7 @@ export async function bulkDeleteWorkspacesAction(workspaceIds: string[]): Promis
     await bulkDeleteWorkspaces(workspaceIds, user.id);
 
     // Revalidate the caching of the workspaces list page
-    revalidatePath("/workspaces");
+    revalidatePath(ROUTES.WORKSPACES);
   } catch (error: unknown) {
     console.error("Action error in bulkDeleteWorkspacesAction:", error);
     throw new Error((error as Error).message || "Failed to delete workspaces.");
@@ -120,7 +120,7 @@ export async function bulkLeaveWorkspacesAction(workspaceIds: string[]): Promise
     await bulkLeaveWorkspaces(workspaceIds, user.id);
 
     // Revalidate the caching of the workspaces list page
-    revalidatePath("/workspaces");
+    revalidatePath(ROUTES.WORKSPACES);
   } catch (error: unknown) {
     console.error("Action error in bulkLeaveWorkspacesAction:", error);
     throw new Error((error as Error).message || "Failed to leave workspaces.");
