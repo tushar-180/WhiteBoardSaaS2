@@ -12,6 +12,7 @@ import { useMemberStore } from "@/store/use-member-store";
 import { removeMemberAction, updateMemberRoleAction } from "@/actions/member";
 import { createClient } from "@/utils/supabase/client";
 import { WorkspaceMemberRow } from "./workspace-member-row";
+import { hasManagePermission } from "@/lib/utils";
 
 interface WorkspaceMembersListProps {
   workspaceId: string;
@@ -112,7 +113,7 @@ export function WorkspaceMembersList({
     }
   };
 
-  const canManage = currentUserRole === "owner" || currentUserRole === "admin";
+  const canManage = hasManagePermission(currentUserRole);
 
   const sortedMembers = [...members].sort((a, b) => {
     if (a.role === "owner" && b.role !== "owner") return -1;
@@ -129,10 +130,10 @@ export function WorkspaceMembersList({
   return (
     <div className={`flex flex-col max-h-[400px] rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur-xs relative ${activeMenuMemberId ? "z-20" : "z-10"}`}>
       <div className="flex items-center justify-between shrink-0 mb-4">
-        <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+        <h2 className="text-sm font-bold text-foreground flex items-center gap-1.5">
           <Users className="h-4 w-4 text-primary/80" />
           Members
-        </h3>
+        </h2>
         <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold">
           {members.length}
         </span>

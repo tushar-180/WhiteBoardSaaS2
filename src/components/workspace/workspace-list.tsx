@@ -21,6 +21,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { usePagination } from "@/hooks/use-pagination";
 
 interface WorkspaceListProps {
   workspaces: Workspace[];
@@ -48,69 +49,33 @@ export function WorkspaceList({ workspaces, userId, onCreateClick }: WorkspaceLi
     return matchesFilter && matchesSearch;
   });
 
-  // Pagination states
-  const ITEMS_PER_PAGE = 6;
+  // Pagination
   const hasCreateCard = filter === "all" || filter === "owned";
-  const totalCount = filteredWorkspaces.length + (hasCreateCard ? 1 : 0);
-  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const activePage = Math.min(currentPage, Math.max(1, totalPages));
-
-  // Reset page to 1 when filter or search changes is handled in the event handlers
+  const {
+    activePage,
+    totalPages,
+    setCurrentPage,
+    showCreateCardOnPage,
+    getPageNumbers,
+  } = usePagination({
+    totalItems: filteredWorkspaces.length,
+    hasCreateCard,
+  });
 
   // Calculate items to show
   let pageWorkspaces: typeof filteredWorkspaces = [];
-  let showCreateCardOnPage = false;
 
   if (hasCreateCard) {
     if (activePage === 1) {
-      showCreateCardOnPage = true;
-      pageWorkspaces = filteredWorkspaces.slice(0, ITEMS_PER_PAGE - 1);
+      pageWorkspaces = filteredWorkspaces.slice(0, 5);
     } else {
-      showCreateCardOnPage = false;
-      const startIndex = (activePage - 1) * ITEMS_PER_PAGE - 1;
-      const endIndex = startIndex + ITEMS_PER_PAGE;
-      pageWorkspaces = filteredWorkspaces.slice(startIndex, endIndex);
+      const startIndex = (activePage - 1) * 6 - 1;
+      pageWorkspaces = filteredWorkspaces.slice(startIndex, startIndex + 6);
     }
   } else {
-    showCreateCardOnPage = false;
-    const startIndex = (activePage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    pageWorkspaces = filteredWorkspaces.slice(startIndex, endIndex);
+    const startIndex = (activePage - 1) * 6;
+    pageWorkspaces = filteredWorkspaces.slice(startIndex, startIndex + 6);
   }
-
-  const getPageNumbers = () => {
-    const pages: (number | "ellipsis")[] = [];
-    const maxVisible = 5;
-
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      pages.push(1);
-
-      if (activePage > 3) {
-        pages.push("ellipsis");
-      }
-
-      const start = Math.max(2, activePage - 1);
-      const end = Math.min(totalPages - 1, activePage + 1);
-
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-
-      if (activePage < totalPages - 2) {
-        pages.push("ellipsis");
-      }
-
-      pages.push(totalPages);
-    }
-
-    return pages;
-  };
 
   return (
     <div className="flex-1 flex flex-col">

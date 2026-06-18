@@ -55,7 +55,7 @@ export function DeleteBoardDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+    <Dialog open={open} onOpenChange={onOpenChange} loading={loading}>
       <DialogContent className="sm:max-w-md rounded-2xl sm:rounded-2xl">
         <DialogHeader>
           <div className="flex items-center gap-2">

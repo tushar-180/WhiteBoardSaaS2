@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Folder, ArrowRight, Trash2, LogOut } from "lucide-react";
-import { LeaveWorkspaceDialog } from "./dialogs/leave-workspace-dialog";
 import {
   CardHeader,
   CardTitle,
@@ -11,10 +11,11 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { type Workspace } from "@/types/workspace";
-import { DeleteWorkspaceDialog } from "./dialogs/delete-workspace-dialog";
 import { ROUTES } from "@/lib/constants";
 import { WorkspaceAvatarGroup } from "./workspace-avatar-group";
-import { GlowingStarsBackgroundCard } from "@/components/ui/glowing-stars";
+
+const LeaveWorkspaceDialog = dynamic(() => import("./dialogs/leave-workspace-dialog").then((m) => ({ default: m.LeaveWorkspaceDialog })), { ssr: false });
+const DeleteWorkspaceDialog = dynamic(() => import("./dialogs/delete-workspace-dialog").then((m) => ({ default: m.DeleteWorkspaceDialog })), { ssr: false });
 
 
 interface WorkspaceCardProps {
@@ -65,7 +66,7 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
         href={`${ROUTES.WORKSPACES}/${workspace.id}`}
         className="block group h-full w-full"
       >
-        <GlowingStarsBackgroundCard className="h-full max-w-none max-h-none flex flex-col border border-border/60 bg-card/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0">
+        <div className="h-full max-w-none max-h-none flex flex-col border border-border/60 bg-[linear-gradient(110deg,#171717_0.6%,#09090b)] transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0">
 
           {/* Delete Icon Button - Only for Owner */}
           {isOwner && (
@@ -135,21 +136,25 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
               </span>
             </div>
           </CardContent>
-        </GlowingStarsBackgroundCard>
+        </div>
       </Link>
 
-      <DeleteWorkspaceDialog
-        workspaceId={workspace.id}
-        workspaceName={workspace.name}
-        open={open}
-        onOpenChange={setOpen}
-      />
-      <LeaveWorkspaceDialog
-        workspaceId={workspace.id}
-        workspaceName={workspace.name}
-        open={openLeaveDialog}
-        onOpenChange={setOpenLeaveDialog}
-      />
+      <Suspense fallback={null}>
+        <DeleteWorkspaceDialog
+          workspaceId={workspace.id}
+          workspaceName={workspace.name}
+          open={open}
+          onOpenChange={setOpen}
+        />
+      </Suspense>
+      <Suspense fallback={null}>
+        <LeaveWorkspaceDialog
+          workspaceId={workspace.id}
+          workspaceName={workspace.name}
+          open={openLeaveDialog}
+          onOpenChange={setOpenLeaveDialog}
+        />
+      </Suspense>
     </>
   );
 }

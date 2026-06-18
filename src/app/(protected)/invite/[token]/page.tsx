@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Metadata } from "next";
 import { ShieldAlert, ArrowRight, CheckCircle2, X } from "lucide-react";
 import { requireAuth } from "@/utils/supabase/server";
 import { fetchInviteByToken, fetchInviteByTokenAnyStatus } from "@/services/invite";
@@ -7,6 +8,11 @@ import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/constants";
 
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: "Accept Invitation",
+  description: "Join a Zentrox workspace with your invitation link.",
+};
 
 interface PageProps {
   params: Promise<{

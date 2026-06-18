@@ -18,6 +18,7 @@ Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
 Stage 7 -> Real-Time Collaboration
 Stage 8 -> Real-Time Notifications, Access Controls, and UI Polish
 Stage 9 -> SEO, Accessibility, and Codebase Polish
+Stage 10 -> Codebase Audit and Polish
 ```
 
 ---
@@ -140,6 +141,31 @@ Stage 9 -> SEO, Accessibility, and Codebase Polish
 - [x] Resolve all Next.js 15 / React Compiler hydration and purity errors (`react-hooks/purity`, `set-state-in-effect`).
 - [x] Enforce strict typings by replacing `any` with `unknown` in database and email services.
 - [x] Fix unescaped entities across legal pages and empty states.
+
+## Stage 10: Codebase Audit and Polish
+
+**Goal:** Eliminate dead code, consolidate duplicates, fix production-readiness issues, and add UI polish.
+
+- [x] Update `.env.example` with correct environment variables (SendGrid, PostHog, Supabase Service Role, Sync Server).
+- [x] Remove dead commented-out code (`avatar.ts`, `create-board-dialog.tsx`, `create-workspace-dialog.tsx`).
+- [x] Fix hardcoded 2024 year in footer (`new Date().getFullYear()`).
+- [x] Fix comment mismatch in whiteboard-canvas.tsx (said "5s" but actual was 10s).
+- [x] Extract shared `formatDate` to `lib/utils.ts` — used by `workspaces-settings.tsx` & `invites-tab.tsx`.
+- [x] Reuse GithubIcon component in footer instead of duplicating SVG.
+- [x] Fix hardcoded route strings (`/workspaces`) to use `ROUTES.WORKSPACES` constant.
+- [x] Fix silent error returns in server actions (`searchProfilesAction`, `getUserNotificationsAction`, `getPendingInvitesAction`, `getWorkspaceMembersAction`) — now throw instead of silently returning `[]`.
+- [x] Fix ReactDOM import in board page (`import ReactDOM` → named `preconnect`).
+- [x] Add role selector dropdown to invites tab (viewer/editor/admin options).
+- [x] Create shared `usePagination` hook from `board-list.tsx` and `workspace-list.tsx` duplicates.
+- [x] Add `hasManagePermission` helper to `lib/utils.ts`, update 6 component files.
+- [x] Add Radix `DialogDescription` to settings modal for accessibility (fixes console warning).
+- [x] Replace comma-separated email input with capsule/pill email input (Enter to add, X to remove, Backspace to delete last, max 10 limit).
+- [x] Add debounced profile search suggestions to invites tab.
+- [x] Fix invites tab UI layout for responsiveness (remove fragile `sm:pt-8` hack, fix suggestion dropdown positioning).
+- [x] Add `created_at` column to `workspace_invites` table (was missing from database — created migration to add column with default and backfill).
+- [x] Fix font preload warning in layout (moved `font-sans` to `<html>` for earlier inheritance).
+- [x] Fix Sent At column visibility (hidden on mobile, fixes incorrect removal of `hidden sm:table-cell`).
+- [x] Update all documentation (DATABASE.md, DEPLOYMENT.md, PHASES.md, Whiteboard.md, timestamp.md).
 
 ## Later / Optional
 

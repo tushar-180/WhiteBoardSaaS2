@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { requireActionAuth, createClient } from "@/utils/supabase/server";
-import { insertWorkspace, deleteWorkspace } from "@/services/workspace";
+import { insertWorkspace, deleteWorkspace, bulkDeleteWorkspaces } from "@/services/workspace";
+import { bulkLeaveWorkspaces } from "@/services/member";
 import { type Workspace, workspaceSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
 import { getPostHogClient } from "@/lib/posthog-server";
@@ -84,9 +85,45 @@ export async function deleteWorkspaceAction(workspaceId: string): Promise<void> 
     });
 
     // Revalidate the caching of the workspaces list page
-    revalidatePath("/workspaces");
+    revalidatePath(ROUTES.WORKSPACES);
   } catch (error: unknown) {
     console.error("Action error in deleteWorkspaceAction:", error);
     throw new Error((error as Error).message || "Failed to delete workspace.");
   }
 }
+
+/**
+ * Deletes multiple workspaces.
+ */
+export async function bulkDeleteWorkspacesAction(workspaceIds: string[]): Promise<void> {
+  try {
+    const { user } = await requireActionAuth("You must be logged in to delete workspaces.");
+
+    await bulkDeleteWorkspaces(workspaceIds, user.id);
+
+    // Revalidate the caching of the workspaces list page
+    revalidatePath(ROUTES.WORKSPACES);
+  } catch (error: unknown) {
+    console.error("Action error in bulkDeleteWorkspacesAction:", error);
+    throw new Error((error as Error).message || "Failed to delete workspaces.");
+  }
+}
+
+
+/**
+ * Leaves multiple workspaces.
+ */
+export async function bulkLeaveWorkspacesAction(workspaceIds: string[]): Promise<void> {
+  try {
+    const { user } = await requireActionAuth("You must be logged in to leave workspaces.");
+
+    await bulkLeaveWorkspaces(workspaceIds, user.id);
+
+    // Revalidate the caching of the workspaces list page
+    revalidatePath(ROUTES.WORKSPACES);
+  } catch (error: unknown) {
+    console.error("Action error in bulkLeaveWorkspacesAction:", error);
+    throw new Error((error as Error).message || "Failed to leave workspaces.");
+  }
+}
+

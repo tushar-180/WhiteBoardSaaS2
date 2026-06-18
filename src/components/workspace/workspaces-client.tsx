@@ -1,22 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Plus, ArrowLeft } from "lucide-react";
 import posthog from "posthog-js";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "./empty-state";
 import { WorkspaceList } from "./workspace-list";
-import { CreateWorkspaceDialog } from "./dialogs/create-workspace-dialog";
 import { type Workspace } from "@/types/workspace";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
+
+const CreateWorkspaceDialog = dynamic(() => import("./dialogs/create-workspace-dialog").then((m) => ({ default: m.CreateWorkspaceDialog })), { ssr: false });
 
 interface WorkspacesClientProps {
   initialWorkspaces: Workspace[];
   userId: string;
   userEmail?: string;
   userName?: string;
+  userAvatarUrl?: string | null;
 }
 
 export function WorkspacesClient({
@@ -24,6 +27,7 @@ export function WorkspacesClient({
   userId,
   userEmail,
   userName,
+  userAvatarUrl,
 }: WorkspacesClientProps) {
   const [open, setOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -32,7 +36,7 @@ export function WorkspacesClient({
   useEffect(() => {
     useWorkspaceStore.setState({
       workspaces: initialWorkspaces,
-      user: userEmail ? { email: userEmail, name: userName || "" } : null,
+      user: userEmail ? { id: userId, email: userEmail, name: userName || "", avatar_url: userAvatarUrl ?? null } : null,
     });
     posthog.identify(userId, {
       email: userEmail,
@@ -40,7 +44,7 @@ export function WorkspacesClient({
     });
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
-  }, [initialWorkspaces, userId, userEmail, userName]);
+  }, [initialWorkspaces, userId, userEmail, userName, userAvatarUrl]);
 
   const storeWorkspaces = useWorkspaceStore((state) => state.workspaces);
   const storeUser = useWorkspaceStore((state) => state.user);
@@ -48,7 +52,7 @@ export function WorkspacesClient({
   // Use props for SSR and initial hydration to eliminate LCP delay,
   // then swap to Zustand store state once mounted
   const workspaces = isMounted && storeWorkspaces.length > 0 ? storeWorkspaces : initialWorkspaces;
-  const currentUser = isMounted && storeUser ? storeUser : { name: userName || "User", email: userEmail || "" };
+  const currentUser = isMounted && storeUser ? storeUser : { id: userId, name: userName || "User", email: userEmail || "" };
 
   return (
     <>
@@ -121,7 +125,9 @@ export function WorkspacesClient({
         )}
 
         {/* Modal Dialog for creating workspaces */}
-        <CreateWorkspaceDialog open={open} onOpenChange={setOpen} />
+        <Suspense fallback={null}>
+          <CreateWorkspaceDialog open={open} onOpenChange={setOpen} />
+        </Suspense>
       </main>
     </>
   );

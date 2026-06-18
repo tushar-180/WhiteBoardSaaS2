@@ -8,6 +8,7 @@ import {
   AvatarGroupCount,
   AvatarImage,
 } from "@/components/ui/avatar";
+import { getOptimizedAvatarUrl } from "@/lib/avatar";
 
 export function WorkspaceAvatarGroup({ members }: { members?: WorkspaceMemberPreview[] }) {
   if (!members || members.length === 0) return null;
@@ -22,7 +23,7 @@ export function WorkspaceAvatarGroup({ members }: { members?: WorkspaceMemberPre
       <AvatarGroup>
         {visible.map((m) => (
           <Avatar key={m.id} size="sm">
-            <AvatarImage src={m.avatar_url || undefined} alt={m.name || m.email} />
+            <AvatarImage src={getOptimizedAvatarUrl(m.avatar_url, 32)} alt={m.name || m.email} />
             <AvatarFallback className="text-[10px]">
               {m.name?.[0]?.toUpperCase() || m.email[0].toUpperCase()}
             </AvatarFallback>

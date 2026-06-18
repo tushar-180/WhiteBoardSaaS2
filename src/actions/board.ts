@@ -69,7 +69,7 @@ export async function createBoardAction(
     }
 
     if (existingBoard) {
-      throw new Error(`A board named "${trimmedName}" already exists in this workspace.`);
+      throw new Error(`This board name is already taken. Please choose a different name.`);
     }
 
     const board = await insertBoard(
@@ -138,7 +138,7 @@ export async function updateBoardAction(
     }
 
     if (existingBoard) {
-      throw new Error(`A board named "${trimmedName}" already exists in this workspace.`);
+      throw new Error(`This board name is already taken. Please choose a different name.`);
     }
 
     const board = await updateBoard(boardId, trimmedName, validatedDescription || null);

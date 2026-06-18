@@ -8,33 +8,66 @@ const allowedOrigins: string[] = [
   "localhost:3000",
 ];
 
+// Add app domain
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 if (baseUrl) {
-  // Strip protocol and trailing paths if present
-  let host = baseUrl.replace(/^https?:\/\//, "");
-  host = host.split("/")[0];
+  const host = baseUrl
+    .replace(/^https?:\/\//, "")
+    .split("/")[0];
+
   if (host) {
     allowedOrigins.push(host);
   }
 }
 
+// Add sync server domain
 const syncUrl = process.env.NEXT_PUBLIC_SYNC_SERVER_URL;
 if (syncUrl) {
-  // Strip ws/wss/http/https protocol and trailing paths
-  let host = syncUrl.replace(/^(wss?|https?):\/\//, "");
-  host = host.split("/")[0];
+  const host = syncUrl
+    .replace(/^(wss?|https?):\/\//, "")
+    .split("/")[0];
+
   if (host) {
     allowedOrigins.push(host);
   }
 }
 
+// Remove duplicates
+const uniqueAllowedOrigins = [...new Set(allowedOrigins)];
+
+// Supabase hostname
+const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
+  : "**.supabase.co";
+
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["192.168.0.135"],
+  allowedDevOrigins:
+    process.env.NODE_ENV === "development"
+      ? ["192.168.0.135"]
+      : undefined,
+
   experimental: {
     serverActions: {
-      allowedOrigins,
+      allowedOrigins: uniqueAllowedOrigins,
     },
   },
+
+  images: {
+    minimumCacheTTL: 60 * 60 * 24, // 1 day
+
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: supabaseHostname,
+        pathname: "/storage/v1/object/public/**",
+      },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+      },
+    ],
+  },
+
   async rewrites() {
     return [
       {
@@ -51,10 +84,11 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
   async headers() {
     return [
       {
-        source: "/(.*)\\.(ico|png|jpg|jpeg|svg|webp)",
+        source: "/(.*)\\.(ico|png|jpg|jpeg|svg|webp|woff|woff2|ttf|eot)",
         headers: [
           {
             key: "Cache-Control",
@@ -64,7 +98,17 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
   skipTrailingSlashRedirect: true,
+
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? {
+            exclude: ["error", "warn", "info"],
+          }
+        : false,
+  },
 };
 
 export default nextConfig;
