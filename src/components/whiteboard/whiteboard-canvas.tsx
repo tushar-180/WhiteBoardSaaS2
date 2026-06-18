@@ -60,7 +60,7 @@ export default function WhiteboardCanvas({
     if (syncStore.status === "loading") {
       const timer = setTimeout(() => {
         setShowTimeoutWarning(true);
-      }, 10000); // 5 seconds connection timeout
+      }, 10000); // 10 seconds connection timeout
       return () => {
         clearTimeout(timer);
         setShowTimeoutWarning(false);

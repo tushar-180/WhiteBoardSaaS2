@@ -8,6 +8,7 @@ import {
   removeWorkspaceMember,
   updateWorkspaceMemberRole,
   fetchWorkspaceMembers,
+  bulkRemoveWorkspaceMembers,
 } from "@/services/member";
 import { fetchWorkspaceById } from "@/services/workspace";
 import { type WorkspaceRole, workspaceRoleSchema } from "@/types/workspace";
@@ -211,6 +212,45 @@ export async function getWorkspaceMembersAction(workspaceId: string) {
     return await fetchWorkspaceMembers(workspaceId);
   } catch (error) {
     console.error("Action error in getWorkspaceMembersAction:", error);
-    return [];
+    throw new Error("Failed to fetch workspace members. Please try again.");
   }
 }
+
+/**
+ * Removes multiple members from the workspace.
+ * Only owners can bulk remove members.
+ */
+export async function bulkRemoveMembersAction(workspaceId: string, memberIds: string[]): Promise<void> {
+  try {
+    const { user } = await requireActionAuth("You must be logged in to manage workspace members.");
+
+    // 1. Fetch current user's role in the workspace
+    const currentUserRole = await fetchWorkspaceMemberRole(workspaceId, user.id);
+    if (!currentUserRole || currentUserRole !== "owner") {
+      throw new Error("Only the workspace owner can bulk remove members.");
+    }
+
+    // 2. Fetch the target members details
+    const members = await fetchWorkspaceMembers(workspaceId);
+    
+    // Prevent removing the owner or oneself
+    const validMemberIds = memberIds.filter(id => {
+      const member = members.find(m => m.id === id);
+      if (!member) return false;
+      if (member.role === "owner" || member.user_id === user.id) return false;
+      return true;
+    });
+
+    if (validMemberIds.length === 0) return;
+
+    // 3. Perform deletion
+    await bulkRemoveWorkspaceMembers(workspaceId, validMemberIds);
+
+    // Revalidate paths
+    revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
+  } catch (error: unknown) {
+    console.error("Action error in bulkRemoveMembersAction:", error);
+    throw new Error((error as Error).message || "Failed to remove members.");
+  }
+}
+

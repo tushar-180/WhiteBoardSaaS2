@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createClient } from "@/utils/supabase/client";
@@ -9,7 +9,6 @@ import { ROUTES, DEFAULT_REDIRECTS } from "@/lib/constants";
 import posthog from "posthog-js";
 
 export function useAuthForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [emailLoading, setEmailLoading] = useState(false);
   const [githubLoading, setGithubLoading] = useState(false);
@@ -141,9 +140,11 @@ export function useAuthForm() {
         posthog.capture("user_signed_in", { email: data.email, method: "email" });
       }
 
-      const searchParams = new URLSearchParams(window.location.search);
-      const next = searchParams.get("next") || (isSignUp ? DEFAULT_REDIRECTS.AFTER_SIGNUP : DEFAULT_REDIRECTS.AFTER_LOGIN);
-      router.push(next);
+      // Use hard navigation to ensure Supabase session cookies are fully written
+      // before the server middleware reads them. Client-side router.push can race
+      // with cookie propagation, causing the middleware to redirect back to login.
+      const next = new URLSearchParams(window.location.search).get("next") || (isSignUp ? DEFAULT_REDIRECTS.AFTER_SIGNUP : DEFAULT_REDIRECTS.AFTER_LOGIN);
+      window.location.href = next;
     } catch (err) {
       posthog.captureException(err);
       form.setError("root", {

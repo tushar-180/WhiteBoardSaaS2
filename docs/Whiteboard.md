@@ -35,7 +35,10 @@ Save and restore board canvas_data
 - **Forms and Validation:** React Hook Form, Zod, `@hookform/resolvers`
 - **Backend:** Next.js Server Actions and Route Handlers
 - **Database/Auth:** Supabase SSR SDK and Supabase PostgreSQL
-- **Canvas:** Planned whiteboard canvas saved to `boards.canvas_data`
+- **Canvas:** tldraw whiteboard with `useSync` for real-time multi-user collaboration
+- **Analytics:** PostHog (client + server via `posthog-js` and `posthog-node`)
+- **Email:** SendGrid (transactional emails for workspace invites)
+- **Sync Server:** tldraw sync backend (WebSocket server via `@tldraw/sync`, `@tldraw/sync-core`)
 
 Redux Toolkit is not part of the current architecture.
 
@@ -157,6 +160,8 @@ Phase 5 -> Canvas persistence through boards.canvas_data
 Phase 6 -> Polish and deployment readiness
 Phase 7 -> Real-Time Collaboration
 Phase 8 -> Real-Time Notifications and Advanced Controls
+Phase 9 -> SEO, Accessibility, and Codebase Polish
+Phase 10 -> Codebase Audit and Polish
 ```
 
 See [PHASES.md](PHASES.md) and [timestamp.md](timestamp.md) for the current task breakdown.

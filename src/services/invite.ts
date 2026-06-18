@@ -20,14 +20,14 @@ export async function fetchInviteByToken(
   if (inviteError) {
     // No rows returned – treat as not found rather than a DB failure
     if (inviteError.code === "PGRST116") {
-      console.warn("Invite not found (no pending record) for token:", token);
+      console.warn("Invite not found or no longer pending.");
       return null;
     }
     console.error("Database error in fetchInviteByToken:", inviteError);
     return null;
   }
   if (!invite) {
-    console.warn("Invite not found for token:", token);
+    console.warn("Invite data missing after query.");
     return null;
   }
 
@@ -57,6 +57,7 @@ export async function fetchInviteByToken(
     accepted_by: invite.accepted_by,
     role: invite.role as WorkspaceRole,
     workspace_name: workspaceName,
+    created_at: invite.created_at,
   };
 }
 
@@ -106,6 +107,7 @@ export async function fetchInviteByTokenAnyStatus(
     accepted_by: invite.accepted_by,
     role: invite.role as WorkspaceRole,
     workspace_name: workspaceName,
+    created_at: invite.created_at,
   };
 }
 
@@ -429,6 +431,7 @@ export async function fetchUserNotifications(
       workspace_name: workspaceMap.get(invite.workspace_id) || "Unknown Workspace",
       inviter_name: isIncoming ? relativeName : undefined,
       invitee_name: !isIncoming ? relativeName : undefined,
+      created_at: invite.created_at,
     };
   });
 }
@@ -450,4 +453,55 @@ export async function dismissInviteNotification(inviteId: string, userId: string
   }
 }
 
+/**
+ * Revokes multiple pending workspace invitations.
+ */
+export async function bulkRevokeWorkspaceInvites(workspaceId: string, inviteIds: string[]): Promise<void> {
+  if (!inviteIds.length) return;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("workspace_invites")
+    .update({ status: "revoked" })
+    .eq("workspace_id", workspaceId)
+    .in("id", inviteIds);
+
+  if (error) {
+    console.error("Database error in bulkRevokeWorkspaceInvites:", error);
+    throw new Error(error.message);
+  }
+}
+
+/**
+ * Inserts multiple workspace invitation records into the database.
+ */
+export async function bulkCreateWorkspaceInvites(
+  workspaceId: string,
+  emails: string[],
+  role: WorkspaceRole,
+  inviterId: string
+): Promise<WorkspaceInvite[]> {
+  if (!emails.length) return [];
+  const supabase = await createClient();
+  
+  const invitesToInsert = emails.map((email) => ({
+    workspace_id: workspaceId,
+    email: email.trim().toLowerCase(),
+    token: crypto.randomUUID(),
+    status: "pending",
+    created_by: inviterId,
+    role,
+  }));
+
+  const { data, error } = await supabase
+    .from("workspace_invites")
+    .insert(invitesToInsert)
+    .select();
+
+  if (error) {
+    console.error("Database error in bulkCreateWorkspaceInvites:", error);
+    throw new Error(error.message);
+  }
+
+  return data;
+}
 

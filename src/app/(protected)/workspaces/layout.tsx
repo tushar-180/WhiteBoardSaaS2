@@ -1,6 +1,9 @@
 import { requireAuth } from "@/utils/supabase/server";
 import { fetchProfileById } from "@/services/profile";
 import { WorkspaceNav } from "@/components/workspace/workspace-nav";
+import dynamic from "next/dynamic";
+
+const SettingsModal = dynamic(() => import("@/components/settings/settings-modal").then((m) => ({ default: m.SettingsModal })));
 
 export default async function WorkspacesLayout({
   children,
@@ -20,6 +23,8 @@ export default async function WorkspacesLayout({
 
       {/* Navigation Header */}
       <WorkspaceNav userEmail={displayEmail} userId={user.id} logoHref="/" />
+
+      <SettingsModal />
 
       <div className="flex-1 flex flex-col overflow-y-auto min-h-0">{children}</div>
     </div>

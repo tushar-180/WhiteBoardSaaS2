@@ -5,10 +5,11 @@ export const ROUTES = {
   WORKSPACES: "/workspaces",
   BOARD: "/board",
   AUTH_CALLBACK: "/auth/callback",
+  SETTINGS: "/settings",
 } as const;
 
 export const ASSETS = {
-  LOGO: "/logo.png",
+  LOGO: "/logo.webp",
 } as const;
 
 export const DEFAULT_REDIRECTS = {

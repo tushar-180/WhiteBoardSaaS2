@@ -8,9 +8,21 @@ import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
 function Dialog({
+  loading = false,
+  onOpenChange,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Root>) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+}: React.ComponentProps<typeof DialogPrimitive.Root> & { loading?: boolean }) {
+  return (
+    <DialogPrimitive.Root
+      data-slot="dialog"
+      {...props}
+      onOpenChange={(open) => {
+        // Prevent closing while loading (overlay click, Escape, close button)
+        if (!open && loading) return;
+        onOpenChange?.(open);
+      }}
+    />
+  )
 }
 
 function DialogTrigger({

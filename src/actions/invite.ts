@@ -14,6 +14,9 @@ import {
   fetchUserNotifications,
   dismissInviteNotification,
   checkIfInviteIsPending,
+  fetchPendingInvitesByWorkspace,
+  bulkCreateWorkspaceInvites,
+  bulkRevokeWorkspaceInvites,
 } from "@/services/invite";
 import { fetchWorkspaceById } from "@/services/workspace";
 import { fetchWorkspaceMemberRole, checkIfEmailIsMember } from "@/services/member";
@@ -260,7 +263,7 @@ export async function searchProfilesAction(query: string): Promise<Profile[]> {
     return await searchProfilesByEmail(query);
   } catch (error) {
     console.error("Action error in searchProfilesAction:", error);
-    return [];
+    throw new Error("Failed to search profiles. Please try again.");
   }
 }
 
@@ -275,7 +278,7 @@ export async function getUserNotificationsAction(): Promise<WorkspaceInviteWithW
     return await fetchUserNotifications(user.email, user.id);
   } catch (error) {
     console.error("Action error in getUserNotificationsAction:", error);
-    return [];
+    throw new Error("Failed to fetch notifications. Please try again.");
   }
 }
 
@@ -291,3 +294,119 @@ export async function dismissNotificationAction(inviteId: string): Promise<void>
     throw new Error((error as Error).message || "Failed to dismiss notification.");
   }
 }
+
+/**
+ * Revokes multiple pending workspace invitations.
+ */
+export async function bulkRevokeInvitesAction(
+  workspaceId: string,
+  inviteIds: string[],
+): Promise<void> {
+  try {
+    const { user } = await requireActionAuth(
+      "You must be logged in to revoke invitations.",
+    );
+
+    const currentUserRole = await fetchWorkspaceMemberRole(workspaceId, user.id);
+    if (!currentUserRole || (currentUserRole !== "owner" && currentUserRole !== "admin")) {
+      throw new Error("You do not have permission to revoke invitations in this workspace.");
+    }
+
+    await bulkRevokeWorkspaceInvites(workspaceId, inviteIds);
+    revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
+  } catch (error: unknown) {
+    console.error("Action error in bulkRevokeInvitesAction:", error);
+    throw new Error((error as Error).message || "Failed to revoke invitations.");
+  }
+}
+
+/**
+ * Creates multiple workspace invites and attempts to send emails.
+ */
+export async function bulkInviteUsersAction(
+  workspaceId: string,
+  emails: string[],
+  role: WorkspaceRole,
+): Promise<{ successfulEmails: string[]; failedEmails: string[] }> {
+  try {
+    const { user } = await requireActionAuth("You must be logged in to invite members.");
+    
+    // Auth & Permission
+    const workspace = await fetchWorkspaceById(workspaceId);
+    if (!workspace) throw new Error("Workspace not found.");
+
+    const currentUserRole = await fetchWorkspaceMemberRole(workspaceId, user.id);
+    if (!currentUserRole || (currentUserRole !== "owner" && currentUserRole !== "admin")) {
+      throw new Error("Only workspace owners and administrators can invite new members.");
+    }
+
+    // Filter valid emails (not member, not pending)
+    const validEmails: string[] = [];
+    for (const email of emails) {
+      const trimmed = email.toLowerCase().trim();
+      const existingMemberRole = await checkIfEmailIsMember(workspaceId, trimmed);
+      const isPending = await checkIfInviteIsPending(workspaceId, trimmed);
+      if (!existingMemberRole && !isPending) {
+        validEmails.push(trimmed);
+      }
+    }
+
+    if (validEmails.length === 0) return { successfulEmails: [], failedEmails: emails };
+
+    const invites = await bulkCreateWorkspaceInvites(workspaceId, validEmails, role, user.id);
+
+    // Build base URL
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    let baseLink = "";
+    if (baseUrl) {
+      const cleanBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+      baseLink = `${cleanBaseUrl}/invite/`;
+    } else {
+      const headerStore = await headers();
+      const forwardedHost = headerStore.get("x-forwarded-host");
+      const host = forwardedHost || headerStore.get("host") || "localhost:3000";
+      const forwardedProto = headerStore.get("x-forwarded-proto");
+      const protocol = forwardedProto || (host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https");
+      baseLink = `${protocol}://${host}/invite/`;
+    }
+
+    const successfulEmails: string[] = [];
+    const failedEmails: string[] = emails.filter(e => !validEmails.includes(e.toLowerCase().trim()));
+
+    // Send emails (could be parallelized)
+    await Promise.all(invites.map(async (invite) => {
+      const inviteLink = `${baseLink}${invite.token}`;
+      const { success } = await sendWorkspaceInviteEmail(
+        invite.email,
+        workspace.name,
+        role,
+        inviteLink,
+        user.email || "A workspace member",
+        invite.id
+      );
+      if (success) successfulEmails.push(invite.email);
+      else failedEmails.push(invite.email);
+    }));
+
+    revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
+
+    return { successfulEmails, failedEmails };
+  } catch (error: unknown) {
+    console.error("Action error in bulkInviteUsersAction:", error);
+    throw new Error((error as Error).message || "Failed to bulk invite users.");
+  }
+}
+
+/**
+ * Fetches all pending invites for a specific workspace.
+ */
+export async function getPendingInvitesAction(workspaceId: string) {
+  try {
+    await requireActionAuth("You must be logged in to view invites.");
+    return await fetchPendingInvitesByWorkspace(workspaceId);
+  } catch (error) {
+    console.error("Action error in getPendingInvitesAction:", error);
+    throw new Error("Failed to fetch pending invites. Please try again.");
+  }
+}
+

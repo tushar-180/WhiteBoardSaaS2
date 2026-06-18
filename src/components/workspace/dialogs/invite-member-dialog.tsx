@@ -126,7 +126,7 @@ export function InviteMemberDialog({
   };
 
   return (
-    <Dialog open={open} modal={false} onOpenChange={(val) => {
+    <Dialog open={open} loading={loading} onOpenChange={(val) => {
       if (!val) {
         handleClose();
       } else {

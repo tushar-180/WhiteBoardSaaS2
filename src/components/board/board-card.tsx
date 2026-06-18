@@ -11,6 +11,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { type Board, type WorkspaceRole } from "@/types/workspace";
+import { hasManagePermission } from "@/lib/utils";
 import { EditBoardDialog } from "./edit-board-dialog";
 import { DeleteBoardDialog } from "./delete-board-dialog";
 import { Meteors } from "@/components/ui/meteors";
@@ -49,7 +50,7 @@ export function BoardCard({ board, currentUserRole }: BoardCardProps) {
     },
   );
 
-  const canEditBoard = currentUserRole === "owner" || currentUserRole === "admin";
+  const canEditBoard = hasManagePermission(currentUserRole);
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.preventDefault();

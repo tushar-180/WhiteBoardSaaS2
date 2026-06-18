@@ -15,7 +15,9 @@ Reference docs:
 - **Backend:** Next.js Server Actions, Route Handlers, Supabase SSR SDK
 - **Database:** Supabase PostgreSQL
 - **Canvas:** tldraw whiteboard with `boards.canvas_data` persistence and role-based read-only mode
-- **Analytics:** Vercel Analytics
+- **Analytics:** PostHog (client + server)
+- **Email:** SendGrid (transactional emails)
+- **Sync Server:** tldraw sync backend (WebSocket) for real-time collaboration
 
 Not in the current scope: comments, AI diagram generation, AI chat, or a large realtime architecture.
 
@@ -33,6 +35,7 @@ graph TD
     P6 --> P7[Phase 7: Real-Time Collaboration]
     P7 --> P8[Phase 8: Real-Time Notifications]
     P8 --> P9[Phase 9: SEO + Accessibility]
+    P9 --> P10[Phase 10: Codebase Audit + Polish]
 ```
 
 ---
@@ -150,6 +153,27 @@ erDiagram
 - Resolution of React 19 / Next.js 15 compiler warnings (`react-hooks/purity`, `set-state-in-effect`).
 - Strict typing compliance (`any` replaced with `unknown`).
 - Fixed unescaped HTML entities in legal pages and empty states.
+
+## Phase 10: Codebase Audit and Polish ✅
+
+**Goal:** Eliminate dead code, consolidate duplicates, fix production-readiness issues, and add UI polish.
+
+- Updated `.env.example` with correct environment variables (SendGrid, PostHog, Supabase).
+- Removed dead commented-out code throughout the codebase.
+- Fixed hardcoded year in footer (2024 → dynamic).
+- Fixed comment mismatch in whiteboard canvas (5s → 10s).
+- Extracted shared `formatDate` and `hasManagePermission` helpers to `lib/utils.ts`.
+- Reused `GithubIcon` component in footer instead of duplicating SVG.
+- Fixed hardcoded route strings to use `ROUTES` constants.
+- Fixed silent error returns in server actions (now throw instead of returning `[]`).
+- Fixed ReactDOM import to use named import.
+- Added role selector dropdown to invites tab (viewer/editor/admin).
+- Created shared `usePagination` hook extracted from board-list and workspace-list.
+- Replaced comma-separated email input with capsule/pill-style email input (Enter to add, X to remove, max 10).
+- Fixed Sent At column missing `created_at` in database (added migration).
+- Added profile search suggestions to invites tab (debounced, shows registered users).
+- Added Radix `DialogDescription` to settings modal for accessibility compliance.
+- Created migration to add `created_at` column to `workspace_invites` with proper defaults.
 
 ---
 

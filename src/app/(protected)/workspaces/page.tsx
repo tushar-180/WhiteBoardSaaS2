@@ -34,6 +34,7 @@ export default async function WorkspacesPage() {
       userId={user.id}
       userEmail={displayEmail}
       userName={displayName}
+      userAvatarUrl={profile?.avatar_url ?? null}
     />
   );
 }

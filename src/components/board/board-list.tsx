@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { BoardCard } from "./board-card";
@@ -14,6 +13,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { usePagination } from "@/hooks/use-pagination";
 
 interface BoardListProps {
   boards: Board[];
@@ -26,66 +26,33 @@ export function BoardList({
   currentUserRole,
   onCreateClick,
 }: BoardListProps) {
-  const ITEMS_PER_PAGE = 6;
   const hasCreateCard = currentUserRole !== "viewer" && currentUserRole !== "editor";
-  const totalCount = boards.length + (hasCreateCard ? 1 : 0);
-  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const activePage = Math.min(currentPage, Math.max(1, totalPages));
+  const {
+    activePage,
+    totalPages,
+    setCurrentPage,
+    showCreateCardOnPage,
+    getPageNumbers,
+  } = usePagination({
+    totalItems: boards.length,
+    hasCreateCard,
+  });
 
   // Slice boards list based on current page
   let pageBoards: Board[] = [];
-  let showCreateCardOnPage = false;
 
   if (hasCreateCard) {
     if (activePage === 1) {
-      showCreateCardOnPage = true;
-      pageBoards = boards.slice(0, ITEMS_PER_PAGE - 1);
+      pageBoards = boards.slice(0, 5);
     } else {
-      showCreateCardOnPage = false;
-      const startIndex = (activePage - 1) * ITEMS_PER_PAGE - 1;
-      const endIndex = startIndex + ITEMS_PER_PAGE;
-      pageBoards = boards.slice(startIndex, endIndex);
+      const startIndex = (activePage - 1) * 6 - 1;
+      pageBoards = boards.slice(startIndex, startIndex + 6);
     }
   } else {
-    showCreateCardOnPage = false;
-    const startIndex = (activePage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    pageBoards = boards.slice(startIndex, endIndex);
+    const startIndex = (activePage - 1) * 6;
+    pageBoards = boards.slice(startIndex, startIndex + 6);
   }
-
-  const getPageNumbers = () => {
-    const pages: (number | "ellipsis")[] = [];
-    const maxVisible = 5;
-
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      pages.push(1);
-
-      if (activePage > 3) {
-        pages.push("ellipsis");
-      }
-
-      const start = Math.max(2, activePage - 1);
-      const end = Math.min(totalPages - 1, activePage + 1);
-
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-
-      if (activePage < totalPages - 2) {
-        pages.push("ellipsis");
-      }
-
-      pages.push(totalPages);
-    }
-
-    return pages;
-  };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">

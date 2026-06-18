@@ -1,13 +1,15 @@
 "use client";
 
-import { Loader2, Check, X } from "lucide-react";
+import { Loader2, Check, X, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type WorkspaceInviteWithWorkspace } from "@/types/workspace";
+import { formatRelativeTime } from "@/lib/utils";
 
 interface NotificationItemProps {
   invite: WorkspaceInviteWithWorkspace;
   actionLoadingId: string | null;
   handleAccept: (inviteId: string, token: string) => Promise<void>;
+  handleAcceptAndJoin: (inviteId: string, token: string) => Promise<void>;
   handleReject: (inviteId: string, token: string) => Promise<void>;
   handleDismiss: (inviteId: string) => Promise<void>;
 }
@@ -16,13 +18,15 @@ export function NotificationItem({
   invite,
   actionLoadingId,
   handleAccept,
+  handleAcceptAndJoin,
   handleReject,
   handleDismiss,
 }: NotificationItemProps) {
   const isAcceptLoading = actionLoadingId === `${invite.id}-accept`;
+  const isAcceptJoinLoading = actionLoadingId === `${invite.id}-accept-join`;
   const isRejectLoading = actionLoadingId === `${invite.id}-reject`;
   const isDismissLoading = actionLoadingId === `${invite.id}-dismiss`;
-  const isActionLoading = isAcceptLoading || isRejectLoading || isDismissLoading;
+  const isActionLoading = isAcceptLoading || isAcceptJoinLoading || isRejectLoading || isDismissLoading;
   const isIncoming = invite.status === "pending";
 
   if (isIncoming) {
@@ -40,14 +44,18 @@ export function NotificationItem({
           <p className="text-[9px] text-muted-foreground uppercase font-mono tracking-wider">
             Role: {invite.role}
           </p>
+          <p className="text-[9px] text-muted-foreground/60 flex items-center gap-1">
+            <Clock className="h-2.5 w-2.5" />
+            {formatRelativeTime(invite.created_at)}
+          </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <Button
             size="sm"
             disabled={isActionLoading || !!actionLoadingId}
             onClick={() => handleAccept(invite.id, invite.token)}
-            className="flex-1 h-7 rounded-lg text-[10px] font-bold bg-primary text-primary-foreground hover:opacity-90 gap-1 cursor-pointer"
+            className="flex-1 h-7 rounded-lg text-[9px] font-bold border-2 border-primary/30 bg-transparent text-foreground hover:bg-primary/10 hover:border-primary gap-1 cursor-pointer"
           >
             {isAcceptLoading ? (
               <Loader2 className="h-3 w-3 animate-spin" />
@@ -58,10 +66,23 @@ export function NotificationItem({
           </Button>
           <Button
             size="sm"
+            disabled={isActionLoading || !!actionLoadingId}
+            onClick={() => handleAcceptAndJoin(invite.id, invite.token)}
+            className="flex-1 h-7 rounded-lg text-[9px] font-bold bg-primary text-primary-foreground hover:opacity-90 gap-1 cursor-pointer"
+          >
+            {isAcceptJoinLoading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Check className="h-3 w-3" />
+            )}
+            Accept &amp; Join
+          </Button>
+          <Button
+            size="sm"
             variant="outline"
             disabled={isActionLoading || !!actionLoadingId}
             onClick={() => handleReject(invite.id, invite.token)}
-            className="flex-1 h-7 rounded-lg text-[10px] font-bold border-border/80 hover:bg-muted text-foreground gap-1 cursor-pointer"
+            className="flex-1 h-7 rounded-lg text-[9px] font-bold border-border/80 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 text-foreground gap-1 cursor-pointer"
           >
             {isRejectLoading ? (
               <Loader2 className="h-3 w-3 animate-spin" />
@@ -99,6 +120,9 @@ export function NotificationItem({
         </p>
         <p className="text-[9px] text-muted-foreground uppercase font-mono tracking-wider">
           Role: {invite.role}
+        </p>
+        <p className="text-[9px] text-muted-foreground/60 flex items-center gap-1">
+          <Clock className="h-2.5 w-2.5" />            {formatRelativeTime(invite.created_at)}
         </p>
       </div>
 
