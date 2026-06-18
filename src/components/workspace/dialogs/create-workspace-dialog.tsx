@@ -49,7 +49,6 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
       toast.success(`Workspace "${newWorkspace.name}" created successfully!`);
       reset();
       onOpenChange(false);
-      // router.push(`${ROUTES.WORKSPACES}/${newWorkspace.id}`);
     } catch (error: unknown) {
       toast.error((error as Error).message || "Failed to create workspace. Please try again.");
     } finally {
@@ -58,7 +57,7 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+    <Dialog open={open} onOpenChange={onOpenChange} loading={loading}>
       <DialogContent className="sm:max-w-md rounded-2xl sm:rounded-2xl">
         <DialogHeader>
           <div className="flex items-center gap-2">

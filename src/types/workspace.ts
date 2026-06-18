@@ -41,6 +41,7 @@ export interface WorkspaceInvite {
   accepted_by: string | null;
   role: WorkspaceRole;
   inviter_seen?: boolean;
+  created_at: string;
 }
 
 export interface Board {

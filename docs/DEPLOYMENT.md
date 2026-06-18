@@ -47,8 +47,14 @@ Under the **Environment Variables** section in Vercel, add the following variabl
 | :--- | :--- | :--- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Settings -> API -> Project URL | `https://xxxx.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Settings -> API -> `anon` public key | `eyJhbGciOiJIUzI1NiIsIn...` |
-| `TLDRAW_API` | (Optional) Your TLDraw API license key | `tldraw_api_key_here` |
-| `RESEND_API_KEY` | (Optional) Your Resend API key for sending emails | `re_123456789...` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Settings -> API -> `service_role` key (for sync server) | `eyJhbGciOiJIUzI1NiIsIn...` |
+| `SENDGRID_API_KEY` | SendGrid API key for sending transactional emails | `SG.xxxxxxxxxxxxxxxx` |
+| `SENDGRID_FROM_EMAIL` | Verified sender email in SendGrid | `noreply@zentrox.app` |
+| `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | PostHog project token for analytics | `phc_xxxxxxxxxxxxxxxx` |
+| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog host URL | `https://us-assets.i.posthog.com` |
+| `NEXT_PUBLIC_SYNC_SERVER_URL` | Deployed sync server URL (WebSocket) | `wss://whiteboardsaas2.onrender.com` |
+| `NEXT_PUBLIC_BASE_URL` | Base URL for invite links (production) | `https://zentrox-one.vercel.app` |
+| `NEXT_PUBLIC_APP_URL` | Public app URL for metadata/OG tags | `https://zentrox-one.vercel.app` |
 
 Click **Add** for each variable, then click **Deploy**.
 

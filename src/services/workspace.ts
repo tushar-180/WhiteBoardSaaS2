@@ -237,7 +237,9 @@ export async function fetchWorkspaceById(workspaceId: string): Promise<Workspace
     .single();
 
   if (error) {
-    console.error("Database error in fetchWorkspaceById:", error);
+    if (error.code !== "PGRST116") {
+      console.error("Database error in fetchWorkspaceById:", error);
+    }
     return null;
   }
 
@@ -280,3 +282,21 @@ export async function hasWorkspaceAccess(workspaceId: string, userId: string): P
   return true;
 }
 
+/**
+ * Deletes multiple workspaces.
+ * The workspaces can only be deleted by their owner.
+ */
+export async function bulkDeleteWorkspaces(workspaceIds: string[], ownerId: string): Promise<void> {
+  if (!workspaceIds.length) return;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("workspaces")
+    .delete()
+    .eq("owner_id", ownerId)
+    .in("id", workspaceIds);
+
+  if (error) {
+    console.error("Database error in bulkDeleteWorkspaces:", error);
+    throw new Error(error.message);
+  }
+}

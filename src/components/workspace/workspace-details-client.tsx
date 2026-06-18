@@ -20,8 +20,10 @@ import {
 } from "@/types/workspace";
 import { useBoardStore } from "@/store/use-board-store";
 import { useMemberStore } from "@/store/use-member-store";
+import { useWorkspaceStore } from "@/store/use-workspace-store";
 import RootLoading from "@/app/loading";
 import { ROUTES } from "@/lib/constants";
+import { hasManagePermission } from "@/lib/utils";
 
 interface WorkspaceDetailsClientProps {
   workspace: Workspace;
@@ -30,6 +32,7 @@ interface WorkspaceDetailsClientProps {
   initialInvites: WorkspaceInvite[];
   currentUserRole: WorkspaceRole;
   userEmail?: string;
+  initialWorkspaces: Workspace[];
 }
 
 export function WorkspaceDetailsClient({
@@ -39,6 +42,7 @@ export function WorkspaceDetailsClient({
   initialInvites,
   currentUserRole,
   userEmail,
+  initialWorkspaces,
 }: WorkspaceDetailsClientProps) {
   const [boardOpen, setBoardOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -55,10 +59,13 @@ export function WorkspaceDetailsClient({
       members: initialMembers,
       invites: initialInvites,
     });
+    useWorkspaceStore.setState((state) => ({
+      workspaces: state.workspaces.length > 0 ? state.workspaces : initialWorkspaces,
+    }));
     setTimeout(() => {
       setIsMounted(true);
     }, 0);
-  }, [initialBoards, initialMembers, initialInvites]);
+  }, [initialBoards, initialMembers, initialInvites, workspace, initialWorkspaces]);
 
   const boards = useBoardStore((state) => state.boards);
 
@@ -75,7 +82,7 @@ export function WorkspaceDetailsClient({
     },
   );
 
-  const canManage = currentUserRole === "owner" || currentUserRole === "admin";
+  const canManage = hasManagePermission(currentUserRole);
 
   return (
     <>
@@ -163,9 +170,9 @@ export function WorkspaceDetailsClient({
           <div className={`lg:col-span-1 space-y-6 lg:border-l lg:border-border/40 lg:pl-8 overflow-y-auto pr-1.5 pb-4 min-h-0 shrink-0 lg:shrink ${mobileTab === "settings" ? "block" : "hidden lg:block"}`}>
             {/* Workspace Info Card */}
             <div className="rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur-xs space-y-4">
-              <h3 className="text-sm font-bold text-foreground">
+              <h2 className="text-sm font-bold text-foreground">
                 Workspace Info
-              </h3>
+              </h2>
               <div className="space-y-3 text-xs">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Hash className="h-4 w-4 shrink-0 text-primary/70" />

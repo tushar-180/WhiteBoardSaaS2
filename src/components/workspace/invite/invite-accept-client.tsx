@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserPlus, Loader2, AlertCircle, CheckCircle2, LogOut, X } from "lucide-react";
+import { UserPlus, Loader2, AlertCircle, CheckCircle2, LogOut, X, ArrowRight, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { acceptInviteAction, rejectInviteAction } from "@/actions/invite";
@@ -21,10 +21,26 @@ export function InviteAcceptClient({
 }: InviteAcceptClientProps) {
   const router = useRouter();
   const [acceptLoading, setAcceptLoading] = useState(false);
+  const [acceptJoinLoading, setAcceptJoinLoading] = useState(false);
   const [rejectLoading, setRejectLoading] = useState(false);
 
-  const handleAccept = async () => {
+  const handleAcceptOnly = async () => {
     setAcceptLoading(true);
+    try {
+      await acceptInviteAction(invite.token);
+      toast.success("Successfully joined the workspace!");
+    } catch (error: unknown) {
+      toast.error(
+        (error as Error).message ||
+          "Failed to accept invitation. Please try again.",
+      );
+    } finally {
+      setAcceptLoading(false);
+    }
+  };
+
+  const handleAcceptAndJoin = async () => {
+    setAcceptJoinLoading(true);
     try {
       const workspaceId = await acceptInviteAction(invite.token);
       toast.success("Successfully joined the workspace!");
@@ -35,7 +51,7 @@ export function InviteAcceptClient({
           "Failed to accept invitation. Please try again.",
       );
     } finally {
-      setAcceptLoading(false);
+      setAcceptJoinLoading(false);
     }
   };
 
@@ -82,6 +98,16 @@ export function InviteAcceptClient({
           </span>
           .
         </p>
+        <p className="text-[11px] text-muted-foreground/60 flex items-center justify-center gap-1">
+          <Clock className="h-3.5 w-3.5" />
+          Sent {new Date(invite.created_at).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          })}
+        </p>
       </div>
 
       {/* Account Info Box */}
@@ -127,36 +153,56 @@ export function InviteAcceptClient({
 
       <div className="flex flex-col gap-2 pt-2">
         <Button
-          onClick={handleAccept}
-          disabled={acceptLoading || rejectLoading || isDifferentEmail}
+          onClick={handleAcceptAndJoin}
+          disabled={acceptLoading || acceptJoinLoading || rejectLoading || isDifferentEmail}
           className="w-full h-10 rounded-xl font-semibold shadow-xs active:scale-[0.99] transition-all cursor-pointer"
         >
-          {acceptLoading ? (
+          {acceptJoinLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing...
             </>
           ) : (
-            "Accept Invitation"
+            <>
+              <ArrowRight className="mr-2 h-4 w-4" />
+              Accept &amp; Join
+            </>
           )}
         </Button>
 
         {!isDifferentEmail && (
-          <Button
-            onClick={handleReject}
-            disabled={acceptLoading || rejectLoading}
-            variant="outline"
-            className="w-full h-10 rounded-xl font-semibold cursor-pointer"
-          >
-            {rejectLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Declining...
-              </>
-            ) : (
-              "Decline"
-            )}
-          </Button>
+          <>
+            <Button
+              onClick={handleAcceptOnly}
+              disabled={acceptLoading || acceptJoinLoading || rejectLoading || isDifferentEmail}
+              variant="secondary"
+              className="w-full h-10 rounded-xl font-semibold cursor-pointer"
+            >
+              {acceptLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Accepting...
+                </>
+              ) : (
+                "Accept Only"
+              )}
+            </Button>
+            <Button
+              onClick={handleReject}
+              disabled={acceptLoading || acceptJoinLoading || rejectLoading}
+              variant="outline"
+              className="w-full h-10 rounded-xl font-semibold cursor-pointer"
+            >
+              {rejectLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Declining...
+                </>
+              ) : (
+                "Decline"
+              )}
+            </Button>
+          </>
         )}
 
         {isDifferentEmail && (

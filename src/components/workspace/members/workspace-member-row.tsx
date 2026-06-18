@@ -1,6 +1,7 @@
 "use client";
 
 import { MoreVertical, Trash2, Loader2, User, Eye, ShieldAlert } from "lucide-react";
+import { getOptimizedAvatarUrl } from "@/lib/avatar";
 import { Button } from "@/components/ui/button";
 import { type WorkspaceRole, type WorkspaceMemberWithProfile } from "@/types/workspace";
 import {
@@ -11,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { hasManagePermission } from "@/lib/utils";
 
 interface WorkspaceMemberRowProps {
   member: WorkspaceMemberWithProfile;
@@ -36,11 +38,11 @@ export function WorkspaceMemberRow({
   const getRoleBadgeClass = (role: WorkspaceRole) => {
     switch (role) {
       case "owner":
-        return "bg-amber-500/10 text-amber-500 border border-amber-500/20";
+        return "bg-amber-500/20 text-amber-400 border border-amber-500/30";
       case "admin":
-        return "bg-purple-500/10 text-purple-500 border border-purple-500/20";
+        return "bg-purple-500/20 text-purple-400 border border-purple-500/30";
       case "editor":
-        return "bg-blue-500/10 text-blue-500 border border-blue-500/20";
+        return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
       case "viewer":
       default:
         return "bg-muted text-muted-foreground border border-border";
@@ -49,7 +51,7 @@ export function WorkspaceMemberRow({
 
   const isOwner = member.role === "owner";
   const isSelf = member.email === userEmail;
-  const canManage = currentUserRole === "owner" || currentUserRole === "admin";
+  const canManage = hasManagePermission(currentUserRole);
   const canEditThisMember =
     canManage &&
     !isSelf &&
@@ -64,14 +66,27 @@ export function WorkspaceMemberRow({
   return (
     <div className="flex items-center justify-between gap-2 group relative">
       <div className="flex items-center gap-2.5 min-w-0">
-        <div className="h-7 w-7 rounded-full bg-gradient-to-r from-primary to-purple-600 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-xs shrink-0">
-          {initials}
-        </div>
-        <div className="flex flex-col min-w-0">
-          <span className="text-xs font-bold text-foreground truncate max-w-[120px] sm:max-w-none">
+        {/* eslint-disable @next/next/no-img-element */}
+        {member.avatar_url ? (
+          <img
+            src={getOptimizedAvatarUrl(member.avatar_url, 28)}
+            alt={member.name || member.email}
+            width={28}
+            height={28}
+            loading="lazy"
+            className="h-7 w-7 rounded-full object-cover shrink-0 border border-border/50"
+          />
+        ) : (
+          <div className="h-7 w-7 rounded-full bg-gradient-to-r from-primary to-purple-600 flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-xs shrink-0">
+            {initials}
+          </div>
+        )}
+        {/* eslint-enable @next/next/no-img-element */}
+        <div className="flex flex-col min-w-0 flex-1">
+          <span className="text-xs font-bold text-foreground truncate">
             {member.name || member.email.split("@")[0]}
           </span>
-          <span className="text-[9px] text-muted-foreground truncate max-w-[120px] sm:max-w-none">
+          <span className="text-[9px] text-muted-foreground truncate">
             {member.email}
           </span>
         </div>
@@ -93,6 +108,7 @@ export function WorkspaceMemberRow({
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Member actions"
                 disabled={actionLoadingId !== null}
                 className="h-6 w-6 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer outline-none focus-visible:ring-0"
               >

@@ -66,7 +66,6 @@ export function CreateBoardDialog({
       if (onSuccess) {
         onSuccess();
       }
-      // router.push(`/board/${newBoard.id}`);
     } catch (error: unknown) {
       toast.error(
         (error as Error).message || "Failed to create board. Please try again."
@@ -77,7 +76,7 @@ export function CreateBoardDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} loading={loading}>
       <DialogContent className="w-[95vw] max-w-md rounded-2xl sm:rounded-2xl p-5 sm:p-6 overflow-hidden">
         <DialogHeader>
           <div className="flex items-center gap-2">
