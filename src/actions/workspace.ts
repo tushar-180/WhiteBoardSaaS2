@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireActionAuth, createClient } from "@/utils/supabase/server";
 import { insertWorkspace, deleteWorkspace, bulkDeleteWorkspaces } from "@/services/workspace";
-import { leaveWorkspace, bulkLeaveWorkspaces } from "@/services/member";
+import { bulkLeaveWorkspaces } from "@/services/member";
 import { type Workspace, workspaceSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
 import { getPostHogClient } from "@/lib/posthog-server";

@@ -21,6 +21,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const board = await fetchBoardById(boardId);
   return {
     title: board ? board.name : "Board",
+    description: board
+      ? `Collaborate on the ${board.name} whiteboard in real-time.`
+      : "Collaborative whiteboard canvas.",
   };
 }
 

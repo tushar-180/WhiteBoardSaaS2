@@ -1,6 +1,7 @@
 "use client";
 
 import { MoreVertical, Trash2, Loader2, User, Eye, ShieldAlert } from "lucide-react";
+import { getOptimizedAvatarUrl } from "@/lib/avatar";
 import { Button } from "@/components/ui/button";
 import { type WorkspaceRole, type WorkspaceMemberWithProfile } from "@/types/workspace";
 import {
@@ -36,11 +37,11 @@ export function WorkspaceMemberRow({
   const getRoleBadgeClass = (role: WorkspaceRole) => {
     switch (role) {
       case "owner":
-        return "bg-amber-500/10 text-amber-500 border border-amber-500/20";
+        return "bg-amber-500/20 text-amber-400 border border-amber-500/30";
       case "admin":
-        return "bg-purple-500/10 text-purple-500 border border-purple-500/20";
+        return "bg-purple-500/20 text-purple-400 border border-purple-500/30";
       case "editor":
-        return "bg-blue-500/10 text-blue-500 border border-blue-500/20";
+        return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
       case "viewer":
       default:
         return "bg-muted text-muted-foreground border border-border";
@@ -64,10 +65,14 @@ export function WorkspaceMemberRow({
   return (
     <div className="flex items-center justify-between gap-2 group relative">
       <div className="flex items-center gap-2.5 min-w-0">
+        {/* eslint-disable @next/next/no-img-element */}
         {member.avatar_url ? (
           <img
-            src={member.avatar_url}
+            src={getOptimizedAvatarUrl(member.avatar_url, 28)}
             alt={member.name || member.email}
+            width={28}
+            height={28}
+            loading="lazy"
             className="h-7 w-7 rounded-full object-cover shrink-0 border border-border/50"
           />
         ) : (
@@ -75,6 +80,7 @@ export function WorkspaceMemberRow({
             {initials}
           </div>
         )}
+        {/* eslint-enable @next/next/no-img-element */}
         <div className="flex flex-col min-w-0 flex-1">
           <span className="text-xs font-bold text-foreground truncate">
             {member.name || member.email.split("@")[0]}
@@ -101,6 +107,7 @@ export function WorkspaceMemberRow({
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Member actions"
                 disabled={actionLoadingId !== null}
                 className="h-6 w-6 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer outline-none focus-visible:ring-0"
               >

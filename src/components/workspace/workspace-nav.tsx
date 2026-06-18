@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSettingsStore } from "@/store/settings-store";
 import { signOutAction } from "@/actions/auth";
 import { ROUTES, ASSETS } from "@/lib/constants";
-import { NotificationInbox } from "./notification-inbox";
+
+const NotificationInbox = dynamic(() => import("./notification-inbox").then((m) => ({ default: m.NotificationInbox })), { ssr: false });
 
 interface WorkspaceNavProps {
   userEmail?: string;

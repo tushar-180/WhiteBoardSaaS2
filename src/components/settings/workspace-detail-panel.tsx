@@ -8,6 +8,7 @@ import { MembersTab } from "./members-tab";
 import { InvitesTab } from "./invites-tab";
 import { DangerZoneTab } from "./danger-zone-tab";
 import { cn } from "@/lib/utils";
+import { type WorkspaceRole } from "@/types/workspace";
 
 export function WorkspaceDetailPanel() {
   const { workspaces, user } = useWorkspaceStore();
@@ -55,7 +56,7 @@ export function WorkspaceDetailPanel() {
           {tabs.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveWorkspaceTab(tab.id as any)}
+              onClick={() => setActiveWorkspaceTab(tab.id as "members" | "invites" | "danger")}
               className={cn(
                 "pb-3 text-sm font-medium border-b-2 transition-colors cursor-pointer shrink-0 whitespace-nowrap",
                 activeWorkspaceTab === tab.id
@@ -70,7 +71,7 @@ export function WorkspaceDetailPanel() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 md:p-8">
-        {activeWorkspaceTab === "members" && <MembersTab workspace={workspace} currentUserRole={role as any} />}
+        {activeWorkspaceTab === "members" && <MembersTab workspace={workspace} currentUserRole={role as WorkspaceRole} />}
         {activeWorkspaceTab === "invites" && showInvites && <InvitesTab workspace={workspace} />}
         {activeWorkspaceTab === "danger" && <DangerZoneTab workspace={workspace} isOwner={isOwner} />}
       </div>

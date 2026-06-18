@@ -29,8 +29,8 @@ export function DangerZoneTab({ workspace, isOwner }: { workspace: Workspace, is
       deleteWorkspace(workspace.id);
       setActiveWorkspaceId(null);
       toast.success("Workspace deleted successfully.");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     } finally {
       setIsDeleting(false);
     }
@@ -49,8 +49,8 @@ export function DangerZoneTab({ workspace, isOwner }: { workspace: Workspace, is
       deleteWorkspace(workspace.id);
       setActiveWorkspaceId(null);
       toast.success("Left workspace successfully.");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     } finally {
       setIsLeaving(false);
     }

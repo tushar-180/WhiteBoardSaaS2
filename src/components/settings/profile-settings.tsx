@@ -9,13 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
+import { useSettingsStore } from "@/store/settings-store";
 import { updateProfileAction, uploadAvatarAction } from "@/actions/profile";
 import { UserCircle, Loader2, Camera } from "lucide-react";
 import { updateProfileSchema } from "@/types/profile";
+import { getOptimizedAvatarUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 
 export function ProfileSettings() {
   const { user } = useWorkspaceStore();
+  const { setIsOpen } = useSettingsStore();
   const [isSaving, setIsSaving] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
   const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
@@ -62,8 +65,9 @@ export function ProfileSettings() {
       }
 
       toast.success("Profile updated successfully");
-    } catch (error: any) {
-      toast.error(error.message);
+      setIsOpen(false);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     } finally {
       setIsSaving(false);
     }
@@ -96,7 +100,7 @@ export function ProfileSettings() {
     };
   }, [localPreview]);
 
-  const avatarSrc = localPreview || user?.avatar_url;
+  const avatarSrc = localPreview || getOptimizedAvatarUrl(user?.avatar_url, 96);
 
   return (
     <div className="p-6 md:p-8 max-w-2xl mx-auto w-full">
@@ -113,15 +117,20 @@ export function ProfileSettings() {
               "w-24 h-24 rounded-full overflow-hidden border-2 border-border bg-muted flex items-center justify-center",
               pendingAvatarFile && "ring-2 ring-primary ring-offset-2"
             )}>
+              {/* eslint-disable @next/next/no-img-element */}
               {avatarSrc ? (
                 <img
                   src={avatarSrc}
                   alt="Avatar"
+                  width={96}
+                  height={96}
+                  loading="lazy"
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <UserCircle className="w-12 h-12 text-muted-foreground" />
               )}
+              {/* eslint-enable @next/next/no-img-element */}
             </div>
 
             {/* Upload button */}
@@ -174,7 +183,7 @@ export function ProfileSettings() {
             )}
           </div>
 
-          <Button type="submit" disabled={isSaving}>
+          <Button type="submit" disabled={isSaving || (!form.formState.isDirty && !pendingAvatarFile)}>
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Changes
           </Button>

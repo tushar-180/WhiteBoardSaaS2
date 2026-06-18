@@ -26,8 +26,8 @@ export function AccountSettings() {
       const supabase = createClient();
       await supabase.auth.signOut();
       router.push("/auth/login");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to sign out");
+    } catch (error: unknown) {
+      toast.error((error as Error).message || "Failed to sign out");
     } finally {
       setIsSigningOut(false);
     }
@@ -48,8 +48,8 @@ export function AccountSettings() {
       const supabase = createClient();
       await supabase.auth.signOut();
       router.push("/login");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     } finally {
       setIsDeleting(false);
     }

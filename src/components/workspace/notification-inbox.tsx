@@ -50,22 +50,34 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch invites/notifications
-  const fetchInvites = useCallback(async () => {
-    // Prevent double-fetching in React Strict Mode
-    if (useNotificationStore.getState().isLoading) return;
+  const fetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fetchingRef = useRef(false);
 
-    setLoading(true);
+  // Fetch invites/notifications with debounce to coalesce rapid calls
+  const fetchInvites = useCallback(async (skipLoading = false) => {
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
+    if (!skipLoading) setLoading(true);
     try {
       const list = await getUserNotificationsAction();
-      
       setInvites(list);
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
     } finally {
-      setLoading(false);
+      fetchingRef.current = false;
+      if (!skipLoading) setLoading(false);
     }
   }, [setInvites, setLoading]);
+
+  const debouncedFetchInvites = useCallback(() => {
+    if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
+    fetchTimeoutRef.current = setTimeout(() => fetchInvites(true), 2000);
+  }, [fetchInvites]);
+
+  const debouncedFetchRef = useRef(debouncedFetchInvites);
+  useEffect(() => {
+    debouncedFetchRef.current = debouncedFetchInvites;
+  }, [debouncedFetchInvites]);
 
   // Track invites in a ref to check deleted ID without re-subscribing
   const invitesRef = useRef(invites);
@@ -73,9 +85,12 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
     invitesRef.current = invites;
   }, [invites]);
 
+  // Fetch notifications on mount
   useEffect(() => {
     fetchInvites();
+  }, [fetchInvites]);
 
+  useEffect(() => {
     // Subscribe to realtime database changes for workspace_invites sent to or created by this user
     const supabase = createClient();
     const cleanEmail = userEmail.toLowerCase().trim();
@@ -111,14 +126,12 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
             const isCreatedByMatch = userId && updated.created_by === userId;
 
             if (isCreatedByMatch) {
-              // The inviter needs to fetch the new accepted/rejected status card
-              fetchInvites();
+              debouncedFetchRef.current();
             } else if (isTargetEmailMatch) {
-              // The invitee accepted/declined it, so it's no longer pending. Remove it from their incoming list
               if (updated.status !== "pending") {
                 removeInvite(updated.id);
               } else {
-                fetchInvites();
+                debouncedFetchRef.current();
               }
             }
           } else if (payload.eventType === "INSERT") {
@@ -126,7 +139,7 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
             const isTargetEmailMatch = inserted.email?.toLowerCase().trim() === cleanEmail;
             const isCreatedByMatch = userId && inserted.created_by === userId;
             if (isTargetEmailMatch || isCreatedByMatch) {
-              fetchInvites();
+              debouncedFetchRef.current();
             }
           }
         }
@@ -136,9 +149,12 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
       });
 
     return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
       supabase.removeChannel(channel);
     };
-  }, [userEmail, userId, fetchInvites, removeInvite]);
+  }, [userEmail, userId, removeInvite]);
 
   const handleAccept = async (inviteId: string, token: string) => {
     setActionLoadingId(`${inviteId}-accept`);
@@ -162,6 +178,7 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
       await rejectInviteAction(token);
       toast.success("Invitation declined.");
       removeInvite(inviteId);
+    
       router.refresh();
     } catch (err: unknown) {
       toast.error((err as Error).message || "Failed to decline invitation.");

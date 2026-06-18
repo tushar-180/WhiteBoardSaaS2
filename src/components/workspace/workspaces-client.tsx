@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Plus, ArrowLeft } from "lucide-react";
 import posthog from "posthog-js";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "./empty-state";
 import { WorkspaceList } from "./workspace-list";
-import { CreateWorkspaceDialog } from "./dialogs/create-workspace-dialog";
 import { type Workspace } from "@/types/workspace";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
+
+const CreateWorkspaceDialog = dynamic(() => import("./dialogs/create-workspace-dialog").then((m) => ({ default: m.CreateWorkspaceDialog })), { ssr: false });
 
 interface WorkspacesClientProps {
   initialWorkspaces: Workspace[];
@@ -42,7 +44,7 @@ export function WorkspacesClient({
     });
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
-  }, [initialWorkspaces, userId, userEmail, userName]);
+  }, [initialWorkspaces, userId, userEmail, userName, userAvatarUrl]);
 
   const storeWorkspaces = useWorkspaceStore((state) => state.workspaces);
   const storeUser = useWorkspaceStore((state) => state.user);
@@ -123,7 +125,9 @@ export function WorkspacesClient({
         )}
 
         {/* Modal Dialog for creating workspaces */}
-        <CreateWorkspaceDialog open={open} onOpenChange={setOpen} />
+        <Suspense fallback={null}>
+          <CreateWorkspaceDialog open={open} onOpenChange={setOpen} />
+        </Suspense>
       </main>
     </>
   );

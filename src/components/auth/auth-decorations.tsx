@@ -15,14 +15,14 @@ export function AuthDecorations() {
       {/* Decorative Floating Multiplayer Cursors (Desktop only) */}
       <div className="hidden lg:flex absolute top-[20%] left-[15%] items-center gap-1.5 animate-bounce" style={{ animationDuration: '6s' }}>
         <MousePointer className="h-5 w-5 text-indigo-500 fill-indigo-500 transform -rotate-90 filter drop-shadow-xs" />
-        <div className="rounded-lg bg-indigo-500 px-2 py-1 text-[10px] font-bold text-white shadow-md border border-indigo-400/20 whitespace-nowrap select-none">
+        <div className="rounded-lg bg-indigo-700 px-2 py-1 text-[10px] font-bold text-white shadow-md border border-indigo-400/20 whitespace-nowrap select-none">
           Emma is sketching...
         </div>
       </div>
 
       <div className="hidden lg:flex absolute bottom-[22%] right-[15%] items-center gap-1.5 animate-bounce" style={{ animationDuration: '8s' }}>
         <MousePointer className="h-5 w-5 text-emerald-500 fill-emerald-500 transform -rotate-90 filter drop-shadow-xs" />
-        <div className="rounded-lg bg-emerald-500 px-2 py-1 text-[10px] font-bold text-white shadow-md border border-emerald-400/20 whitespace-nowrap select-none">
+        <div className="rounded-lg bg-emerald-700 px-2 py-1 text-[10px] font-bold text-white shadow-md border border-emerald-400/20 whitespace-nowrap select-none">
           Lucas connected
         </div>
       </div>
@@ -32,14 +32,14 @@ export function AuthDecorations() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-yellow-400" />
-            <span className="text-[10px] font-bold text-yellow-600 dark:text-yellow-400 uppercase tracking-wider">Demo Access</span>
+            <span className="text-[10px] font-bold text-yellow-700 dark:text-yellow-300 uppercase tracking-wider">Demo Access</span>
           </div>
           <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
         </div>
-        <p className="text-[12px] text-yellow-900 dark:text-yellow-100 font-semibold leading-relaxed font-sans">
+        <p className="text-[12px] text-yellow-950 dark:text-yellow-100 font-semibold leading-relaxed font-sans">
           You can use any test email & password to sign up. Zentrox runs in sandbox mode for developers.
         </p>
-        <span className="text-[9px] text-yellow-600/70 dark:text-yellow-400/50 font-bold self-end">#sandbox-ready</span>
+        <span className="text-[9px] text-yellow-700 dark:text-yellow-300 font-bold self-end">#sandbox-ready</span>
       </div>
 
       {/* Sketchy connecting arrow from Sticky Note to Form (Desktop only) */}

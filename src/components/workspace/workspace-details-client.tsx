@@ -30,10 +30,7 @@ interface WorkspaceDetailsClientProps {
   initialMembers: WorkspaceMemberWithProfile[];
   initialInvites: WorkspaceInvite[];
   currentUserRole: WorkspaceRole;
-  userId: string;
   userEmail?: string;
-  userName: string;
-  userAvatarUrl?: string | null;
   initialWorkspaces: Workspace[];
 }
 
@@ -43,10 +40,7 @@ export function WorkspaceDetailsClient({
   initialMembers,
   initialInvites,
   currentUserRole,
-  userId,
   userEmail,
-  userName,
-  userAvatarUrl,
   initialWorkspaces,
 }: WorkspaceDetailsClientProps) {
   const [boardOpen, setBoardOpen] = useState(false);
@@ -66,18 +60,11 @@ export function WorkspaceDetailsClient({
     });
     useWorkspaceStore.setState((state) => ({
       workspaces: state.workspaces.length > 0 ? state.workspaces : initialWorkspaces,
-      user:
-        state.user || {
-          id: userId,
-          email: userEmail || "",
-          name: userName || "User",
-          avatar_url: userAvatarUrl ?? null,
-        },
     }));
     setTimeout(() => {
       setIsMounted(true);
     }, 0);
-  }, [initialBoards, initialMembers, initialInvites, workspace, userId, userEmail, userName, userAvatarUrl, initialWorkspaces]);
+  }, [initialBoards, initialMembers, initialInvites, workspace, initialWorkspaces]);
 
   const boards = useBoardStore((state) => state.boards);
 
@@ -182,9 +169,9 @@ export function WorkspaceDetailsClient({
           <div className={`lg:col-span-1 space-y-6 lg:border-l lg:border-border/40 lg:pl-8 overflow-y-auto pr-1.5 pb-4 min-h-0 shrink-0 lg:shrink ${mobileTab === "settings" ? "block" : "hidden lg:block"}`}>
             {/* Workspace Info Card */}
             <div className="rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur-xs space-y-4">
-              <h3 className="text-sm font-bold text-foreground">
+              <h2 className="text-sm font-bold text-foreground">
                 Workspace Info
-              </h3>
+              </h2>
               <div className="space-y-3 text-xs">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Hash className="h-4 w-4 shrink-0 text-primary/70" />

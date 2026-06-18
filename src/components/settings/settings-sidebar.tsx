@@ -27,7 +27,7 @@ export function SettingsSidebar() {
       </div>
       
       {/* Nav items - horizontal scroll on mobile, vertical on desktop */}
-      <nav className="flex md:flex-col justify-center md:justify-start overflow-x-auto md:overflow-y-auto gap-6 md:gap-1 px-4 md:px-0 py-2 md:py-0 md:flex-1 scrollbar-none">
+      <nav className="flex md:flex-col justify-start overflow-x-auto md:overflow-y-auto gap-1 md:gap-1 px-2 sm:px-4 md:px-0 py-2 md:py-0 md:flex-1 scrollbar-none">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -36,14 +36,15 @@ export function SettingsSidebar() {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={cn(
-                "flex items-center justify-center md:w-full md:justify-start gap-0 md:gap-3 p-2 md:px-3 md:py-2.5 rounded-md text-sm font-medium transition-colors cursor-pointer shrink-0",
+                "flex flex-col md:flex-row items-center justify-center md:w-full md:justify-start gap-0.5 md:gap-3 p-1 md:px-3 md:py-2.5 rounded-md text-xs md:text-sm font-medium transition-colors cursor-pointer shrink-0 min-w-12 md:min-w-0",
                 isActive
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
-              <Icon className={cn("w-5 h-5 md:w-4 md:h-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
-              <span className="hidden md:inline text-xs md:text-sm">{item.label}</span>
+              <Icon className={cn("w-4 h-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
+              <span className="text-[10px] leading-tight md:text-xs md:text-sm md:hidden">{item.label}</span>
+              <span className="hidden md:inline">{item.label}</span>
             </button>
           );
         })}

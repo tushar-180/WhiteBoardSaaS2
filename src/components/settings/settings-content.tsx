@@ -24,7 +24,7 @@ export function SettingsContent() {
         <X className="w-5 h-5" />
       </Button>
 
-      <div className="flex-1 overflow-y-auto w-full">
+      <div className="flex-1 overflow-y-auto w-full px-4 md:px-0">
         {activeTab === "profile" && <ProfileSettings />}
         
         {activeTab === "workspaces" && (

@@ -7,6 +7,7 @@ import { getWorkspaceMembersAction, bulkRemoveMembersAction, updateMemberRoleAct
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { getOptimizedAvatarUrl } from "@/lib/avatar";
 import { UserCircle, Trash2, Loader2, ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -62,8 +63,8 @@ export function MembersTab({ workspace, currentUserRole }: { workspace: Workspac
       setMembers(prev => prev.filter(m => !selectedIds.includes(m.id)));
       setSelectedIds([]);
       toast.success(`${selectedIds.length} member(s) removed.`);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     } finally {
       setIsRemoving(false);
     }
@@ -74,8 +75,8 @@ export function MembersTab({ workspace, currentUserRole }: { workspace: Workspac
       await updateMemberRoleAction(workspace.id, memberId, newRole);
       setMembers(prev => prev.map(m => m.id === memberId ? { ...m, role: newRole } : m));
       toast.success("Role updated successfully.");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     }
   };
 
@@ -128,11 +129,13 @@ export function MembersTab({ workspace, currentUserRole }: { workspace: Workspac
                   <td className="p-3 sm:p-4">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0 border border-border/50">
+                        {/* eslint-disable @next/next/no-img-element */}
                         {member.avatar_url ? (
-                          <img src={member.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                          <img src={getOptimizedAvatarUrl(member.avatar_url, 32)} alt="Avatar" width={32} height={32} loading="lazy" className="w-full h-full object-cover" />
                         ) : (
                           <UserCircle className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                         )}
+                        {/* eslint-enable @next/next/no-img-element */}
                       </div>
                       <div className="min-w-0">
                         <p className="font-medium text-sm truncate max-w-[100px] sm:max-w-none">{member.name || "Unknown"}</p>

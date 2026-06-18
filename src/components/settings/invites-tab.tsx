@@ -71,8 +71,8 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
       setInvites(prev => prev.filter(i => !selectedIds.includes(i.id)));
       setSelectedIds([]);
       toast.success(`${selectedIds.length} invite(s) revoked.`);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     } finally {
       setIsRevoking(false);
     }
@@ -99,8 +99,8 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
       // Reload invites
       const data = await getPendingInvitesAction(workspace.id);
       setInvites(data);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     } finally {
       setIsInviting(false);
     }

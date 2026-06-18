@@ -1,7 +1,9 @@
 import { requireAuth } from "@/utils/supabase/server";
 import { fetchProfileById } from "@/services/profile";
 import { WorkspaceNav } from "@/components/workspace/workspace-nav";
-import { SettingsModal } from "@/components/settings/settings-modal";
+import dynamic from "next/dynamic";
+
+const SettingsModal = dynamic(() => import("@/components/settings/settings-modal").then((m) => ({ default: m.SettingsModal })));
 
 export default async function WorkspacesLayout({
   children,

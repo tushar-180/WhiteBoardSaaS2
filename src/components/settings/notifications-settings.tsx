@@ -32,8 +32,8 @@ export function NotificationsSettings() {
       await acceptInviteAction(token);
       setNotifications(prev => prev.filter(n => n.token !== token));
       toast.success("Joined workspace successfully.");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     }
   };
 
@@ -42,8 +42,8 @@ export function NotificationsSettings() {
       await rejectInviteAction(token);
       setNotifications(prev => prev.filter(n => n.token !== token));
       toast.success("Invitation rejected.");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     }
   };
 
@@ -51,8 +51,8 @@ export function NotificationsSettings() {
     try {
       await dismissNotificationAction(id);
       setNotifications(prev => prev.filter(n => n.id !== id));
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     }
   };
 
@@ -74,7 +74,7 @@ export function NotificationsSettings() {
         {incoming.length === 0 && outgoingStatuses.length === 0 ? (
           <div className="text-center py-12 flex flex-col items-center justify-center text-muted-foreground border border-border/50 rounded-lg bg-muted/20">
             <Bell className="w-12 h-12 mb-4 opacity-50" />
-            <p>You're all caught up!</p>
+            <p>You&apos;re all caught up!</p>
             <p className="text-sm mt-1">No new notifications.</p>
           </div>
         ) : null}

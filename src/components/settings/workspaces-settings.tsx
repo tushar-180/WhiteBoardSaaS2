@@ -60,8 +60,8 @@ export function WorkspacesSettings() {
       idsToDelete.forEach(id => deleteWorkspace(id));
       setSelectedIds(prev => prev.filter(id => !idsToDelete.includes(id)));
       toast.success(`${idsToDelete.length} workspace(s) deleted successfully.`);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     } finally {
       setIsDeleting(false);
     }
@@ -84,8 +84,8 @@ export function WorkspacesSettings() {
       idsToLeave.forEach(id => deleteWorkspace(id));
       setSelectedIds(prev => prev.filter(id => !idsToLeave.includes(id)));
       toast.success(`Left ${idsToLeave.length} workspace(s) successfully.`);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
     } finally {
       setIsLeaving(false);
     }

@@ -9,7 +9,7 @@ export const ROUTES = {
 } as const;
 
 export const ASSETS = {
-  LOGO: "/logo.png",
+  LOGO: "/logo.webp",
 } as const;
 
 export const DEFAULT_REDIRECTS = {
