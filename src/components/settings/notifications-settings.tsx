@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import { getUserNotificationsAction, dismissNotificationAction, acceptInviteAction, rejectInviteAction } from "@/actions/invite";
 import { type WorkspaceInviteWithWorkspace } from "@/types/workspace";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Loader2, Bell, Check, X, Building } from "lucide-react";
+import { Loader2, Bell, Check, ArrowRight, X, Building, Clock } from "lucide-react";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
+import { formatRelativeTime } from "@/lib/utils";
 
 export function NotificationsSettings() {
+  const router = useRouter();
   const { user } = useWorkspaceStore();
   const [notifications, setNotifications] = useState<WorkspaceInviteWithWorkspace[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,11 +30,22 @@ export function NotificationsSettings() {
     loadNotifications();
   }, []);
 
-  const handleAccept = async (token: string) => {
+  const handleAcceptOnly = async (token: string) => {
     try {
       await acceptInviteAction(token);
       setNotifications(prev => prev.filter(n => n.token !== token));
       toast.success("Joined workspace successfully.");
+    } catch (error: unknown) {
+      toast.error((error as Error).message);
+    }
+  };
+
+  const handleAcceptAndJoin = async (token: string) => {
+    try {
+      const workspaceId = await acceptInviteAction(token);
+      setNotifications(prev => prev.filter(n => n.token !== token));
+      toast.success("Joined workspace successfully.");
+      router.push(`/workspaces/${workspaceId}`);
     } catch (error: unknown) {
       toast.error((error as Error).message);
     }
@@ -93,13 +107,20 @@ export function NotificationsSettings() {
                       <Building className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="capitalize">{invite.role}</span>
                     </div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground/60 flex items-center gap-1 mt-0.5">
+                      <Clock className="w-3 h-3" />
+                      {formatRelativeTime(invite.created_at)}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                     <Button variant="outline" size="sm" onClick={() => handleReject(invite.token)} className="flex-1 sm:flex-initial text-xs sm:text-sm">
                       <X className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Decline
                     </Button>
-                    <Button size="sm" onClick={() => handleAccept(invite.token)} className="flex-1 sm:flex-initial text-xs sm:text-sm">
+                    <Button size="sm" variant="secondary" onClick={() => handleAcceptOnly(invite.token)} className="flex-1 sm:flex-initial text-xs sm:text-sm">
                       <Check className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Accept
+                    </Button>
+                    <Button size="sm" onClick={() => handleAcceptAndJoin(invite.token)} className="flex-1 sm:flex-initial text-xs sm:text-sm">
+                      <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Accept &amp; Join
                     </Button>
                   </div>
                 </div>
@@ -117,6 +138,10 @@ export function NotificationsSettings() {
                   <div className="min-w-0">
                     <p className="text-sm font-medium break-words">
                       <span className="font-bold">{invite.invitee_name}</span> {invite.status === "accepted" ? "accepted" : "declined"} your invitation to <span className="font-bold">{invite.workspace_name}</span>.
+                    </p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground/60 flex items-center gap-1 mt-0.5">
+                      <Clock className="w-3 h-3" />
+                      {formatRelativeTime(invite.created_at)}
                     </p>
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => handleDismiss(invite.id)} className="shrink-0 text-muted-foreground hover:text-foreground">

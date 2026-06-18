@@ -20,14 +20,14 @@ export async function fetchInviteByToken(
   if (inviteError) {
     // No rows returned – treat as not found rather than a DB failure
     if (inviteError.code === "PGRST116") {
-      console.warn("Invite not found (no pending record) for token:", token);
+      console.warn("Invite not found or no longer pending.");
       return null;
     }
     console.error("Database error in fetchInviteByToken:", inviteError);
     return null;
   }
   if (!invite) {
-    console.warn("Invite not found for token:", token);
+    console.warn("Invite data missing after query.");
     return null;
   }
 

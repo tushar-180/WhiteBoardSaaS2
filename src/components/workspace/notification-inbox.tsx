@@ -156,8 +156,21 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
     };
   }, [userEmail, userId, removeInvite]);
 
-  const handleAccept = async (inviteId: string, token: string) => {
+  const handleAcceptOnly = async (inviteId: string, token: string) => {
     setActionLoadingId(`${inviteId}-accept`);
+    try {
+      await acceptInviteAction(token);
+      toast.success("Invitation accepted successfully!");
+      removeInvite(inviteId);
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Failed to accept invitation.");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleAcceptAndJoin = async (inviteId: string, token: string) => {
+    setActionLoadingId(`${inviteId}-accept-join`);
     try {
       const workspaceId = await acceptInviteAction(token);
       toast.success("Invitation accepted successfully!");
@@ -248,15 +261,15 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
                 <p className="text-[10px] opacity-75">No new notifications.</p>
               </div>
             ) : (
-              invites.map((invite) => (
-                <NotificationItem
-                  key={invite.id}
-                  invite={invite}
-                  actionLoadingId={actionLoadingId}
-                  handleAccept={handleAccept}
-                  handleReject={handleReject}
-                  handleDismiss={handleDismiss}
-                />
+              invites.map((invite) => (                  <NotificationItem
+                    key={invite.id}
+                    invite={invite}
+                    actionLoadingId={actionLoadingId}
+                    handleAccept={handleAcceptOnly}
+                    handleAcceptAndJoin={handleAcceptAndJoin}
+                    handleReject={handleReject}
+                    handleDismiss={handleDismiss}
+                  />
               ))
             )}
           </div>
