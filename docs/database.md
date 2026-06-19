@@ -15,12 +15,21 @@ The app uses `@supabase/ssr` clients from `src/utils/supabase/`:
 3. **Proxy middleware:** `createMiddlewareClient` from `src/utils/supabase/server.ts`, consumed by `src/proxy.ts`
 
 The current service layer:
+- `src/services/profile.ts` — reads public profile rows by user id.
+- `src/services/workspace.ts` — reads, creates, and deletes workspaces.
+- `src/services/board.ts` — reads, creates, updates, and deletes boards.
+- `src/services/member.ts` — manages workspace members (list, add, remove, update role).
+- `src/services/invite.ts` — manages workspace invites (create, accept, revoke, list).
+- `src/services/email.ts` — sends transactional emails via SendGrid for workspace invites.
 
-- `src/services/profile.ts` reads public profile rows by user id.
-- `src/services/workspace.ts` reads, creates, and deletes workspaces.
-- `src/actions/workspace.ts` performs auth checks, validation, and cache revalidation before calling the workspace service layer.
-- `src/services/board.ts` reads, creates, updates, and deletes boards.
-- `src/actions/board.ts` performs auth checks, workspace access validation, data schema verification, and cache revalidation before calling the board service layer.
+The corresponding Server Actions layer:
+- `src/actions/workspace.ts` — auth checks, validation, cache revalidation for workspace operations.
+- `src/actions/board.ts` — auth checks, workspace access validation, cache revalidation for board operations.
+- `src/actions/member.ts` — member CRUD and role management.
+- `src/actions/invite.ts` — invite creation, acceptance, revocation.
+- `src/actions/profile.ts` — profile updates and preferences.
+- `src/actions/settings.ts` — settings-related mutations.
+- `src/actions/auth.ts` — sign out and auth utility actions.
 
 ---
 
@@ -113,8 +122,8 @@ Stores pending or completed invitations to join a workspace. Enabled for Supabas
 | `created_by` | `uuid` |  |
 | `accepted_by` | `uuid` | Nullable |
 | `role` | `WorkspaceRole` |  |
-| `inviter_seen` | `boolean` | Default false |
-| `created_at` | `timestamptz` | Default `now()`, Not Null |
+| `inviter_seen` | `boolean` | Default `false` |
+| `created_at` | `timestamptz` | Default `now()`, Not Null (fixed via migration) |
 
 ## Table `boards`
 
@@ -137,7 +146,10 @@ Boards live inside a workspace. The drawing/canvas state is stored in `canvas_da
 
 ## Current Implementation Notes
 
-- Workspace creation inserts a row in `workspaces`.
-- Workspace creation also inserts an owner row in `workspace_members`.
-- Boards are typed and fully managed (CRUD operations completed) via server actions and supabase services. Canvas persistence is fully implemented: `boards.canvas_data` is saved via the sync server's autosave loop and can be manually saved via `updateBoardCanvasAction`.
+- Workspace creation inserts a row in `workspaces` **and** an owner row in `workspace_members` in a single action.
+- Boards are typed and fully managed via server actions and supabase services.
+- Canvas persistence is fully implemented: `boards.canvas_data` is saved via the sync server's autosave loop and can be manually saved via `updateBoardCanvasAction`.
 - `canvas_data` is the single JSONB storage field for board drawing state.
+- `workspace_invites.inviter_seen` is used to track whether the inviter has seen the accepted invite notification (enables real-time notifications).
+- `workspace_invites.created_at` now has a proper `DEFAULT now()` constraint (added via migration `20260618160000`) and is guaranteed non-null.
+- Supabase Realtime is enabled for `workspace_invites` and `workspace_members` tables to support live notifications and access revocation detection.

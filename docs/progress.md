@@ -165,7 +165,7 @@ Stage 10 -> Codebase Audit and Polish
 - [x] Add `created_at` column to `workspace_invites` table (was missing from database — created migration to add column with default and backfill).
 - [x] Fix font preload warning in layout (moved `font-sans` to `<html>` for earlier inheritance).
 - [x] Fix Sent At column visibility (hidden on mobile, fixes incorrect removal of `hidden sm:table-cell`).
-- [x] Update all documentation (DATABASE.md, DEPLOYMENT.md, PHASES.md, Whiteboard.md, timestamp.md).
+- [x] Update all documentation (docs/database.md, docs/deployment.md, docs/phases.md, docs/whiteboard.md, docs/progress.md).
 
 ## Later / Optional
 

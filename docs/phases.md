@@ -4,20 +4,22 @@ This document defines the current build phases for Zentrox. It replaces the olde
 
 Reference docs:
 - [README.md](../README.md)
-- [DATABASE.md](DATABASE.md)
+- [database.md](database.md)
 
 ---
 
 ## Current Tech Stack
 
-- **Frontend:** Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, shadcn/ui, Radix primitives, lucide-react, Sonner
-- **State, Forms, Validation:** Zustand, React Hook Form, Zod, `@hookform/resolvers`
+- **Frontend:** Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, shadcn/ui, Aceternity UI, Radix primitives, lucide-react, Sonner, Motion (animations)
+- **State, Forms, Validation:** Zustand, React Hook Form, Zod 4.4.3, `@hookform/resolvers`
 - **Backend:** Next.js Server Actions, Route Handlers, Supabase SSR SDK
 - **Database:** Supabase PostgreSQL
-- **Canvas:** tldraw whiteboard with `boards.canvas_data` persistence and role-based read-only mode
-- **Analytics:** PostHog (client + server)
-- **Email:** SendGrid (transactional emails)
-- **Sync Server:** tldraw sync backend (WebSocket) for real-time collaboration
+- **Canvas:** tldraw 5.1.0 with `boards.canvas_data` persistence, role-based read-only mode, and real-time multi-user sync via `@tldraw/sync` / `@tldraw/sync-core`
+- **Analytics & Monitoring:** PostHog (client: posthog-js, server: posthog-node), @vercel/analytics, @vercel/speed-insights
+- **Email:** SendGrid (@sendgrid/mail) — transactional emails for workspace invites
+- **Sync Server:** tldraw sync backend (WebSocket) deployed to Render
+- **Testing:** Vitest, @testing-library/react, jsdom (284 tests, 26 files)
+- **Additional:** next-themes (dark mode), simplex-noise (UI effects), tw-animate-css (animations)
 
 Not in the current scope: comments, AI diagram generation, AI chat, or a large realtime architecture.
 
@@ -139,20 +141,24 @@ erDiagram
 
 - Real-time notification inbox for workspace activities (e.g. invites).
 - Supabase Realtime subscriptions for `workspace_invites` and `workspace_members`.
-- Refactored and modularized invite management UI (`InviteMemberDialog`, `workspace-invites-list`).
+- `useNotificationStore` Zustand store for managing global notification state.
+- `inviter_seen` field on `workspace_invites` to track accepted invite notifications.
+- Refactored and modularized invite management UI (`InviteMemberDialog` with `invite-form`, `invite-success`, `invite-suggestions`).
 - Enhanced whiteboard access control with real-time revocation monitoring (`KickedOverlay`).
 - New reusable UI components: `DropdownMenu`, `Pagination`.
+- `WorkspaceMemberRow` component extracted for role management.
 
 ## Phase 9: SEO, Accessibility, and Codebase Polish ✅
 
 **Goal:** Improve search engine visibility, enhance accessibility, and resolve strict compiler/linter warnings.
 
 - Dynamic `sitemap.ts` and `robots.ts` for SEO.
-- Aceternity UI components (`HoverBorderGradient`) integrated into landing page.
+- Aceternity UI components (`HoverBorderGradient`, `WavyBackground`, `GlowingStars`, `Meteors`) integrated into landing pages.
 - Accessibility (A11y) enhancements: improved contrast, ARIA labels, and touch targets.
 - Resolution of React 19 / Next.js 15 compiler warnings (`react-hooks/purity`, `set-state-in-effect`).
-- Strict typing compliance (`any` replaced with `unknown`).
+- Strict typing compliance (`any` → `unknown`).
 - Fixed unescaped HTML entities in legal pages and empty states.
+- Added `AnimatedThemeToggler` for dark/light mode.
 
 ## Phase 10: Codebase Audit and Polish ✅
 
@@ -174,6 +180,12 @@ erDiagram
 - Added profile search suggestions to invites tab (debounced, shows registered users).
 - Added Radix `DialogDescription` to settings modal for accessibility compliance.
 - Created migration to add `created_at` column to `workspace_invites` with proper defaults.
+- **Settings modal** with tabbed UI: Profile, Workspaces, Notifications, Appearance, Account, Members, Invites.
+- **PostHog analytics** integrated at both client and server levels.
+- **Comprehensive test suite** — 284 tests across 26 files covering all critical paths.
+- **Performance monitoring** via @vercel/speed-insights.
+- **Error boundary** added for whiteboard canvas crash protection.
+- All documentation (database.md, deployment.md, phases.md, whiteboard.md, progress.md, code-review-report.md) audited and updated.
 
 ---
 

@@ -28,17 +28,19 @@ Save and restore board canvas_data
 
 ## 2. Tech Stack
 
-- **Framework:** Next.js 16 App Router, React 19, TypeScript
-- **Styling:** Tailwind CSS v4, shadcn/ui, Radix primitives
+- **Framework:** Next.js 16 App Router (Turbopack), React 19, TypeScript
+- **Styling:** Tailwind CSS v4, shadcn/ui, Aceternity UI, Radix primitives, Motion (animations), tw-animate-css
 - **Icons and Feedback:** lucide-react, Sonner
-- **Client State:** Zustand
-- **Forms and Validation:** React Hook Form, Zod, `@hookform/resolvers`
+- **Client State:** Zustand (6 stores: workspace, board, member, notification, whiteboard, settings)
+- **Forms and Validation:** React Hook Form, Zod 4.4.3, `@hookform/resolvers`
 - **Backend:** Next.js Server Actions and Route Handlers
 - **Database/Auth:** Supabase SSR SDK and Supabase PostgreSQL
-- **Canvas:** tldraw whiteboard with `useSync` for real-time multi-user collaboration
-- **Analytics:** PostHog (client + server via `posthog-js` and `posthog-node`)
-- **Email:** SendGrid (transactional emails for workspace invites)
-- **Sync Server:** tldraw sync backend (WebSocket server via `@tldraw/sync`, `@tldraw/sync-core`)
+- **Canvas:** tldraw 5.1.0 with `useSync` for real-time multi-user collaboration
+- **Analytics & Monitoring:** PostHog (client: posthog-js, server: posthog-node), @vercel/analytics, @vercel/speed-insights
+- **Email:** SendGrid (@sendgrid/mail) — transactional emails for workspace invites
+- **Sync Server:** tldraw sync backend (WebSocket server via `@tldraw/sync`, `@tldraw/sync-core`) deployed to Render
+- **Testing:** Vitest, @testing-library/react, jsdom (284 tests, 26 files)
+- **Additional:** next-themes (dark mode), simplex-noise (UI effects)
 
 Redux Toolkit is not part of the current architecture.
 
@@ -121,8 +123,8 @@ The board details and workspace list Zustand stores are `src/store/use-board-sto
 ```
 
 The whiteboard canvas collaboration and persistence runtime flow:
-1. **User Auth Fetch**: The server component (`page.tsx` + `requireAuth()`) queries the Supabase database for the logged-in user profile's display name, formulating a synchronous `currentUser` object.
-2. **Props Threading**: `currentUser` is passed down as props to `<WhiteboardEditor>` and then `<WhiteboardCanvas>`, enabling instant preference hydration and preventing client-side loading flashes or validation errors.
+1. **User Auth Fetch**: The server component (`page.tsx` + `requireAuth()`) queries the Supabase database for the logged-in user profile's display name and workspace members, formulating `currentUser` and `initialMembers` objects.
+2. **Props Threading**: `currentUser` and `initialMembers` are passed down to `<WhiteboardEditor>` then `<WhiteboardCanvas>`, enabling instant preference and member store hydration.
 3. **Connection**: `WhiteboardCanvas` uses `@tldraw/sync`'s `useSync` hook to connect to the sync server (`ws://localhost:8787/boards/:boardId?token=JWT`).
 4. **Auth & Authorization**: The WebSocket server validates the Supabase JWT token, confirms the board and workspace exist, and verifies user membership.
 5. **Load**: When the first client connects, the sync server loads `boards.canvas_data`, converts it to a `RoomSnapshot`, and creates a `TLSocketRoom` room.
@@ -132,6 +134,8 @@ The whiteboard canvas collaboration and persistence runtime flow:
 9. **Indicators**: The client receives server-broadcasted `"autosave:saving"`, `"autosave:saved"`, and `"autosave:error"` custom messages to transition the header status badges cleanly.
 10. **Cleanup**: When the last user disconnects, the server saves the final room snapshot to Supabase and shuts down the room. Signal handlers (`SIGTERM`, `SIGINT`) persist active rooms on shutdown.
 11. **Manual Save**: The manual save fallback remains available on the client using the `updateBoardCanvasAction` server action.
+12. **Real-Time Access Revocation**: The `KickedOverlay` component monitors `workspace_members` Realtime changes and shows a kicked screen if the user's membership is revoked mid-session.
+13. **Collaborator Presence**: `EditorHeader` shows a live avatar stack of active collaborators. The `useCollaboratorNotifications` hook manages join/leave toast notifications.
 
 ---
 
@@ -145,7 +149,7 @@ The current database has five application tables:
 - `workspace_invites`
 - `boards`
 
-See [DATABASE.md](DATABASE.md) for the exact table columns.
+See [database.md](database.md) for the exact table columns.
 
 ---
 
@@ -164,7 +168,7 @@ Phase 9 -> SEO, Accessibility, and Codebase Polish
 Phase 10 -> Codebase Audit and Polish
 ```
 
-See [PHASES.md](PHASES.md) and [timestamp.md](timestamp.md) for the current task breakdown.
+See [phases.md](phases.md) and [progress.md](progress.md) for the current task breakdown.
 
 ---
 
@@ -172,23 +176,31 @@ See [PHASES.md](PHASES.md) and [timestamp.md](timestamp.md) for the current task
 
 ```txt
 src/
-├── actions/              # Server Actions
-├── app/                  # Next.js App Router pages and route handlers
+├── actions/              # Server Actions (auth, board, invite, member, workspace, profile, settings)
+├── app/                  # Next.js App Router (layouts, pages, route handlers)
+│   ├── (auth)/           # Login, register, forgot-password, reset-password, link-expired
+│   ├── (landing)/        # Home, about, contact, features, pricing, privacy, terms
+│   └── (protected)/      # Workspaces, boards, invite pages (behind auth middleware)
 ├── components/
-│   ├── auth/             # Login/register UI
-│   ├── landing/          # Landing page UI
-│   ├── ui/               # shadcn/ui components
-│   ├── whiteboard/       # Whiteboard canvas wrapper and sub-modules
+│   ├── auth/             # Auth UI (login-form, forgot-password-form, reset-password-form, etc.)
+│   ├── board/            # Board cards, lists, form dialogs (create, edit, delete)
+│   ├── landing/          # Landing page (hero, features, footer, navbar, mockup, lazy-sections)
+│   ├── shared/           # Shared components (error-boundary, unauthorized-access)
+│   ├── settings/         # Settings modal (profile, workspaces, notifications, appearance, account, members, invites)
+│   ├── ui/               # shadcn/ui & custom components (avatar, badge, button, card, dialog, dropdown, etc.)
+│   ├── whiteboard/       # tldraw canvas wrapper (editor, canvas, save-status, kicked-overlay, editor-header)
 │   │   ├── hooks/        # Collaboration custom hooks
 │   │   │   ├─ use-collaborator-notifications.ts
 │   │   │   └─ use-whiteboard-sync.ts
 │   │   └── utils/        # Utility helpers (sync-uri.ts)
-│   └── workspace/        # Workspace dashboard UI
-├── lib/                  # Shared utilities
-├── services/             # Supabase data access
-├── store/                # Zustand stores
-├── types/                # TypeScript types and Zod schemas
-├── utils/supabase/       # Supabase browser/server clients
+│   └── workspace/        # Workspace dashboard (cards, lists, members, invites, notifications, dialogs)
+├── hooks/                # Custom React hooks (use-auth-form, use-pagination)
+├── lib/                  # Shared utilities (constants, utils, avatar, posthog-server)
+├── services/             # Supabase data access (board, invite, member, profile, workspace, email)
+├── store/                # Zustand stores (workspace, board, member, notification, whiteboard, settings)
+├── types/                # TypeScript types and Zod schemas (auth, profile, whiteboard, workspace)
+├── utils/supabase/       # Supabase browser/server/middleware clients
+├── __tests__/            # Vitest test suite (26 files, 284 tests) mirroring src/ structure
 └── proxy.ts              # Auth route guard
 
 sync-server/              # Multiplayer WS Sync Server (Modular)

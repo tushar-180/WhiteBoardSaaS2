@@ -46,7 +46,7 @@ export default function Hero({ isLoggedIn }: HeroProps) {
         </h1>
 
         {/* Minimalist description */}
-        <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed font-light tracking-wide">
+        <p className="mt-6 text-lg text-foreground/80 max-w-2xl mx-auto leading-relaxed font-light tracking-wide">
           The infinite multiplayer canvas built for visual thinkers. Sketch
           system architectures, brainstorm layouts, and align your team in
           real-time.
