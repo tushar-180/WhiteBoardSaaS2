@@ -13,6 +13,7 @@
 # testing
 /coverage
 .claude
+
 # next.js
 /.next/
 /out/
@@ -23,6 +24,15 @@
 # misc
 .DS_Store
 *.pem
+Thumbs.db
+
+# editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.history
 
 # debug
 npm-debug.log*
@@ -40,4 +50,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-.env.local
+

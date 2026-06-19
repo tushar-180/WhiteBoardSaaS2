@@ -13,6 +13,14 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // Relax strict TS rules for test files where mocking requires `any` types
+  {
+    files: ["src/__tests__/**"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unsafe-function-type": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
