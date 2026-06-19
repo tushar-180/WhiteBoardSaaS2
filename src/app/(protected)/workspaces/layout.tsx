@@ -22,7 +22,13 @@ export default async function WorkspacesLayout({
       <div className="absolute bottom-0 left-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-purple-500/5 rounded-full blur-3xl -z-10" />
 
       {/* Navigation Header */}
-      <WorkspaceNav userEmail={displayEmail} userId={user.id} logoHref="/" />
+      <WorkspaceNav 
+        userEmail={displayEmail} 
+        userId={user.id} 
+        userName={profile?.name || undefined}
+        userAvatar={profile?.avatar_url || undefined}
+        logoHref="/" 
+      />
 
       <SettingsModal />
 

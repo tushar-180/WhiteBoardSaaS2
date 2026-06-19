@@ -11,12 +11,20 @@ export const Meteors = ({
   className?: string;
 }) => {
   const meteors = new Array(number || 20).fill(true);
+  const [isMounted, setIsMounted] = React.useState(false);
   const [styles] = React.useState(() => 
     meteors.map(() => ({
       animationDelay: Math.random() * 5 + "s",
       animationDuration: Math.floor(Math.random() * (10 - 5) + 5) + "s",
     }))
   );
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}

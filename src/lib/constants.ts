@@ -6,6 +6,8 @@ export const ROUTES = {
   BOARD: "/board",
   AUTH_CALLBACK: "/auth/callback",
   SETTINGS: "/settings",
+  FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
 } as const;
 
 export const ASSETS = {

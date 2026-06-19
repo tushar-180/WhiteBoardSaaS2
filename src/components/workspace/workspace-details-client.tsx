@@ -21,7 +21,6 @@ import {
 import { useBoardStore } from "@/store/use-board-store";
 import { useMemberStore } from "@/store/use-member-store";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
-import RootLoading from "@/app/loading";
 import { ROUTES } from "@/lib/constants";
 import { hasManagePermission } from "@/lib/utils";
 
@@ -67,11 +66,11 @@ export function WorkspaceDetailsClient({
     }, 0);
   }, [initialBoards, initialMembers, initialInvites, workspace, initialWorkspaces]);
 
-  const boards = useBoardStore((state) => state.boards);
-
-  if (!isMounted) {
-    return <RootLoading />;
-  }
+  const storeBoards = useBoardStore((state) => state.boards);
+  
+  // Use props for SSR and initial hydration to eliminate LCP delay,
+  // then swap to Zustand store state once mounted
+  const boards = isMounted && storeBoards.length > 0 ? storeBoards : initialBoards;
 
   const formattedDate = new Date(workspace.created_at).toLocaleDateString(
     "en-US",

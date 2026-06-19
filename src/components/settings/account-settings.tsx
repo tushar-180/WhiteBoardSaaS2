@@ -9,23 +9,28 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { LogOut, Trash2, Loader2, ShieldAlert } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ROUTES } from "@/lib/constants";
 
 export function AccountSettings() {
   const { user } = useWorkspaceStore();
-  const router = useRouter();
   
   const [confirmEmail, setConfirmEmail] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [confirmSignOutOpen, setConfirmSignOutOpen] = useState(false);
 
-  const handleSignOut = async () => {
+  const handleSignOutClick = () => {
+    setConfirmSignOutOpen(true);
+  };
+
+  const executeSignOut = async () => {
+    setConfirmSignOutOpen(false);
     try {
       setIsSigningOut(true);
       const supabase = createClient();
       await supabase.auth.signOut();
-      router.push("/auth/login");
+      window.location.href = ROUTES.LOGIN;
     } catch (error: unknown) {
       toast.error((error as Error).message || "Failed to sign out");
     } finally {
@@ -47,7 +52,7 @@ export function AccountSettings() {
       
       const supabase = createClient();
       await supabase.auth.signOut();
-      router.push("/login");
+      window.location.href = ROUTES.LOGIN;
     } catch (error: unknown) {
       toast.error((error as Error).message);
     } finally {
@@ -64,39 +69,46 @@ export function AccountSettings() {
 
       <div className="space-y-8">
         <div className="space-y-4">
-          <h3 className="font-semibold text-lg border-b border-border/50 pb-2">Session</h3>
-          <p className="text-sm text-muted-foreground">Log out from your current session on this device.</p>
-          <Button variant="outline" onClick={handleSignOut} disabled={isSigningOut}>
-            {isSigningOut ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <LogOut className="w-4 h-4 mr-2" />}
-            Sign Out
-          </Button>
+          <div>
+            <h3 className="font-semibold text-lg text-foreground">Session</h3>
+            <p className="text-sm text-muted-foreground mt-1">Log out from your current session on this device.</p>
+          </div>
+          <div className="p-4 border border-border/50 rounded-xl bg-card flex items-center justify-between">
+            <div className="text-sm font-medium">Current Session</div>
+            <Button variant="outline" onClick={handleSignOutClick} disabled={isSigningOut} className="rounded-lg shadow-sm">
+              {isSigningOut ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <LogOut className="w-4 h-4 mr-2 text-muted-foreground" />}
+              Sign Out
+            </Button>
+          </div>
         </div>
 
-        <div className="pt-8">
-          <div className="border border-red-200 dark:border-red-900/50 rounded-lg overflow-hidden bg-red-50/50 dark:bg-red-950/10 p-6 space-y-4">
-            <div className="flex gap-4">
-              <ShieldAlert className="w-6 h-6 text-red-600 shrink-0" />
+        <div className="pt-4">
+          <div className="border border-destructive/20 rounded-xl overflow-hidden bg-destructive/5 p-6 space-y-4">
+            <div className="flex gap-3">
+              <ShieldAlert className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-bold text-red-600 text-lg">Delete Account</h3>
-                <p className="text-sm text-red-600/80 mt-1">
-                  Permanently delete your account and all associated data including workspaces you own.
+                <h3 className="font-semibold text-destructive">Danger Zone</h3>
+                <p className="text-sm text-destructive/80 mt-1">
+                  Permanently delete your account and all associated data, including workspaces you own. This action cannot be undone.
                 </p>
               </div>
             </div>
 
-            <div className="space-y-2 mt-4 max-w-sm ml-10">
-              <label className="text-sm font-medium">Type <span className="font-bold">{user?.email}</span> to confirm</label>
+            <div className="space-y-3 mt-6 sm:ml-8 max-w-sm">
+              <label className="text-sm font-medium text-destructive/90">
+                Type <span className="font-bold">{user?.email}</span> to confirm
+              </label>
               <Input 
                 value={confirmEmail} 
                 onChange={(e) => setConfirmEmail(e.target.value)}
-                className="focus-visible:ring-red-500 my-2 py-2 px-4"
+                className="focus-visible:ring-destructive mt-2 border-destructive/30 bg-background py-2 px-3 h-10 rounded-lg shadow-sm"
                 placeholder="your.email@example.com"
               />
               <Button 
                 variant="destructive" 
                 onClick={handleDeleteAccount} 
                 disabled={confirmEmail !== user?.email || isDeleting}
-                className="mt-4"
+                className="mt-2 w-full sm:w-auto rounded-lg shadow-sm"
               >
                 {isDeleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
                 Delete Account
@@ -115,6 +127,17 @@ export function AccountSettings() {
         onConfirm={executeDeleteAccount}
         variant="destructive"
         loading={isDeleting}
+      />
+
+      <ConfirmDialog
+        open={confirmSignOutOpen}
+        onOpenChange={setConfirmSignOutOpen}
+        title="Sign Out"
+        description="Are you sure you want to sign out from your current session?"
+        confirmText="Sign Out"
+        onConfirm={executeSignOut}
+        variant="destructive"
+        loading={isSigningOut}
       />
     </div>
   );

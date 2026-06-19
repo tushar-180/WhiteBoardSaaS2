@@ -2,23 +2,34 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { LogOut, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { useSettingsStore } from "@/store/settings-store";
-import { signOutAction } from "@/actions/auth";
 import { ROUTES, ASSETS } from "@/lib/constants";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 const NotificationInbox = dynamic(() => import("./notification-inbox").then((m) => ({ default: m.NotificationInbox })), { ssr: false });
 
 interface WorkspaceNavProps {
   userEmail?: string;
   userId?: string;
+  userName?: string;
+  userAvatar?: string;
   logoHref?: string;
 }
 
-export function WorkspaceNav({ userEmail, userId, logoHref = ROUTES.HOME }: WorkspaceNavProps) {
-  const { setIsOpen } = useSettingsStore();
+export function WorkspaceNav({ userEmail, userId, userName, userAvatar, logoHref = ROUTES.HOME }: WorkspaceNavProps) {
+  const [mounted, setMounted] = useState(false);
+  const { setIsOpen, setActiveTab } = useSettingsStore();
+  const { setTheme, resolvedTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
@@ -40,37 +51,50 @@ export function WorkspaceNav({ userEmail, userId, logoHref = ROUTES.HOME }: Work
           </span>
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-1 sm:gap-2">
           {userEmail && (
             <>
-              <NotificationInbox userEmail={userEmail} userId={userId} />
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsOpen(true)}
-                className="rounded-full text-muted-foreground hover:text-foreground h-9 w-9 cursor-pointer"
-              >
-                <Settings className="h-5 w-5" />
-                <span className="sr-only">Settings</span>
-              </Button>
+              <div className="flex items-center gap-1">
+                <NotificationInbox userEmail={userEmail} userId={userId} />
+                {mounted ? (
+                  <AnimatedThemeToggler
+                    duration={600}
+                    theme={resolvedTheme as "light" | "dark"}
+                    onThemeChange={(t) => setTheme(t)}
+                    className="flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground h-4.5 w-4.5 transition-colors"
+                  />
+                ) : (
+                  <div className="h-4.5 w-4.5" />
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsOpen(true)}
+                  className="rounded-full text-muted-foreground hover:bg-muted hover:text-foreground h-9 w-9 transition-colors"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span className="sr-only">Settings</span>
+                </Button>
+              </div>
 
-              <span className="text-xs text-muted-foreground hidden sm:inline-block font-medium">
-                {userEmail}
-              </span>
+              <div className="h-6 w-[1px] bg-border/60 mx-1 hidden sm:block" />
+
+              <button 
+                onClick={() => { setActiveTab("profile"); setIsOpen(true); }}
+                className="flex items-center gap-2.5 ml-1 mr-2 px-1.5 py-1.5 rounded-full hover:bg-muted/40 transition-colors border border-transparent hover:border-border/30 cursor-pointer text-left"
+              >
+                <Avatar className="h-8 w-8 border border-border/50 shadow-sm">
+                  {userAvatar && <AvatarImage src={userAvatar} alt={userName || userEmail || "User"} />}
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
+                    {userName ? userName.charAt(0).toUpperCase() : userEmail ? userEmail.charAt(0).toUpperCase() : "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-semibold hidden sm:inline-block text-foreground max-w-[140px] truncate pr-2">
+                  {userName || (userEmail ? userEmail.split("@")[0] : "User")}
+                </span>
+              </button>
             </>
           )}
-          <form action={signOutAction}>
-            <Button
-              variant="ghost"
-              size="sm"
-              type="submit"
-              className="rounded-xl text-muted-foreground hover:text-foreground gap-1.5 h-9 cursor-pointer px-2 sm:px-3"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Sign Out</span>
-            </Button>
-          </form>
         </div>
       </div>
     </header>

@@ -30,53 +30,56 @@ export default function WorkspaceDetailLoading() {
             {/* Board Cards Skeleton Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {/* Skeleton Board Card 1 */}
-              <div className="border border-border/60 bg-card/60 rounded-xl p-5 min-h-[160px] flex flex-col justify-between">
-                <div>
+              <div className="border border-border/60 bg-card/60 rounded-xl p-4 sm:p-5 min-h-[160px] flex flex-col justify-between relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/5 rounded-bl-full translate-x-4 -translate-y-4" />
+                <div className="relative z-10">
                   <div className="flex items-center gap-2 mb-3">
                     <Skeleton className="h-8 w-8 rounded-lg" />
-                    <Skeleton className="h-3 w-12" />
+                    <Skeleton className="h-[10px] w-12" />
                   </div>
-                  <Skeleton className="h-5 w-2/3 mb-2" />
-                  <Skeleton className="h-3.5 w-5/6 mb-1" />
-                  <Skeleton className="h-3.5 w-1/2" />
+                  <Skeleton className="h-5 w-2/3 mb-1.5 mt-1" />
+                  <Skeleton className="h-3 w-5/6 mb-1 mt-2" />
+                  <Skeleton className="h-3 w-1/2" />
                 </div>
-                <div className="border-t border-border/40 pt-4 flex justify-between items-center mt-5">
-                  <Skeleton className="h-3 w-20" />
-                  <Skeleton className="h-3 w-10" />
+                <div className="border-t border-border/40 pt-4 flex justify-between items-center mt-5 relative z-10">
+                  <Skeleton className="h-[11px] w-28" />
+                  <Skeleton className="h-[11px] w-14" />
                 </div>
               </div>
 
               {/* Skeleton Board Card 2 */}
-              <div className="border border-border/60 bg-card/60 rounded-xl p-5 min-h-[160px] flex flex-col justify-between">
-                <div>
+              <div className="border border-border/60 bg-card/60 rounded-xl p-4 sm:p-5 min-h-[160px] flex flex-col justify-between relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/5 rounded-bl-full translate-x-4 -translate-y-4" />
+                <div className="relative z-10">
                   <div className="flex items-center gap-2 mb-3">
                     <Skeleton className="h-8 w-8 rounded-lg" />
-                    <Skeleton className="h-3 w-12" />
+                    <Skeleton className="h-[10px] w-12" />
                   </div>
-                  <Skeleton className="h-5 w-1/2 mb-2" />
-                  <Skeleton className="h-3.5 w-3/4 mb-1" />
-                  <Skeleton className="h-3.5 w-2/3" />
+                  <Skeleton className="h-5 w-1/2 mb-1.5 mt-1" />
+                  <Skeleton className="h-3 w-3/4 mb-1 mt-2" />
+                  <Skeleton className="h-3 w-2/3" />
                 </div>
-                <div className="border-t border-border/40 pt-4 flex justify-between items-center mt-5">
-                  <Skeleton className="h-3 w-24" />
-                  <Skeleton className="h-3 w-10" />
+                <div className="border-t border-border/40 pt-4 flex justify-between items-center mt-5 relative z-10">
+                  <Skeleton className="h-[11px] w-24" />
+                  <Skeleton className="h-[11px] w-14" />
                 </div>
               </div>
 
               {/* Skeleton Board Card 3 */}
-              <div className="border border-border/60 bg-card/60 rounded-xl p-5 min-h-[160px] flex flex-col justify-between">
-                <div>
+              <div className="border border-border/60 bg-card/60 rounded-xl p-4 sm:p-5 min-h-[160px] flex flex-col justify-between relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/5 rounded-bl-full translate-x-4 -translate-y-4" />
+                <div className="relative z-10">
                   <div className="flex items-center gap-2 mb-3">
                     <Skeleton className="h-8 w-8 rounded-lg" />
-                    <Skeleton className="h-3 w-12" />
+                    <Skeleton className="h-[10px] w-12" />
                   </div>
-                  <Skeleton className="h-5 w-3/5 mb-2" />
-                  <Skeleton className="h-3.5 w-2/3 mb-1" />
-                  <Skeleton className="h-3.5 w-1/2" />
+                  <Skeleton className="h-5 w-3/5 mb-1.5 mt-1" />
+                  <Skeleton className="h-3 w-2/3 mb-1 mt-2" />
+                  <Skeleton className="h-3 w-1/2" />
                 </div>
-                <div className="border-t border-border/40 pt-4 flex justify-between items-center mt-5">
-                  <Skeleton className="h-3 w-16" />
-                  <Skeleton className="h-3 w-10" />
+                <div className="border-t border-border/40 pt-4 flex justify-between items-center mt-5 relative z-10">
+                  <Skeleton className="h-[11px] w-32" />
+                  <Skeleton className="h-[11px] w-14" />
                 </div>
               </div>
             </div>

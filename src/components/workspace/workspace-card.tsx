@@ -3,7 +3,7 @@
 import { useState, Suspense } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Folder, ArrowRight, Trash2, LogOut } from "lucide-react";
+import { Folder, ArrowRight, Trash2, LogOut, Edit } from "lucide-react";
 import {
   CardHeader,
   CardTitle,
@@ -16,6 +16,7 @@ import { WorkspaceAvatarGroup } from "./workspace-avatar-group";
 
 const LeaveWorkspaceDialog = dynamic(() => import("./dialogs/leave-workspace-dialog").then((m) => ({ default: m.LeaveWorkspaceDialog })), { ssr: false });
 const DeleteWorkspaceDialog = dynamic(() => import("./dialogs/delete-workspace-dialog").then((m) => ({ default: m.DeleteWorkspaceDialog })), { ssr: false });
+const EditWorkspaceDialog = dynamic(() => import("./dialogs/edit-workspace-dialog").then((m) => ({ default: m.EditWorkspaceDialog })), { ssr: false });
 
 
 interface WorkspaceCardProps {
@@ -27,7 +28,9 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
   const [open, setOpen] = useState(false);
   const isOwner = workspace.owner_id === userId;
   const canLeaveWorkspace = !isOwner;
+  const canEditWorkspace = workspace.currentUserRole === "owner" || workspace.currentUserRole === "admin";
   const [openLeaveDialog, setOpenLeaveDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
 
   const formattedDate = new Date(workspace.created_at).toLocaleDateString(
     "en-US",
@@ -42,6 +45,12 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
     e.preventDefault();
     e.stopPropagation();
     setOpen(true);
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpenEditDialog(true);
   };
 
 
@@ -66,29 +75,43 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
         href={`${ROUTES.WORKSPACES}/${workspace.id}`}
         className="block group h-full w-full"
       >
-        <div className="h-full max-w-none max-h-none flex flex-col border border-border/60 bg-[linear-gradient(110deg,#171717_0.6%,#09090b)] transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0">
+        <div className="h-full max-w-none max-h-none flex flex-col border border-border/60 bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0">
 
-          {/* Delete Icon Button - Only for Owner */}
-          {isOwner && (
-            <button
-              type="button"
-              onClick={handleDeleteClick}
-              className="absolute top-1 right-1 z-20 p-2 rounded-lg bg-background/80 hover:bg-destructive/10 text-muted-foreground hover:text-destructive border border-border/50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 cursor-pointer"
-              title="Delete Workspace"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          )}
-          {!isOwner && canLeaveWorkspace && (
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenLeaveDialog(true); }}
-              className="absolute top-1 right-1 z-20 p-2 rounded-lg bg-background/80 hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600 border border-border/50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200 cursor-pointer"
-              title="Leave Workspace"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          )}
+          {/* Action buttons (revealed on hover) */}
+          <div className="absolute top-3 right-3 z-20 flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300">
+            {canEditWorkspace && (
+              <button
+                type="button"
+                onClick={handleEditClick}
+                className="p-2 rounded-lg bg-background/80 hover:bg-primary/10 text-muted-foreground hover:text-primary border border-border/50 transition-colors duration-200 cursor-pointer"
+                title="Edit Workspace"
+              >
+                <Edit className="h-4 w-4" />
+              </button>
+            )}
+            
+            {/* Delete Icon Button - Only for Owner */}
+            {isOwner && (
+              <button
+                type="button"
+                onClick={handleDeleteClick}
+                className="p-2 rounded-lg bg-background/80 hover:bg-destructive/10 text-muted-foreground hover:text-destructive border border-border/50 transition-all duration-300 cursor-pointer"
+                title="Delete Workspace"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
+            {!isOwner && canLeaveWorkspace && (
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenLeaveDialog(true); }}
+                className="p-2 rounded-lg bg-background/80 hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600 border border-border/50 transition-all duration-200 cursor-pointer"
+                title="Leave Workspace"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            )}
+          </div>
 
           <CardHeader className="p-0 gap-0 mt-2 sm:mt-0">
             <div className="flex items-center justify-between gap-2 mb-3 pr-10">
@@ -138,6 +161,15 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
           </CardContent>
         </div>
       </Link>
+
+      <Suspense fallback={null}>
+        <EditWorkspaceDialog
+          workspaceId={workspace.id}
+          initialName={workspace.name}
+          open={openEditDialog}
+          onOpenChange={setOpenEditDialog}
+        />
+      </Suspense>
 
       <Suspense fallback={null}>
         <DeleteWorkspaceDialog
