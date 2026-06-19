@@ -64,7 +64,6 @@ export async function createWorkspaceAction(name: string): Promise<Workspace> {
 
     return newWorkspace;
   } catch (error: unknown) {
-    console.error("Action error in createWorkspaceAction:", error);
     throw new Error((error as Error).message || "Failed to create workspace.");
   }
 }
@@ -87,7 +86,6 @@ export async function deleteWorkspaceAction(workspaceId: string): Promise<void> 
     // Revalidate the caching of the workspaces list page
     revalidatePath(ROUTES.WORKSPACES);
   } catch (error: unknown) {
-    console.error("Action error in deleteWorkspaceAction:", error);
     throw new Error((error as Error).message || "Failed to delete workspace.");
   }
 }
@@ -104,7 +102,6 @@ export async function bulkDeleteWorkspacesAction(workspaceIds: string[]): Promis
     // Revalidate the caching of the workspaces list page
     revalidatePath(ROUTES.WORKSPACES);
   } catch (error: unknown) {
-    console.error("Action error in bulkDeleteWorkspacesAction:", error);
     throw new Error((error as Error).message || "Failed to delete workspaces.");
   }
 }
@@ -122,7 +119,6 @@ export async function bulkLeaveWorkspacesAction(workspaceIds: string[]): Promise
     // Revalidate the caching of the workspaces list page
     revalidatePath(ROUTES.WORKSPACES);
   } catch (error: unknown) {
-    console.error("Action error in bulkLeaveWorkspacesAction:", error);
     throw new Error((error as Error).message || "Failed to leave workspaces.");
   }
 }

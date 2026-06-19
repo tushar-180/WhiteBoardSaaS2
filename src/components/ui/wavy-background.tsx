@@ -100,12 +100,10 @@ export const WavyBackground = ({
     return () => {
       cancelAnimationFrame(animationId);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [isSafari, setIsSafari] = useState(false);
   useEffect(() => {
-    // I'm sorry but i have got to support it on safari.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsSafari(
       typeof window !== "undefined" &&

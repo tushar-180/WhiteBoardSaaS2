@@ -45,7 +45,10 @@ export default function WhiteboardSaveStatus({
       )}
 
       {saveStatus === "error" && (
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-destructive/10 text-destructive border border-destructive/20">
+        <div 
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-destructive/10 text-destructive border border-destructive/20"
+          title="Server is down right now. Changes may not save."
+        >
           <CloudOff className="h-3.5 w-3.5" />
           <span>Save failed</span>
         </div>

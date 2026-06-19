@@ -13,9 +13,24 @@ import { KickedOverlay } from "./kicked-overlay";
 import { EditorHeader } from "./editor-header";
 import posthog from "posthog-js";
 
-// Dynamically import the tldraw component with SSR disabled
+// Dynamically import the tldraw component with SSR disabled.
+// The `loading` prop shows only a subtle dot-grid background (no text/spinner)
+// so the canvas area is never blank while tldraw downloads.
+// All actual loading indicators live inside WhiteboardCanvas to avoid cascading spinners.
 const WhiteboardCanvas = dynamic(() => import("./whiteboard-canvas"), {
   ssr: false,
+  loading: () => (
+    <div className="flex-1 w-full h-[calc(100vh-64px)] bg-background relative">
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, currentColor 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
+    </div>
+  ),
 });
 
 export default function WhiteboardEditor({
@@ -35,91 +50,108 @@ export default function WhiteboardEditor({
   const [isKicked, setIsKicked] = useState(false);
 
   // Subscribe to real-time changes to the user's role/membership in the workspace
+  // This is deferred with requestIdleCallback to avoid blocking the main thread
+  // during the critical tldraw canvas bootstrap (the primary UI concern).
   useEffect(() => {
-    const supabase = createClient();
-    let isMounted = true;
+    let teardown: (() => void) | undefined;
 
-    const verifyAccess = async () => {
-      try {
-        const { data: member, error } = await supabase
-          .from("workspace_members")
-          .select("role")
-          .eq("workspace_id", board.workspace_id)
-          .eq("user_id", currentUser.id)
-          .maybeSingle();
+    const setupRealtime = () => {
+      const supabase = createClient();
+      let isMounted = true;
 
-        if (!isMounted) return;
+      const verifyAccess = async () => {
+        try {
+          const { data: member, error } = await supabase
+            .from("workspace_members")
+            .select("role")
+            .eq("workspace_id", board.workspace_id)
+            .eq("user_id", currentUser.id)
+            .maybeSingle();
 
-        if (error || !member) {
-          // No member record found, user is kicked from workspace
-          setIsKicked(true);
-          toast.error(
-            "Access revoked. You have been removed from this workspace.",
-          );
-        } else {
-          setLocalIsReadonly(member.role === "viewer");
-        }
-      } catch (err) {
-        console.error("[Realtime Check] Failed to verify user role:", err);
-      }
-    };
+          if (!isMounted) return;
 
-    // Listen to changes on workspace_members
-    const channel = supabase
-      .channel(`member-role-${board.workspace_id}-${currentUser.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "workspace_members",
-        },
-        (payload) => {
-          console.log("[Realtime] Received workspace member update:", payload);
-          if (payload.eventType === "DELETE") {
-            // Since DELETE payload.old only contains the primary key ID, we must check if our access was removed
-            verifyAccess();
-          } else if (payload.eventType === "UPDATE") {
-            const updatedMember = payload.new as {
-              user_id: string;
-              workspace_id: string;
-              role: string;
-            };
-            if (
-              updatedMember.user_id === currentUser.id &&
-              updatedMember.workspace_id === board.workspace_id
-            ) {
-              setLocalIsReadonly(updatedMember.role === "viewer");
-            }
-          } else if (payload.eventType === "INSERT") {
-            const newMember = payload.new as {
-              user_id: string;
-              workspace_id: string;
-            };
-            if (
-              newMember.user_id === currentUser.id &&
-              newMember.workspace_id === board.workspace_id
-            ) {
-              verifyAccess();
-            }
+          if (error || !member) {
+            setIsKicked(true);
+            toast.error(
+              "Access revoked. You have been removed from this workspace.",
+            );
+          } else {
+            setLocalIsReadonly(member.role === "viewer");
           }
-        },
-      )
-      .subscribe();
+        } catch (err) {
+          console.error("[Realtime Check] Failed to verify user role:", err);
+        }
+      };
 
-    // Verify status immediately on mount to capture any race conditions
-    verifyAccess();
+      const channel = supabase
+        .channel(`member-role-${board.workspace_id}-${currentUser.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "workspace_members",
+          },
+          (payload) => {
+            console.log("[Realtime] Received workspace member update:", payload);
+            if (payload.eventType === "DELETE") {
+              verifyAccess();
+            } else if (payload.eventType === "UPDATE") {
+              const updatedMember = payload.new as {
+                user_id: string;
+                workspace_id: string;
+                role: string;
+              };
+              if (
+                updatedMember.user_id === currentUser.id &&
+                updatedMember.workspace_id === board.workspace_id
+              ) {
+                setLocalIsReadonly(updatedMember.role === "viewer");
+              }
+            } else if (payload.eventType === "INSERT") {
+              const newMember = payload.new as {
+                user_id: string;
+                workspace_id: string;
+              };
+              if (
+                newMember.user_id === currentUser.id &&
+                newMember.workspace_id === board.workspace_id
+              ) {
+                verifyAccess();
+              }
+            }
+          },
+        )
+        .subscribe();
 
-    // Recheck status when window regains focus (e.g., coming back from lock or background)
-    const handleFocus = () => {
       verifyAccess();
-    };
-    window.addEventListener("focus", handleFocus);
 
+      const handleFocus = () => {
+        verifyAccess();
+      };
+      window.addEventListener("focus", handleFocus);
+
+      // Store cleanup so it's called when the effect tears down
+      teardown = () => {
+        isMounted = false;
+        supabase.removeChannel(channel);
+        window.removeEventListener("focus", handleFocus);
+      };
+    };
+
+    // Defer realtime subscription setup to avoid competing with tldraw bootstrap
+    if (typeof requestIdleCallback !== "undefined") {
+      const id = requestIdleCallback(() => setupRealtime(), { timeout: 2000 });
+      return () => {
+        cancelIdleCallback(id);
+        teardown?.();
+      };
+    }
+    // Fallback if requestIdleCallback is not available (Safari)
+    const timer = setTimeout(setupRealtime, 500);
     return () => {
-      isMounted = false;
-      supabase.removeChannel(channel);
-      window.removeEventListener("focus", handleFocus);
+      clearTimeout(timer);
+      teardown?.();
     };
   }, [board.workspace_id, currentUser.id, router]);
 
@@ -138,11 +170,9 @@ export default function WhiteboardEditor({
         saveStatus === "saving" ||
         saveStatus === "error"
       ) {
+        // Modern browsers show a confirmation dialog when preventDefault() is called
+        // on beforeunload, provided the user has interacted with the page.
         e.preventDefault();
-        const message = "You have unsaved whiteboard changes.";
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (e as any).returnValue = message;
-        return message;
       }
     };
 

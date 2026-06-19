@@ -55,7 +55,12 @@ export function useCollaboratorNotifications({
             Object.keys(docChanges.updated).length > 0 ||
             Object.keys(docChanges.removed).length > 0
           )) {
-            setSaveStatus("saving");
+            const isOffline = useWhiteboardStore.getState().isOffline;
+            if (isOffline) {
+              setSaveStatus("error");
+            } else {
+              setSaveStatus("saving");
+            }
           }
         }
 

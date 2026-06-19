@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireAuth } from "@/utils/supabase/server";
 import { UnauthorizedAccess } from "@/components/shared/unauthorized-access";
+import { ErrorBoundary } from "@/components/shared/error-boundary";
 import { fetchBoardById } from "@/services/board";
 import { hasWorkspaceAccess } from "@/services/workspace";
 import { preconnect } from "react-dom";
@@ -39,25 +40,19 @@ export default async function BoardDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // 2. Validate workspace access
-  const hasAccess = await hasWorkspaceAccess(board.workspace_id, user.id);
+  // 2. Run access checks + profile fetch in parallel
+  const [hasAccess, workspaceRole, { data: profile }] = await Promise.all([
+    hasWorkspaceAccess(board.workspace_id, user.id),
+    fetchWorkspaceMemberRole(board.workspace_id, user.id),
+    supabase.from("profiles").select("name").eq("id", user.id).single(),
+  ]);
+
   if (!hasAccess) {
     return <UnauthorizedAccess />;
   }
 
-  const workspaceRole = await fetchWorkspaceMemberRole(
-    board.workspace_id,
-    user.id,
-  );
   const isReadonly = workspaceRole === "viewer";
   const licenseKey = process.env.TLDRAW_API;
-
-  // 3. Fetch user display name
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("name")
-    .eq("id", user.id)
-    .single();
 
   const displayName =
     profile?.name || user.user_metadata?.full_name || user.email || "Anonymous";
@@ -69,13 +64,20 @@ export default async function BoardDetailPage({ params }: PageProps) {
 
   // Preconnect to Tldraw's CDN to speed up the massive font payload downloads
   preconnect("https://cdn.tldraw.com", { crossOrigin: "anonymous" });
+  // Preconnect to the WebSocket sync server for faster connection setup
+  const syncServerUrl = process.env.NEXT_PUBLIC_SYNC_SERVER_URL;
+  if (syncServerUrl) {
+    preconnect(syncServerUrl);
+  }
 
   return (
-    <WhiteboardEditor
-      board={board}
-      currentUser={currentUser}
-      licenseKey={licenseKey}
-      isReadonly={isReadonly}
-    />
+    <ErrorBoundary>
+      <WhiteboardEditor
+        board={board}
+        currentUser={currentUser}
+        licenseKey={licenseKey}
+        isReadonly={isReadonly}
+      />
+    </ErrorBoundary>
   );
 }

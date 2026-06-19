@@ -270,8 +270,20 @@ export async function acceptWorkspaceInvite(
 
   if (updateError) {
     console.error("Database error updating invite status:", updateError);
-    // Note: In postgres, if the member was added but update fails, it could leave database inconsistent,
-    // but in a server action we do standard sequential operations.
+    // If the member was added but the invite status update fails, attempt to rollback
+    // by removing the member we just added to maintain consistency
+    try {
+      await supabase
+        .from("workspace_members")
+        .delete()
+        .eq("workspace_id", invite.workspace_id)
+        .eq("user_id", userId);
+    } catch {
+      // Rollback failure is logged but does not throw, as the primary error
+      // is the invite status update failure which we bubble up
+      console.error("Failed to rollback member addition after invite update error");
+    }
+    throw new Error("Failed to accept invitation. Please try again.");
   }
 
   return invite.workspace_id;

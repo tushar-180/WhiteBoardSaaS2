@@ -129,13 +129,11 @@ export function MembersTab({ workspace, currentUserRole }: { workspace: Workspac
                   <td className="p-3 sm:p-4">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0 border border-border/50">
-                        {/* eslint-disable @next/next/no-img-element */}
                         {member.avatar_url ? (
                           <img src={getOptimizedAvatarUrl(member.avatar_url, 32)} alt="Avatar" width={32} height={32} loading="lazy" className="w-full h-full object-cover" />
                         ) : (
                           <UserCircle className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                         )}
-                        {/* eslint-enable @next/next/no-img-element */}
                       </div>
                       <div className="min-w-0">
                         <p className="font-medium text-sm truncate max-w-[100px] sm:max-w-none">{member.name || "Unknown"}</p>

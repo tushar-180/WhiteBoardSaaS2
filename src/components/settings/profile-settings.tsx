@@ -117,7 +117,6 @@ export function ProfileSettings() {
               "w-24 h-24 rounded-full overflow-hidden border-2 border-border bg-muted flex items-center justify-center",
               pendingAvatarFile && "ring-2 ring-primary ring-offset-2"
             )}>
-              {/* eslint-disable @next/next/no-img-element */}
               {avatarSrc ? (
                 <img
                   src={avatarSrc}
@@ -130,7 +129,6 @@ export function ProfileSettings() {
               ) : (
                 <UserCircle className="w-12 h-12 text-muted-foreground" />
               )}
-              {/* eslint-enable @next/next/no-img-element */}
             </div>
 
             {/* Upload button */}

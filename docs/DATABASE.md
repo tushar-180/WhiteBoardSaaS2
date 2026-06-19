@@ -139,5 +139,5 @@ Boards live inside a workspace. The drawing/canvas state is stored in `canvas_da
 
 - Workspace creation inserts a row in `workspaces`.
 - Workspace creation also inserts an owner row in `workspace_members`.
-- Boards are typed and fully managed (CRUD operations completed) via server actions and supabase services. Canvas persistence remains planned/in-progress for the next milestone.
+- Boards are typed and fully managed (CRUD operations completed) via server actions and supabase services. Canvas persistence is fully implemented: `boards.canvas_data` is saved via the sync server's autosave loop and can be manually saved via `updateBoardCanvasAction`.
 - `canvas_data` is the single JSONB storage field for board drawing state.
