@@ -45,8 +45,10 @@ export function ProfileSettings() {
         newAvatarUrl = updatedProfile?.avatar_url ?? newAvatarUrl;
       }
 
-      // Update profile name
-      await updateProfileAction(data);
+      // Update profile name (only if name was actually changed)
+      if (form.formState.isDirty) {
+        await updateProfileAction(data);
+      }
 
       // Update local store (both avatar and name atomically)
       if (user) {
