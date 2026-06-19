@@ -99,15 +99,15 @@ export function NotificationsSettings() {
                       {formatRelativeTime(invite.created_at)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-                    <Button variant="outline" size="sm" onClick={() => handleReject(invite.token)} className="flex-1 sm:flex-initial text-xs sm:text-sm">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
+                    <Button variant="outline" size="sm" onClick={() => handleReject(invite.token)} className="w-full sm:w-auto sm:flex-initial text-xs sm:text-sm">
                       <X className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Decline
                     </Button>
-                    <Button size="sm" variant="secondary" onClick={() => handleAcceptOnly(invite.token)} className="flex-1 sm:flex-initial text-xs sm:text-sm">
+                    <Button size="sm" variant="secondary" onClick={() => handleAcceptOnly(invite.token)} className="w-full sm:w-auto sm:flex-initial text-xs sm:text-sm">
                       <Check className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Accept
                     </Button>
-                    <Button size="sm" onClick={() => handleAcceptAndJoin(invite.token)} className="flex-1 sm:flex-initial text-xs sm:text-sm">
-                      <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Accept &amp; Join
+                    <Button size="sm" onClick={() => handleAcceptAndJoin(invite.token)} className="w-full sm:w-auto sm:flex-initial text-xs sm:text-sm">
+                      <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Accept &amp; Enter
                     </Button>
                   </div>
                 </div>

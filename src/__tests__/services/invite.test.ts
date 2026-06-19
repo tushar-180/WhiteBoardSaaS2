@@ -18,7 +18,7 @@ import {
   bulkCreateWorkspaceInvites,
 } from "@/services/invite";
 
-function terminal(resolveValue = { error: null, data: null }) {
+function terminal(resolveValue: any = { error: null, data: null }) {
   return { then: (resolve: Function) => resolve(resolveValue), catch: () => {} };
 }
 

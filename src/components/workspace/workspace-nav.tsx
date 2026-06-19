@@ -25,7 +25,7 @@ interface WorkspaceNavProps {
 export function WorkspaceNav({ userEmail, userId, userName, userAvatar, logoHref = ROUTES.HOME }: WorkspaceNavProps) {
   const [mounted, setMounted] = useState(false);
   const { setIsOpen, setActiveTab } = useSettingsStore();
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
 
   useEffect(() => {
     setMounted(true);

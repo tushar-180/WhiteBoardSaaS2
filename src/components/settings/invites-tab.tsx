@@ -32,7 +32,6 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
   // Debounced profile search
   useEffect(() => {
     if (emailInput.trim().length < 2) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestions([]);
       return;
     }

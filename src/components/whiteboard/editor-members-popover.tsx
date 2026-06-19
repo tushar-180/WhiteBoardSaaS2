@@ -37,7 +37,7 @@ export function EditorMembersPopover({
         try {
           const data = await getWorkspaceMembersAction(workspaceId);
           setMembers(data);
-        } catch (err) {
+        } catch {
           toast.error("Failed to load workspace members.");
         } finally {
           setIsLoading(false);

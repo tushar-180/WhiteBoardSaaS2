@@ -72,7 +72,6 @@ export const Illustration = ({ mouseEnter }: { mouseEnter: boolean }) => {
 
   useEffect(() => {
     // Generate initial random stars on client mount to prevent SSR hydration mismatch
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setGlowingStars(
       Array.from({ length: 7 }, () => Math.floor(Math.random() * stars))
     );

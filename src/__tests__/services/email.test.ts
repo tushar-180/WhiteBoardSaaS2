@@ -9,6 +9,8 @@ vi.mock("@sendgrid/mail", () => ({
   },
 }));
 
+const mockResponse = { statusCode: 202, body: {}, headers: {} };
+
 describe("email service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -33,7 +35,7 @@ describe("email service", () => {
 
     it("sends email successfully with parsed from address", async () => {
       const sgMail = (await import("@sendgrid/mail")).default;
-      vi.mocked(sgMail.send).mockResolvedValueOnce([{ statusCode: 202 }, ""]);
+      vi.mocked(sgMail.send).mockResolvedValueOnce([mockResponse, ""]);
 
       const result = await sendEmail({
         to: "test@example.com",
@@ -54,7 +56,7 @@ describe("email service", () => {
     it("uses raw from string if no name/angle format", async () => {
       process.env.SENDGRID_FROM_EMAIL = "noreply@example.com";
       const sgMail = (await import("@sendgrid/mail")).default;
-      vi.mocked(sgMail.send).mockResolvedValueOnce([{ statusCode: 202 }, ""]);
+      vi.mocked(sgMail.send).mockResolvedValueOnce([mockResponse, ""]);
 
       const result = await sendEmail({
         to: "test@example.com",
@@ -73,7 +75,7 @@ describe("email service", () => {
 
     it("uses custom from option", async () => {
       const sgMail = (await import("@sendgrid/mail")).default;
-      vi.mocked(sgMail.send).mockResolvedValueOnce([{ statusCode: 202 }, ""]);
+      vi.mocked(sgMail.send).mockResolvedValueOnce([mockResponse, ""]);
 
       const result = await sendEmail({
         to: "test@example.com",
@@ -93,7 +95,7 @@ describe("email service", () => {
 
     it("handles array of recipients", async () => {
       const sgMail = (await import("@sendgrid/mail")).default;
-      vi.mocked(sgMail.send).mockResolvedValueOnce([{ statusCode: 202 }, ""]);
+      vi.mocked(sgMail.send).mockResolvedValueOnce([mockResponse, ""]);
 
       const result = await sendEmail({
         to: ["user1@example.com", "user2@example.com"],
@@ -127,7 +129,7 @@ describe("email service", () => {
 
     it("passes along the idempotency key", async () => {
       const sgMail = (await import("@sendgrid/mail")).default;
-      vi.mocked(sgMail.send).mockResolvedValueOnce([{ statusCode: 202 }, ""]);
+      vi.mocked(sgMail.send).mockResolvedValueOnce([mockResponse, ""]);
 
       await sendEmail({
         to: "test@example.com",
@@ -144,7 +146,7 @@ describe("email service", () => {
   describe("sendWorkspaceInviteEmail", () => {
     it("sends a workspace invitation email", async () => {
       const sgMail = (await import("@sendgrid/mail")).default;
-      vi.mocked(sgMail.send).mockResolvedValueOnce([{ statusCode: 202 }, ""]);
+      vi.mocked(sgMail.send).mockResolvedValueOnce([mockResponse, ""]);
 
       const result = await sendWorkspaceInviteEmail(
         "user@example.com",
@@ -164,7 +166,7 @@ describe("email service", () => {
       );
 
       // Verify the HTML contains expected content
-      const callArg = vi.mocked(sgMail.send).mock.calls[0][0];
+      const callArg = vi.mocked(sgMail.send).mock.calls[0][0] as { html: string };
       expect(callArg.html).toContain("My Workspace");
       expect(callArg.html).toContain("editor");
       expect(callArg.html).toContain("https://example.com/invite/token-123");
@@ -192,7 +194,7 @@ describe("email service", () => {
 
     it("includes all role options in the email", async () => {
       const sgMail = (await import("@sendgrid/mail")).default;
-      vi.mocked(sgMail.send).mockResolvedValueOnce([{ statusCode: 202 }, ""]);
+      vi.mocked(sgMail.send).mockResolvedValueOnce([mockResponse, ""]);
 
       const roles = ["admin", "editor", "viewer"] as const;
       for (const role of roles) {
@@ -206,7 +208,7 @@ describe("email service", () => {
         );
         const callArg = vi.mocked(sgMail.send).mock.calls[
           vi.mocked(sgMail.send).mock.calls.length - 1
-        ][0];
+        ][0] as { html: string };
         expect(callArg.html).toContain(role);
       }
     });

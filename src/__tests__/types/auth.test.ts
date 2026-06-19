@@ -1,9 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { authSchema } from "@/types/auth";
+import { getAuthSchema } from "@/types/auth";
 
 describe("authSchema", () => {
+  const loginSchema = getAuthSchema(false);
+  const signupSchema = getAuthSchema(true);
+
   it("validates login data (email + password only)", () => {
-    const result = authSchema.safeParse({
+    const result = loginSchema.safeParse({
       email: "test@example.com",
       password: "password123",
     });
@@ -14,7 +17,7 @@ describe("authSchema", () => {
   });
 
   it("validates signup data (name + email + password)", () => {
-    const result = authSchema.safeParse({
+    const result = signupSchema.safeParse({
       name: "John",
       email: "test@example.com",
       password: "password123",
@@ -26,7 +29,7 @@ describe("authSchema", () => {
   });
 
   it("rejects an invalid email", () => {
-    const result = authSchema.safeParse({
+    const result = loginSchema.safeParse({
       email: "not-an-email",
       password: "password123",
     });
@@ -36,8 +39,9 @@ describe("authSchema", () => {
     }
   });
 
-  it("rejects a password shorter than 6 characters", () => {
-    const result = authSchema.safeParse({
+  it("rejects a password shorter than 6 characters for signup", () => {
+    const result = signupSchema.safeParse({
+      name: "John",
       email: "test@example.com",
       password: "12345",
     });
@@ -50,7 +54,7 @@ describe("authSchema", () => {
   });
 
   it("rejects an email longer than 100 characters", () => {
-    const result = authSchema.safeParse({
+    const result = loginSchema.safeParse({
       email: "a".repeat(90) + "@example.com",
       password: "password123",
     });
@@ -58,7 +62,7 @@ describe("authSchema", () => {
   });
 
   it("rejects a password longer than 72 characters", () => {
-    const result = authSchema.safeParse({
+    const result = loginSchema.safeParse({
       email: "test@example.com",
       password: "A".repeat(73),
     });
@@ -66,23 +70,23 @@ describe("authSchema", () => {
   });
 
   it("rejects empty email", () => {
-    const result = authSchema.safeParse({
+    const result = loginSchema.safeParse({
       email: "",
       password: "password123",
     });
     expect(result.success).toBe(false);
   });
 
-  it("rejects empty password", () => {
-    const result = authSchema.safeParse({
+  it("rejects empty password for login", () => {
+    const result = loginSchema.safeParse({
       email: "test@example.com",
       password: "",
     });
     expect(result.success).toBe(false);
   });
 
-  it("rejects a name longer than 50 characters", () => {
-    const result = authSchema.safeParse({
+  it("rejects a name longer than 50 characters during signup", () => {
+    const result = loginSchema.safeParse({
       name: "A".repeat(51),
       email: "test@example.com",
       password: "password123",
@@ -91,7 +95,7 @@ describe("authSchema", () => {
   });
 
   it("accepts a name at exactly 50 characters", () => {
-    const result = authSchema.safeParse({
+    const result = loginSchema.safeParse({
       name: "A".repeat(50),
       email: "test@example.com",
       password: "password123",
@@ -100,14 +104,14 @@ describe("authSchema", () => {
   });
 
   it("rejects missing email", () => {
-    const result = authSchema.safeParse({
+    const result = loginSchema.safeParse({
       password: "password123",
     });
     expect(result.success).toBe(false);
   });
 
   it("rejects missing password", () => {
-    const result = authSchema.safeParse({
+    const result = loginSchema.safeParse({
       email: "test@example.com",
     });
     expect(result.success).toBe(false);

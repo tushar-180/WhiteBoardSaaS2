@@ -52,6 +52,22 @@ const eslintConfig = defineConfig([
       "react-hooks/exhaustive-deps": "off",
     },
   },
+  // Mounted pattern for SSG/SSR hydration: intentionally setting mounted state in useEffect
+  {
+    files: [
+      "src/components/landing/navbar.tsx",
+      "src/components/ui/meteors.tsx",
+      "src/components/ui/glowing-stars.tsx",
+      "src/components/ui/wavy-background.tsx",
+      "src/components/workspace/workspace-nav.tsx",
+      "src/components/workspace/workspaces-client.tsx",
+      "src/components/workspace/dialogs/invite-member-dialog.tsx",
+      "src/components/settings/invites-tab.tsx",
+    ],
+    rules: {
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -181,7 +181,12 @@
 }
 
 ::view-transition-new(root) {
+  animation: none;
   mix-blend-mode: normal;
+}
+
+::view-transition-image-pair(root) {
+  isolation: isolate;
 }
 
 html[data-magicui-theme-vt]::view-transition-new(root) {

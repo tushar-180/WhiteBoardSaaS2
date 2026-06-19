@@ -75,7 +75,7 @@ export function NotificationItem({
             ) : (
               <Check className="h-3 w-3" />
             )}
-            Accept &amp; Join
+            Accept &amp; Enter
           </Button>
           <Button
             size="sm"
