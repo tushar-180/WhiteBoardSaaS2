@@ -123,30 +123,43 @@ export default function LoginPage() {
             maxLength={100}
           />
 
-          <AuthInput
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
-            icon={<Lock className="h-4 w-4" />}
-            register={register("password")}
-            error={errors.password}
-            disabled={isFormDisabled}
-            maxLength={72}
-            rightElement={
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded-lg cursor-pointer"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            }
-          />
+          <div>
+            <AuthInput
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              icon={<Lock className="h-4 w-4" />}
+              register={register("password")}
+              error={errors.password}
+              disabled={isFormDisabled}
+              maxLength={72}
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded-lg cursor-pointer"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              }
+            />
+            {!isSignUp && (
+              <div className="flex justify-end mt-2 px-1">
+                <Link
+                  href={ROUTES.FORGOT_PASSWORD}
+                  className="text-xs font-semibold text-primary hover:underline transition-all"
+                  tabIndex={-1}
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+            )}
+          </div>
 
           {/* Password strength checklist / helper */}
           {isSignUp && (
