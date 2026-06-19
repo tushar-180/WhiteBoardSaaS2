@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Settings } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { useSettingsStore } from "@/store/settings-store";
 import { ROUTES, ASSETS } from "@/lib/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 const NotificationInbox = dynamic(() => import("./notification-inbox").then((m) => ({ default: m.NotificationInbox })), { ssr: false });
 
@@ -20,7 +23,13 @@ interface WorkspaceNavProps {
 }
 
 export function WorkspaceNav({ userEmail, userId, userName, userAvatar, logoHref = ROUTES.HOME }: WorkspaceNavProps) {
+  const [mounted, setMounted] = useState(false);
   const { setIsOpen, setActiveTab } = useSettingsStore();
+  const { theme, setTheme, resolvedTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
@@ -47,6 +56,16 @@ export function WorkspaceNav({ userEmail, userId, userName, userAvatar, logoHref
             <>
               <div className="flex items-center gap-1">
                 <NotificationInbox userEmail={userEmail} userId={userId} />
+                {mounted ? (
+                  <AnimatedThemeToggler
+                    duration={600}
+                    theme={resolvedTheme as "light" | "dark"}
+                    onThemeChange={(t) => setTheme(t)}
+                    className="flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground h-4.5 w-4.5 transition-colors"
+                  />
+                ) : (
+                  <div className="h-4.5 w-4.5" />
+                )}
                 <Button
                   variant="ghost"
                   size="icon"

@@ -75,7 +75,7 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
         href={`${ROUTES.WORKSPACES}/${workspace.id}`}
         className="block group h-full w-full"
       >
-        <div className="h-full max-w-none max-h-none flex flex-col border border-border/60 bg-[linear-gradient(110deg,#171717_0.6%,#09090b)] transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0">
+        <div className="h-full max-w-none max-h-none flex flex-col border border-border/60 bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0">
 
           {/* Action buttons (revealed on hover) */}
           <div className="absolute top-3 right-3 z-20 flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300">

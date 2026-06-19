@@ -139,7 +139,7 @@
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }
-  
+
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -172,4 +172,18 @@
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* View Transitions for Magic UI AnimatedThemeToggler */
+::view-transition-old(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+}
+
+html[data-magicui-theme-vt]::view-transition-new(root) {
+  clip-path: var(--magicui-theme-vt-clip-from, circle(0%));
 }

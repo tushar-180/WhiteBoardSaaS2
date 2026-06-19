@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Tldraw, type Editor } from "tldraw";
 import "tldraw/tldraw.css";
 import { WifiOff } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { type WhiteboardCanvasProps } from "@/types/whiteboard";
 import { useWhiteboardSync } from "./hooks/use-whiteboard-sync";
@@ -77,6 +78,8 @@ export default function WhiteboardCanvas({
 }: WhiteboardCanvasProps) {
   const syncStore = useWhiteboardSync({ boardId });
   const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { resolvedTheme } = useTheme();
 
   useCollaboratorNotifications({
     store: syncStore.store,
@@ -91,6 +94,7 @@ export default function WhiteboardCanvas({
     editorInstance.user.updateUserPreferences({
       id: currentUser.id,
       name: currentUser.name,
+      colorScheme: resolvedTheme === "dark" ? "dark" : "light",
     });
   };
 
@@ -103,6 +107,17 @@ export default function WhiteboardCanvas({
       });
     }
   }, [currentUser.name, currentUser.id, editorRef]);
+
+  // Sync tldraw colorScheme with app theme
+  useEffect(() => {
+    if (!editorRef.current) return;
+    const colorScheme = resolvedTheme === "dark" ? "dark" : "light";
+    editorRef.current.user.updateUserPreferences({ colorScheme });
+    if (containerRef.current) {
+      containerRef.current.classList.toggle("tl-theme-dark", colorScheme === "dark");
+      containerRef.current.classList.toggle("tl-theme-light", colorScheme === "light");
+    }
+  }, [resolvedTheme, editorRef]);
 
   // Sync readonly state when prop changes
   useEffect(() => {
@@ -155,7 +170,7 @@ export default function WhiteboardCanvas({
   }
 
   return (
-    <div className="w-full h-full relative animate-in fade-in duration-200">
+    <div ref={containerRef} className="w-full h-full relative animate-in fade-in duration-200">
       <Tldraw
         store={syncStore.store}
         licenseKey={licenseKey}

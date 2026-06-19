@@ -44,7 +44,7 @@ export default function WorkspacesLoading() {
         </div>
 
         {/* Skeleton Workspace Card 1 */}
-        <div className="flex flex-col border border-border/60 bg-[linear-gradient(110deg,#171717_0.6%,#09090b)] rounded-xl p-4 sm:p-5 gap-0 min-h-[160px] overflow-hidden">
+        <div className="flex flex-col border border-border/60 bg-card rounded-xl p-4 sm:p-5 gap-0 min-h-[160px] overflow-hidden">
           <div className="flex items-center gap-2 mb-3 mt-2 sm:mt-0">
             <Skeleton className="h-8 w-8 rounded-lg" />
             <Skeleton className="h-[10px] w-16" />
@@ -62,7 +62,7 @@ export default function WorkspacesLoading() {
         </div>
 
         {/* Skeleton Workspace Card 2 */}
-        <div className="flex flex-col border border-border/60 bg-[linear-gradient(110deg,#171717_0.6%,#09090b)] rounded-xl p-4 sm:p-5 gap-0 min-h-[160px] overflow-hidden">
+        <div className="flex flex-col border border-border/60 bg-card rounded-xl p-4 sm:p-5 gap-0 min-h-[160px] overflow-hidden">
           <div className="flex items-center gap-2 mb-3 mt-2 sm:mt-0">
             <Skeleton className="h-8 w-8 rounded-lg" />
             <Skeleton className="h-[10px] w-16" />
