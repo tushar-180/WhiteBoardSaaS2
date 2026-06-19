@@ -49,13 +49,22 @@ export function useCollaboratorNotifications({
       async (entry) => {
         // Set saving state immediately when the user makes any local changes to document records
         if (entry.source === "user") {
-          const docChanges = store.filterChangesByScope(entry.changes, "document");
-          if (docChanges && (
-            Object.keys(docChanges.added).length > 0 ||
-            Object.keys(docChanges.updated).length > 0 ||
-            Object.keys(docChanges.removed).length > 0
-          )) {
-            setSaveStatus("saving");
+          const docChanges = store.filterChangesByScope(
+            entry.changes,
+            "document",
+          );
+          if (
+            docChanges &&
+            (Object.keys(docChanges.added).length > 0 ||
+              Object.keys(docChanges.updated).length > 0 ||
+              Object.keys(docChanges.removed).length > 0)
+          ) {
+            const isOffline = useWhiteboardStore.getState().isOffline;
+            if (isOffline) {
+              setSaveStatus("error");
+            } else {
+              setSaveStatus("saving");
+            }
           }
         }
 
@@ -63,11 +72,13 @@ export function useCollaboratorNotifications({
         if (entry.source === "remote") {
           // Retrieve local presence at this instant to cross-reference
           const localPresence = store.get(
-            `instance_presence:${store.id}` as unknown as TLInstancePresenceID
+            `instance_presence:${store.id}` as unknown as TLInstancePresenceID,
           ) as TLInstancePresence | undefined;
 
           // Look for added instance_presence records (joins)
-          for (const record of Object.values(entry.changes.added) as TLRecord[]) {
+          for (const record of Object.values(
+            entry.changes.added,
+          ) as TLRecord[]) {
             if (record.typeName === "instance_presence") {
               const presence = record as unknown as TLInstancePresence;
 
@@ -81,16 +92,26 @@ export function useCollaboratorNotifications({
                 continue;
               }
               if (localPresence) {
-                if (presence.userId && localPresence.userId === presence.userId) {
+                if (
+                  presence.userId &&
+                  localPresence.userId === presence.userId
+                ) {
                   continue;
                 }
-                if (presence.userName && localPresence.userName === presence.userName) {
+                if (
+                  presence.userName &&
+                  localPresence.userName === presence.userName
+                ) {
                   continue;
                 }
               }
               if (userId) {
-                const prefixedUserId = userId.startsWith("user:") ? userId : `user:${userId}`;
-                const cleanUserId = userId.startsWith("user:") ? userId.slice(5) : userId;
+                const prefixedUserId = userId.startsWith("user:")
+                  ? userId
+                  : `user:${userId}`;
+                const cleanUserId = userId.startsWith("user:")
+                  ? userId.slice(5)
+                  : userId;
                 if (
                   presence.userId === userId ||
                   presence.userId === prefixedUserId ||
@@ -110,7 +131,8 @@ export function useCollaboratorNotifications({
                   : presence.userId;
 
                 if (profileNamesCache.current.has(cleanPresenceUserId)) {
-                  name = profileNamesCache.current.get(cleanPresenceUserId) || name;
+                  name =
+                    profileNamesCache.current.get(cleanPresenceUserId) || name;
                 } else {
                   try {
                     const { data } = await supabase
@@ -119,7 +141,10 @@ export function useCollaboratorNotifications({
                       .eq("id", cleanPresenceUserId)
                       .single();
                     if (data?.name) {
-                      profileNamesCache.current.set(cleanPresenceUserId, data.name);
+                      profileNamesCache.current.set(
+                        cleanPresenceUserId,
+                        data.name,
+                      );
                       name = data.name;
                     } else {
                       name = presence.userName || "A collaborator";
@@ -137,7 +162,9 @@ export function useCollaboratorNotifications({
           }
 
           // Look for removed instance_presence records (leaves)
-          for (const record of Object.values(entry.changes.removed) as TLRecord[]) {
+          for (const record of Object.values(
+            entry.changes.removed,
+          ) as TLRecord[]) {
             if (record.typeName === "instance_presence") {
               const presence = record as unknown as TLInstancePresence;
 
@@ -149,16 +176,26 @@ export function useCollaboratorNotifications({
                 continue;
               }
               if (localPresence) {
-                if (presence.userId && localPresence.userId === presence.userId) {
+                if (
+                  presence.userId &&
+                  localPresence.userId === presence.userId
+                ) {
                   continue;
                 }
-                if (presence.userName && localPresence.userName === presence.userName) {
+                if (
+                  presence.userName &&
+                  localPresence.userName === presence.userName
+                ) {
                   continue;
                 }
               }
               if (userId) {
-                const prefixedUserId = userId.startsWith("user:") ? userId : `user:${userId}`;
-                const cleanUserId = userId.startsWith("user:") ? userId.slice(5) : userId;
+                const prefixedUserId = userId.startsWith("user:")
+                  ? userId
+                  : `user:${userId}`;
+                const cleanUserId = userId.startsWith("user:")
+                  ? userId.slice(5)
+                  : userId;
                 if (
                   presence.userId === userId ||
                   presence.userId === prefixedUserId ||
@@ -171,9 +208,10 @@ export function useCollaboratorNotifications({
                 continue;
               }
 
-              const cleanPresenceUserId = presence.userId && presence.userId.startsWith("user:")
-                ? presence.userId.slice(5)
-                : presence.userId;
+              const cleanPresenceUserId =
+                presence.userId && presence.userId.startsWith("user:")
+                  ? presence.userId.slice(5)
+                  : presence.userId;
 
               const name =
                 (cleanPresenceUserId &&

@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
-import { Trash2, LogOut, Loader2, AlertTriangle } from "lucide-react";
+import { Trash2, LogOut, Loader2, ShieldAlert } from "lucide-react";
 
 export function DangerZoneTab({ workspace, isOwner }: { workspace: Workspace, isOwner: boolean }) {
   const { deleteWorkspace } = useWorkspaceStore();
@@ -58,55 +58,50 @@ export function DangerZoneTab({ workspace, isOwner }: { workspace: Workspace, is
 
   return (
     <div className="max-w-2xl">
-      <div className="border border-red-200 dark:border-red-900/50 rounded-lg overflow-hidden bg-red-50/50 dark:bg-red-950/10">
-        <div className="p-6 border-b border-red-200 dark:border-red-900/50 flex gap-4">
-          <AlertTriangle className="w-6 h-6 text-red-600 shrink-0" />
+      <div className="border border-destructive/20 rounded-xl overflow-hidden bg-destructive/5 p-6 space-y-4">
+        <div className="flex gap-3">
+          <ShieldAlert className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
           <div>
-            <h3 className="font-bold text-red-600 text-lg">Danger Zone</h3>
-            <p className="text-sm text-red-600/80 mt-1">
-              Proceed with caution. Actions taken here are irreversible.
+            <h3 className="font-semibold text-destructive">
+              {isOwner ? "Delete Workspace" : "Leave Workspace"}
+            </h3>
+            <p className="text-sm text-destructive/80 mt-1">
+              {isOwner 
+                ? "Permanently delete the workspace and all its boards. This action cannot be undone." 
+                : "You will lose access to all boards in this workspace."}
             </p>
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="pt-2">
           {isOwner ? (
-            <div className="space-y-4">
-              <h4 className="font-semibold text-lg">Delete Workspace</h4>
-              <p className="text-sm text-muted-foreground">
-                This will permanently delete the workspace and all its boards.
-              </p>
-              
-              <div className="space-y-2 mt-4 max-w-sm">
-                <label className="text-sm font-medium">Type <span className="font-bold">{workspace.name}</span> to confirm</label>
-                <Input 
-                  value={confirmName} 
-                  onChange={(e) => setConfirmName(e.target.value)}
-                  className="border-red-200 focus-visible:ring-red-500"
-                />
-              </div>
-
+            <div className="space-y-3 max-w-sm sm:ml-8">
+              <label className="text-sm font-medium text-destructive/90">
+                Type <span className="font-bold">{workspace.name}</span> to confirm
+              </label>
+              <Input 
+                value={confirmName} 
+                onChange={(e) => setConfirmName(e.target.value)}
+                className="focus-visible:ring-destructive mt-2 border-destructive/30 bg-background py-2 px-3 h-10 rounded-lg shadow-sm"
+                placeholder={workspace.name}
+              />
               <Button 
                 variant="destructive" 
                 onClick={handleDelete} 
                 disabled={confirmName !== workspace.name || isDeleting}
-                className="mt-4"
+                className="mt-2 w-full sm:w-auto rounded-lg shadow-sm"
               >
                 {isDeleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
                 Delete Workspace
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
-              <h4 className="font-semibold text-lg">Leave Workspace</h4>
-              <p className="text-sm text-muted-foreground">
-                You will lose access to all boards in this workspace.
-              </p>
-
+            <div className="sm:ml-8">
               <Button 
                 variant="destructive" 
                 onClick={handleLeave} 
                 disabled={isLeaving}
+                className="w-full sm:w-auto rounded-lg shadow-sm"
               >
                 {isLeaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <LogOut className="w-4 h-4 mr-2" />}
                 Leave Workspace

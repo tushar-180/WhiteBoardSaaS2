@@ -15,10 +15,10 @@ export function SettingsContent() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-background relative">
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="absolute top-2 right-2 hidden md:flex z-10" 
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-2 right-2 hidden md:flex z-10"
         onClick={() => setIsOpen(false)}
       >
         <X className="w-5 h-5" />
@@ -26,11 +26,14 @@ export function SettingsContent() {
 
       <div className="flex-1 overflow-y-auto w-full px-4 md:px-0">
         {activeTab === "profile" && <ProfileSettings />}
-        
-        {activeTab === "workspaces" && (
-          activeWorkspaceId ? <WorkspaceDetailPanel /> : <WorkspacesSettings />
-        )}
-        
+
+        {activeTab === "workspaces" &&
+          (activeWorkspaceId ? (
+            <WorkspaceDetailPanel />
+          ) : (
+            <WorkspacesSettings />
+          ))}
+
         {activeTab === "notifications" && <NotificationsSettings />}
         {activeTab === "appearance" && <AppearanceSettings />}
         {activeTab === "account" && <AccountSettings />}

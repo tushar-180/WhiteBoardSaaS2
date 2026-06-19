@@ -37,44 +37,45 @@ export default function WorkspacesLoading() {
       {/* Workspace Cards Grid Skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {/* Create Workspace Card skeleton (dashed card structure) */}
-        <div className="h-full min-h-[160px] border border-dashed border-border bg-background/30 rounded-xl p-5 flex flex-col items-center justify-center text-center gap-2">
+        <div className="h-full min-h-[160px] border border-dashed border-border/60 bg-background/30 rounded-xl p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-2">
           <Skeleton className="h-10 w-10 rounded-xl" />
           <Skeleton className="h-4 w-28" />
           <Skeleton className="h-3 w-36" />
         </div>
 
         {/* Skeleton Workspace Card 1 */}
-        <div className="border border-border/60 bg-card/60 rounded-xl p-5 min-h-[160px] flex flex-col justify-between relative overflow-hidden">
-          {/* Decorative corner shape */}
-          <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full translate-x-4 -translate-y-4" />
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Skeleton className="h-8 w-8 rounded-lg" />
-              <Skeleton className="h-3.5 w-16" />
-            </div>
-            <Skeleton className="h-5.5 w-2/3 mb-2" />
-            <Skeleton className="h-3.5 w-1/3" />
+        <div className="flex flex-col border border-border/60 bg-card rounded-xl p-4 sm:p-5 gap-0 min-h-[160px] overflow-hidden">
+          <div className="flex items-center gap-2 mb-3 mt-2 sm:mt-0">
+            <Skeleton className="h-8 w-8 rounded-lg" />
+            <Skeleton className="h-[10px] w-16" />
+            <Skeleton className="h-[10px] w-12 rounded-full" />
           </div>
-          <div className="border-t border-border/40 pt-4 flex justify-between items-center mt-5">
-            <Skeleton className="h-3.5 w-24" />
-            <Skeleton className="h-3.5 w-8" />
+          <Skeleton className="h-5 w-2/3 mt-1" />
+          <Skeleton className="h-3.5 w-1/3 mt-2" />
+          <div className="mt-5 border-t border-border/40 pt-4 flex justify-between items-end flex-1">
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-2.5 w-20" />
+            </div>
+            <Skeleton className="h-6 w-12 rounded-full" />
           </div>
         </div>
 
         {/* Skeleton Workspace Card 2 */}
-        <div className="border border-border/60 bg-card/60 rounded-xl p-5 min-h-[160px] flex flex-col justify-between relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full translate-x-4 -translate-y-4" />
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Skeleton className="h-8 w-8 rounded-lg" />
-              <Skeleton className="h-3.5 w-16" />
-            </div>
-            <Skeleton className="h-5.5 w-1/2 mb-2" />
-            <Skeleton className="h-3.5 w-1/4" />
+        <div className="flex flex-col border border-border/60 bg-card rounded-xl p-4 sm:p-5 gap-0 min-h-[160px] overflow-hidden">
+          <div className="flex items-center gap-2 mb-3 mt-2 sm:mt-0">
+            <Skeleton className="h-8 w-8 rounded-lg" />
+            <Skeleton className="h-[10px] w-16" />
+            <Skeleton className="h-[10px] w-14 rounded-full" />
           </div>
-          <div className="border-t border-border/40 pt-4 flex justify-between items-center mt-5">
-            <Skeleton className="h-3.5 w-20" />
-            <Skeleton className="h-3.5 w-8" />
+          <Skeleton className="h-5 w-1/2 mt-1" />
+          <Skeleton className="h-3.5 w-1/4 mt-2" />
+          <div className="mt-5 border-t border-border/40 pt-4 flex justify-between items-end flex-1">
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-2.5 w-16" />
+            </div>
+            <Skeleton className="h-6 w-8 rounded-full" />
           </div>
         </div>
       </div>

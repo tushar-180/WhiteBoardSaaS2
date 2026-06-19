@@ -1,8 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { ArrowRight, Menu } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +22,13 @@ interface NavbarProps {
 }
 
 export default function Navbar({ isLoggedIn }: NavbarProps) {
+  const [mounted, setMounted] = useState(false);
+  const { setTheme, resolvedTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -69,6 +81,18 @@ export default function Navbar({ isLoggedIn }: NavbarProps) {
 
         {/* CTA Buttons & Mobile Menu */}
         <div className="flex items-center gap-2 sm:gap-4">
+          {/* Theme Toggler */}
+          {mounted ? (
+            <AnimatedThemeToggler
+              duration={600}
+              theme={resolvedTheme as "light" | "dark"}
+              onThemeChange={(t) => setTheme(t)}
+              className="flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground h-8 w-8 transition-colors"
+            />
+          ) : (
+            <div className="h-8 w-8" />
+          )}
+
           {/* Mobile Menu */}
           <div className="md:hidden">
             <DropdownMenu modal={false}>

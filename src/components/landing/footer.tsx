@@ -21,7 +21,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-white/10 bg-[#09090b] pt-16 relative overflow-hidden flex flex-col">
+    <footer className="border-t border-border bg-card pt-16 relative overflow-hidden flex flex-col">
       {/* Decorative gradient */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[800px] h-[300px] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
 
@@ -31,7 +31,7 @@ export default function Footer() {
           <div className="md:col-span-1 lg:col-span-2">
             <Link
               href="/"
-              className="flex items-center gap-2.5 font-bold text-xl tracking-tight text-white mb-4"
+              className="flex items-center gap-2.5 font-bold text-xl tracking-tight text-foreground mb-4"
             >
               <Image
                 src={ASSETS.LOGO}
@@ -43,21 +43,21 @@ export default function Footer() {
               />
               <span>Zentrox</span>
             </Link>
-            <p className="text-white/70 text-sm max-w-xs leading-relaxed mb-6 font-light">
+            <p className="text-muted-foreground text-sm max-w-xs leading-relaxed mb-6 font-light">
               The ultimate collaborative canvas for modern teams. Draw, think,
               and build together in real-time.
             </p>
             {/* Socials */}
-            <div className="flex items-center gap-4 text-white/40">
+            <div className="flex items-center gap-4 text-muted-foreground/60">
               <Link
                 href="https://github.com/tushar-180/WhiteBoardSaaS2"
                 target="_blank"
-                className="hover:text-white transition-colors"
+                className="hover:text-foreground transition-colors"
               >
                 <GithubIcon className="h-5 w-5" />
                 <span className="sr-only">GitHub</span>
               </Link>
-              <Link href="#" className="hover:text-white transition-colors">
+              <Link href="#" className="hover:text-foreground transition-colors">
                 <TwitterIcon className="h-5 w-5" />
                 <span className="sr-only">Twitter</span>
               </Link>
@@ -66,12 +66,12 @@ export default function Footer() {
 
           {/* Product Links */}
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm">Product</h4>
-            <ul className="space-y-3 text-sm text-white/70">
+            <h4 className="text-foreground font-semibold mb-4 text-sm">Product</h4>
+            <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
                 <Link
                   href="/features"
-                  className="hover:text-white transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   Features
                 </Link>
@@ -79,7 +79,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/pricing"
-                  className="hover:text-white transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   Pricing
                 </Link>
@@ -87,7 +87,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/about"
-                  className="hover:text-white transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   About Us
                 </Link>
@@ -97,12 +97,12 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm">Legal</h4>
-            <ul className="space-y-3 text-sm text-white/70">
+            <h4 className="text-foreground font-semibold mb-4 text-sm">Legal</h4>
+            <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
                 <Link
                   href="/privacy"
-                  className="hover:text-white transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   Privacy Policy
                 </Link>
@@ -110,7 +110,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/terms"
-                  className="hover:text-white transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   Terms of Service
                 </Link>
@@ -118,7 +118,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/contact"
-                  className="hover:text-white transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   Contact Us
                 </Link>
@@ -128,11 +128,11 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 pb-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/70">
+        <div className="pt-8 pb-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-muted-foreground">
             &copy; {currentYear} Zentrox Inc. All rights reserved.
           </p>
-          <div className="flex items-center gap-2 text-xs text-white/70 font-medium tracking-wide">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium tracking-wide">
             <span>Empowering visual collaboration for modern teams.</span>
           </div>
         </div>
@@ -140,7 +140,7 @@ export default function Footer() {
 
       {/* Big Text At Bottom */}
       <div className="w-full flex justify-center items-end overflow-hidden mt-8">
-        <h1 className="text-[20vw] font-bold text-white/[0.03] leading-[0.75] tracking-tighter whitespace-nowrap">
+        <h1 className="text-[20vw] font-bold text-foreground/[0.03] leading-[0.75] tracking-tighter whitespace-nowrap">
           Zentrox
         </h1>
       </div>

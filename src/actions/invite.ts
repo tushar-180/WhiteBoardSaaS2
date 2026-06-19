@@ -116,7 +116,9 @@ export async function createInviteAction(
     );
 
     if (!emailSent) {
-      console.log("Logging invite link in server console:", inviteLink, "Error:", emailError);
+      // In production, email delivery is essential. If SendGrid is not configured,
+      // the invite link should be retrieved via the invitation management UI instead.
+      console.warn("Invite email not sent. Provide SENDGRID_API_KEY for email delivery.");
     }
 
     getPostHogClient().capture({
@@ -135,7 +137,6 @@ export async function createInviteAction(
 
     return { inviteLink, emailSent, emailError };
   } catch (error: unknown) {
-    console.error("Action error in createInviteAction:", error);
     throw new Error((error as Error).message || "Failed to create invitation.");
   }
 }
@@ -173,7 +174,6 @@ export async function revokeInviteAction(
     // Revalidate paths
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
   } catch (error: unknown) {
-    console.error("Action error in revokeInviteAction:", error);
     throw new Error((error as Error).message || "Failed to revoke invitation.");
   }
 }
@@ -199,7 +199,6 @@ export async function rejectInviteAction(token: string): Promise<void> {
     // Revalidate workspaces list path
     revalidatePath(ROUTES.WORKSPACES);
   } catch (error: unknown) {
-    console.error("Action error in rejectInviteAction:", error);
     throw new Error((error as Error).message || "Failed to reject invitation.");
   }
 }
@@ -249,7 +248,6 @@ export async function acceptInviteAction(token: string): Promise<string> {
 
     return workspaceId;
   } catch (error: unknown) {
-    console.error("Action error in acceptInviteAction:", error);
     throw new Error((error as Error).message || "Failed to accept invitation.");
   }
 }
@@ -261,8 +259,7 @@ export async function searchProfilesAction(query: string): Promise<Profile[]> {
   try {
     await requireActionAuth("You must be logged in to search profiles.");
     return await searchProfilesByEmail(query);
-  } catch (error) {
-    console.error("Action error in searchProfilesAction:", error);
+  } catch {
     throw new Error("Failed to search profiles. Please try again.");
   }
 }
@@ -276,8 +273,7 @@ export async function getUserNotificationsAction(): Promise<WorkspaceInviteWithW
     const { user } = await requireActionAuth("You must be logged in to fetch notifications.");
     if (!user.email) return [];
     return await fetchUserNotifications(user.email, user.id);
-  } catch (error) {
-    console.error("Action error in getUserNotificationsAction:", error);
+  } catch {
     throw new Error("Failed to fetch notifications. Please try again.");
   }
 }
@@ -290,7 +286,6 @@ export async function dismissNotificationAction(inviteId: string): Promise<void>
     const { user } = await requireActionAuth("You must be logged in to dismiss notifications.");
     await dismissInviteNotification(inviteId, user.id);
   } catch (error) {
-    console.error("Action error in dismissNotificationAction:", error);
     throw new Error((error as Error).message || "Failed to dismiss notification.");
   }
 }
@@ -315,7 +310,6 @@ export async function bulkRevokeInvitesAction(
     await bulkRevokeWorkspaceInvites(workspaceId, inviteIds);
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
   } catch (error: unknown) {
-    console.error("Action error in bulkRevokeInvitesAction:", error);
     throw new Error((error as Error).message || "Failed to revoke invitations.");
   }
 }
@@ -392,7 +386,6 @@ export async function bulkInviteUsersAction(
 
     return { successfulEmails, failedEmails };
   } catch (error: unknown) {
-    console.error("Action error in bulkInviteUsersAction:", error);
     throw new Error((error as Error).message || "Failed to bulk invite users.");
   }
 }
@@ -404,8 +397,7 @@ export async function getPendingInvitesAction(workspaceId: string) {
   try {
     await requireActionAuth("You must be logged in to view invites.");
     return await fetchPendingInvitesByWorkspace(workspaceId);
-  } catch (error) {
-    console.error("Action error in getPendingInvitesAction:", error);
+  } catch {
     throw new Error("Failed to fetch pending invites. Please try again.");
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { type Workspace } from "@/types/workspace";
 import { type WorkspaceInvite } from "@/types/workspace";
 import { getPendingInvitesAction, bulkRevokeInvitesAction, bulkInviteUsersAction, searchProfilesAction } from "@/actions/invite";
@@ -32,7 +32,6 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
   // Debounced profile search
   useEffect(() => {
     if (emailInput.trim().length < 2) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestions([]);
       return;
     }
@@ -100,7 +99,12 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
     }
   };
 
+  const lastFetchedWorkspaceId = React.useRef<string | null>(null);
+
   useEffect(() => {
+    if (lastFetchedWorkspaceId.current === workspace.id) return;
+    lastFetchedWorkspaceId.current = workspace.id;
+
     async function loadInvites() {
       try {
         const data = await getPendingInvitesAction(workspace.id);
