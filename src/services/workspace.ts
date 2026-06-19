@@ -235,6 +235,27 @@ export async function deleteWorkspace(workspaceId: string, ownerId: string): Pro
 }
 
 /**
+ * Updates a workspace record in the database.
+ * The workspace can only be updated by an owner or admin (enforced via RLS or caller).
+ */
+export async function updateWorkspace(workspaceId: string, name: string): Promise<Workspace> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("workspaces")
+    .update({ name })
+    .eq("id", workspaceId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Database error in updateWorkspace:", error);
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+/**
  * Fetches a single workspace by its ID.
  */
 export async function fetchWorkspaceById(workspaceId: string): Promise<Workspace | null> {

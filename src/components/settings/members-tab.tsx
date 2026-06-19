@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { type Workspace, type WorkspaceRole } from "@/types/workspace";
 import { type WorkspaceMemberWithProfile } from "@/types/workspace";
 import { getWorkspaceMembersAction, bulkRemoveMembersAction, updateMemberRoleAction } from "@/actions/member";
@@ -17,8 +17,12 @@ export function MembersTab({ workspace, currentUserRole }: { workspace: Workspac
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isRemoving, setIsRemoving] = useState(false);
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
+  const lastFetchedWorkspaceId = React.useRef<string | null>(null);
 
   useEffect(() => {
+    if (lastFetchedWorkspaceId.current === workspace.id) return;
+    lastFetchedWorkspaceId.current = workspace.id;
+
     async function loadMembers() {
       try {
         const data = await getWorkspaceMembersAction(workspace.id);

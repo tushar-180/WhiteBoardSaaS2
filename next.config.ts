@@ -46,6 +46,17 @@ const nextConfig: NextConfig = {
       ? ["192.168.0.135"]
       : undefined,
 
+  transpilePackages: [
+    "tldraw",
+    "@tldraw/editor",
+    "@tldraw/state",
+    "@tldraw/state-react",
+    "@tldraw/store",
+    "@tldraw/tlschema",
+    "@tldraw/utils",
+    "@tldraw/validate"
+  ],
+
   experimental: {
     serverActions: {
       allowedOrigins: uniqueAllowedOrigins,

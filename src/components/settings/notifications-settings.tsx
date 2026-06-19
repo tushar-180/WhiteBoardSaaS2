@@ -1,39 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getUserNotificationsAction, dismissNotificationAction, acceptInviteAction, rejectInviteAction } from "@/actions/invite";
-import { type WorkspaceInviteWithWorkspace } from "@/types/workspace";
+import { dismissNotificationAction, acceptInviteAction, rejectInviteAction } from "@/actions/invite";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Loader2, Bell, Check, ArrowRight, X, Building, Clock } from "lucide-react";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
+import { useNotificationStore } from "@/store/use-notification-store";
 import { formatRelativeTime } from "@/lib/utils";
 
 export function NotificationsSettings() {
   const router = useRouter();
   const { user } = useWorkspaceStore();
-  const [notifications, setNotifications] = useState<WorkspaceInviteWithWorkspace[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadNotifications() {
-      try {
-        const data = await getUserNotificationsAction();
-        setNotifications(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadNotifications();
-  }, []);
+  const { invites: notifications, isLoading, removeInvite } = useNotificationStore();
 
   const handleAcceptOnly = async (token: string) => {
     try {
       await acceptInviteAction(token);
-      setNotifications(prev => prev.filter(n => n.token !== token));
+      const inviteId = notifications.find(n => n.token === token)?.id;
+      if (inviteId) removeInvite(inviteId);
       toast.success("Joined workspace successfully.");
     } catch (error: unknown) {
       toast.error((error as Error).message);
@@ -43,7 +28,8 @@ export function NotificationsSettings() {
   const handleAcceptAndJoin = async (token: string) => {
     try {
       const workspaceId = await acceptInviteAction(token);
-      setNotifications(prev => prev.filter(n => n.token !== token));
+      const inviteId = notifications.find(n => n.token === token)?.id;
+      if (inviteId) removeInvite(inviteId);
       toast.success("Joined workspace successfully.");
       router.push(`/workspaces/${workspaceId}`);
     } catch (error: unknown) {
@@ -54,7 +40,8 @@ export function NotificationsSettings() {
   const handleReject = async (token: string) => {
     try {
       await rejectInviteAction(token);
-      setNotifications(prev => prev.filter(n => n.token !== token));
+      const inviteId = notifications.find(n => n.token === token)?.id;
+      if (inviteId) removeInvite(inviteId);
       toast.success("Invitation rejected.");
     } catch (error: unknown) {
       toast.error((error as Error).message);
@@ -64,7 +51,7 @@ export function NotificationsSettings() {
   const handleDismiss = async (id: string) => {
     try {
       await dismissNotificationAction(id);
-      setNotifications(prev => prev.filter(n => n.id !== id));
+      removeInvite(id);
     } catch (error: unknown) {
       toast.error((error as Error).message);
     }

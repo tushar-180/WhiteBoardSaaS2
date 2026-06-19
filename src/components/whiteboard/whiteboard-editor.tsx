@@ -47,6 +47,7 @@ export default function WhiteboardEditor({
   const resetStore = useWhiteboardStore((state) => state.reset);
 
   const [localIsReadonly, setLocalIsReadonly] = useState(isReadonly);
+  const [localCurrentUserRole, setLocalCurrentUserRole] = useState(currentUser.role);
   const [isKicked, setIsKicked] = useState(false);
 
   // Subscribe to real-time changes to the user's role/membership in the workspace
@@ -77,6 +78,7 @@ export default function WhiteboardEditor({
             );
           } else {
             setLocalIsReadonly(member.role === "viewer");
+            setLocalCurrentUserRole(member.role);
           }
         } catch (err) {
           console.error("[Realtime Check] Failed to verify user role:", err);
@@ -107,6 +109,7 @@ export default function WhiteboardEditor({
                 updatedMember.workspace_id === board.workspace_id
               ) {
                 setLocalIsReadonly(updatedMember.role === "viewer");
+                setLocalCurrentUserRole(updatedMember.role);
               }
             } else if (payload.eventType === "INSERT") {
               const newMember = payload.new as {
@@ -217,7 +220,7 @@ export default function WhiteboardEditor({
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden relative select-none">
       {/* Top Header */}
-      <EditorHeader board={board} onSave={handleManualSave} />
+      <EditorHeader board={board} onSave={handleManualSave} currentUser={{ ...currentUser, role: localCurrentUserRole }} />
 
       {/* Drawing Canvas Container */}
       <main className="flex-1 w-full h-[calc(100vh-64px)] relative bg-muted/20">

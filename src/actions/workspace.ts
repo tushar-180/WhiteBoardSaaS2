@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { requireActionAuth, createClient } from "@/utils/supabase/server";
-import { insertWorkspace, deleteWorkspace, bulkDeleteWorkspaces } from "@/services/workspace";
-import { bulkLeaveWorkspaces } from "@/services/member";
+import { insertWorkspace, deleteWorkspace, bulkDeleteWorkspaces, updateWorkspace } from "@/services/workspace";
+import { bulkLeaveWorkspaces, fetchWorkspaceMemberRole } from "@/services/member";
 import { type Workspace, workspaceSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
 import { getPostHogClient } from "@/lib/posthog-server";
@@ -87,6 +87,41 @@ export async function deleteWorkspaceAction(workspaceId: string): Promise<void> 
     revalidatePath(ROUTES.WORKSPACES);
   } catch (error: unknown) {
     throw new Error((error as Error).message || "Failed to delete workspace.");
+  }
+}
+
+/**
+ * Updates a workspace's details.
+ */
+export async function updateWorkspaceAction(workspaceId: string, name: string): Promise<Workspace> {
+  try {
+    const { user } = await requireActionAuth("You must be logged in to update a workspace.");
+
+    // Validate access
+    const role = await fetchWorkspaceMemberRole(workspaceId, user.id);
+    if (role !== "owner" && role !== "admin") {
+      throw new Error("You do not have permission to update this workspace.");
+    }
+
+    const validated = workspaceSchema.safeParse({ name });
+    if (!validated.success) {
+      throw new Error(validated.error.issues[0].message);
+    }
+
+    const updatedWorkspace = await updateWorkspace(workspaceId, validated.data.name);
+
+    getPostHogClient().capture({
+      distinctId: user.id,
+      event: "workspace_updated",
+      properties: { workspace_id: workspaceId, workspace_name: updatedWorkspace.name },
+    });
+
+    revalidatePath(ROUTES.WORKSPACES);
+    revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
+
+    return updatedWorkspace;
+  } catch (error: unknown) {
+    throw new Error((error as Error).message || "Failed to update workspace.");
   }
 }
 

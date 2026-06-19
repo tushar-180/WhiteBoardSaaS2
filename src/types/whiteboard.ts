@@ -6,6 +6,9 @@ export type SaveStatus = "idle" | "unsaved" | "saving" | "saved" | "error";
 export interface CurrentUser {
   id: string;
   name: string;
+  email: string;
+  avatar_url?: string | null;
+  role?: string;
 }
 
 export interface WhiteboardEditorProps {

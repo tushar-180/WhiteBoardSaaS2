@@ -9,6 +9,7 @@ import { preconnect } from "react-dom";
 import WhiteboardEditor from "@/components/whiteboard/whiteboard-editor";
 import { fetchWorkspaceMemberRole } from "@/services/member";
 
+
 export const revalidate = 0;
 
 interface PageProps {
@@ -44,7 +45,7 @@ export default async function BoardDetailPage({ params }: PageProps) {
   const [hasAccess, workspaceRole, { data: profile }] = await Promise.all([
     hasWorkspaceAccess(board.workspace_id, user.id),
     fetchWorkspaceMemberRole(board.workspace_id, user.id),
-    supabase.from("profiles").select("name").eq("id", user.id).single(),
+    supabase.from("profiles").select("name, email, avatar_url").eq("id", user.id).single(),
   ]);
 
   if (!hasAccess) {
@@ -60,6 +61,9 @@ export default async function BoardDetailPage({ params }: PageProps) {
   const currentUser = {
     id: user.id,
     name: displayName,
+    email: profile?.email || user.email || "",
+    avatar_url: profile?.avatar_url || null,
+    role: workspaceRole || "viewer",
   };
 
   // Preconnect to Tldraw's CDN to speed up the massive font payload downloads
