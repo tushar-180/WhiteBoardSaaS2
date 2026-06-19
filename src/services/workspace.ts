@@ -1,7 +1,27 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@/utils/supabase/server";
 import { type Workspace, type WorkspaceRole, type WorkspaceMemberPreview } from "@/types/workspace";
 import { isValidUUID } from "@/lib/utils";
+
+interface WorkspaceMemberQueryRow {
+  id: string;
+  user_id: string;
+  role: string;
+  profiles: {
+    email: string;
+    name: string | null;
+    avatar_url: string | null;
+  } | null;
+}
+
+interface WorkspaceQueryResult {
+  id: string;
+  name: string;
+  slug: string;
+  owner_id: string;
+  created_at: string;
+  updated_at: string;
+  workspace_members?: WorkspaceMemberQueryRow[];
+}
 
 
 
@@ -73,19 +93,11 @@ export async function fetchAllUserWorkspaces(userId: string): Promise<Workspace[
   interface MemberWorkspaceRow {
     workspace_id: string;
     role: string;
-    workspaces: {
-      id: string;
-      name: string;
-      slug: string;
-      owner_id: string;
-      created_at: string;
-      updated_at: string;
-      workspace_members?: any[];
-    }[] | null;
+    workspaces: WorkspaceQueryResult[] | null;
   }
 
-  const mapMembers = (membersArray: any[]): WorkspaceMemberPreview[] => {
-    return (membersArray || []).map((m: any) => {
+  const mapMembers = (membersArray: WorkspaceMemberQueryRow[]): WorkspaceMemberPreview[] => {
+    return (membersArray || []).map((m) => {
       const p = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
       return {
         id: m.id,
@@ -116,7 +128,7 @@ export async function fetchAllUserWorkspaces(userId: string): Promise<Workspace[
   const ownedWorkspacesWithRole = (ownedWorkspaces || []).map((w) => ({
     ...w,
     currentUserRole: "owner" as WorkspaceRole,
-    members_preview: mapMembers((w as any).workspace_members || []),
+    members_preview: mapMembers((w as unknown as WorkspaceQueryResult).workspace_members || []),
   }));
   const allWorkspaces = [...ownedWorkspacesWithRole, ...joinedWorkspacesList];
   const uniqueOwnerIds = [...new Set(allWorkspaces.map((w) => w.owner_id))];
@@ -220,6 +232,27 @@ export async function deleteWorkspace(workspaceId: string, ownerId: string): Pro
     console.error("Database error in deleteWorkspace:", error);
     throw new Error(error.message);
   }
+}
+
+/**
+ * Updates a workspace record in the database.
+ * The workspace can only be updated by an owner or admin (enforced via RLS or caller).
+ */
+export async function updateWorkspace(workspaceId: string, name: string): Promise<Workspace> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("workspaces")
+    .update({ name })
+    .eq("id", workspaceId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Database error in updateWorkspace:", error);
+    throw new Error(error.message);
+  }
+
+  return data;
 }
 
 /**

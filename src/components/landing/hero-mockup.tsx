@@ -16,7 +16,7 @@ export default function HeroMockup() {
         <ContainerScroll
           titleComponent={
             <>
-              <h1 className="text-4xl font-semibold text-white mb-8">
+              <h1 className="text-4xl font-semibold text-foreground mb-8">
                 Unleash the power of <br />
                 <span className="text-4xl md:text-[6rem] font-bold mt-1 leading-none text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
                   Visual Collaboration
@@ -26,23 +26,23 @@ export default function HeroMockup() {
           }
         >
           {/* Sleek macOS-style App Mockup */}
-          <div className="relative rounded-xl border border-white/10 bg-[#09090b] h-full w-full overflow-hidden flex flex-col">
+          <div className="relative rounded-xl border border-border bg-card h-full w-full overflow-hidden flex flex-col">
             {/* macOS Title Bar */}
-            <div className="h-12 border-b border-white/5 flex items-center px-4 justify-between bg-white/[0.02]">
+            <div className="h-12 border-b border-border/50 flex items-center px-4 justify-between bg-muted/20">
               <div className="flex gap-2 items-center">
                 <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
                 <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
                 <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
               </div>
-              <div className="text-xs font-medium text-white/40 tracking-wide px-4 py-1 rounded-md bg-white/5">
+              <div className="text-xs font-medium text-muted-foreground/60 tracking-wide px-4 py-1 rounded-md bg-muted/50">
                 Workspace / Project Alpha
               </div>
               <div className="flex gap-3">
                 <div className="flex -space-x-2">
-                  <div className="h-6 w-6 rounded-full border border-[#09090b] bg-indigo-500 flex items-center justify-center text-[9px] font-bold text-white z-20">
+                  <div className="h-6 w-6 rounded-full border border-background bg-indigo-500 flex items-center justify-center text-[9px] font-bold text-white z-20">
                     AL
                   </div>
-                  <div className="h-6 w-6 rounded-full border border-[#09090b] bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white z-10">
+                  <div className="h-6 w-6 rounded-full border border-background bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white z-10">
                     SH
                   </div>
                 </div>
@@ -50,12 +50,12 @@ export default function HeroMockup() {
             </div>
 
             {/* Canvas Area */}
-            <div className="flex-1 relative overflow-hidden bg-[#09090b]">
+            <div className="flex-1 relative overflow-hidden bg-card">
               {/* Fine Whiteboard Grid */}
-              <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:24px_24px]" />
+              <div className="absolute inset-0 bg-[radial-gradient(color-mix(in srgb,var(--foreground) 6%,transparent)_1px,transparent_1px)] [background-size:24px_24px]" />
 
               {/* Minimalist Floating Center Tool Selection */}
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 rounded-2xl border border-white/10 bg-[#121214]/80 p-1.5 shadow-2xl backdrop-blur-xl">
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 rounded-2xl border border-border bg-muted/80 p-1.5 shadow-2xl backdrop-blur-xl">
                 <Button
                   size="icon-sm"
                   variant="ghost"
@@ -67,7 +67,7 @@ export default function HeroMockup() {
                 <Button
                   size="icon-sm"
                   variant="ghost"
-                  className="rounded-xl text-white/50 hover:text-white hover:bg-white/5 h-9 w-9"
+                  className="rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent h-9 w-9"
                   aria-label="Pen tool"
                 >
                   <PenTool className="h-4 w-4" />
@@ -75,7 +75,7 @@ export default function HeroMockup() {
                 <Button
                   size="icon-sm"
                   variant="ghost"
-                  className="rounded-xl text-white/50 hover:text-white hover:bg-white/5 h-9 w-9"
+                  className="rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent h-9 w-9"
                   aria-label="Shape tool"
                 >
                   <Square className="h-4 w-4" />
@@ -91,22 +91,22 @@ export default function HeroMockup() {
               </div>
 
               {/* Minimalist Zoom Widget */}
-              <div className="hidden sm:flex absolute bottom-6 left-6 items-center gap-1 rounded-xl border border-white/10 bg-[#121214]/80 p-1 shadow-2xl backdrop-blur-xl">
+              <div className="hidden sm:flex absolute bottom-6 left-6 items-center gap-1 rounded-xl border border-border bg-muted/80 p-1 shadow-2xl backdrop-blur-xl">
                 <Button
                   size="icon-xs"
                   variant="ghost"
-                  className="h-7 w-7 rounded-lg text-white/50 hover:text-white hover:bg-white/5"
+                  className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
                   aria-label="Zoom out"
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
-                <span className="text-[11px] font-medium px-2 text-white/70">
+                <span className="text-[11px] font-medium px-2 text-muted-foreground/80">
                   100%
                 </span>
                 <Button
                   size="icon-xs"
                   variant="ghost"
-                  className="h-7 w-7 rounded-lg text-white/50 hover:text-white hover:bg-white/5"
+                  className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
                   aria-label="Zoom in"
                 >
                   <Plus className="h-3 w-3" />
@@ -117,10 +117,10 @@ export default function HeroMockup() {
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                 <div className="relative w-[500px] h-[300px]">
                   {/* Card 1 */}
-                  <div className="absolute top-[20px] left-[50px] w-[140px] p-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm shadow-xl">
-                    <div className="h-2 w-16 bg-white/20 rounded-full mb-2" />
-                    <div className="h-1.5 w-24 bg-white/10 rounded-full mb-1" />
-                    <div className="h-1.5 w-20 bg-white/10 rounded-full" />
+                  <div className="absolute top-[20px] left-[50px] w-[140px] p-3 rounded-xl border border-border bg-muted/50 backdrop-blur-sm shadow-xl">
+                    <div className="h-2 w-16 bg-foreground/20 rounded-full mb-2" />
+                    <div className="h-1.5 w-24 bg-foreground/10 rounded-full mb-1" />
+                    <div className="h-1.5 w-20 bg-foreground/10 rounded-full" />
                   </div>
 
                   {/* Connection Line */}
@@ -134,8 +134,9 @@ export default function HeroMockup() {
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeDasharray="4 4"
+                      className="text-foreground/20"
                     />
-                    <circle cx="310" cy="220" r="4" fill="currentColor" />
+                    <circle cx="310" cy="220" r="4" className="text-foreground/20" fill="currentColor" />
                   </svg>
 
                   {/* Card 2 */}
@@ -146,8 +147,8 @@ export default function HeroMockup() {
                       </div>
                       <div className="h-2 w-16 bg-indigo-400/80 rounded-full" />
                     </div>
-                    <div className="h-1.5 w-full bg-white/10 rounded-full mb-1.5" />
-                    <div className="h-1.5 w-3/4 bg-white/10 rounded-full" />
+                    <div className="h-1.5 w-full bg-foreground/10 rounded-full mb-1.5" />
+                    <div className="h-1.5 w-3/4 bg-foreground/10 rounded-full" />
                   </div>
 
                   {/* Collaborative Cursors */}

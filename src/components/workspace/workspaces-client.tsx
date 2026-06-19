@@ -42,7 +42,6 @@ export function WorkspacesClient({
       email: userEmail,
       name: userName,
     });
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
   }, [initialWorkspaces, userId, userEmail, userName, userAvatarUrl]);
 

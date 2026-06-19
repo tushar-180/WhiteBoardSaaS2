@@ -12,11 +12,14 @@ Before making code changes, read these files in this order:
 
 1. `AGENT.md` - this guide.
 2. `README.md` - short project overview and active scope.
-3. `docs/PHASES.md` - current build phases.
-4. `docs/timestamp.md` - task checklist and progress.
-5. `docs/DATABASE.md` - current Supabase schema.
-6. `docs/DEPLOYMENT.md` - Vercel deployment and Supabase configuration.
-7. Relevant source files for the feature being changed.
+3. `docs/phases.md` - current build phases.
+4. `docs/progress.md` - task checklist and progress.
+5. `docs/database.md` - current Supabase schema.
+6. `docs/deployment.md` - Vercel deployment and Supabase configuration.
+7. `docs/code-review-report.md` - latest code quality report.
+8. `docs/whiteboard.md` - whiteboard architecture and runtime flow.
+9. `docs/README.md` - docs directory overview & navigation.
+8. Relevant source files for the feature being changed.
 
 Do not assume old plans are still active. The current app scope is auth, workspaces, members/invites, boards, and canvas persistence.
 
@@ -24,15 +27,19 @@ Do not assume old plans are still active. The current app scope is auth, workspa
 
 ## Current Stack
 
-- **Framework:** Next.js 16 App Router, React 19, TypeScript
-- **Styling:** Tailwind CSS v4, shadcn/ui, Aceternity UI, Radix primitives
+- **Framework:** Next.js 16 (App Router, Turbopack), React 19, TypeScript
+- **Styling:** Tailwind CSS v4, shadcn/ui, Aceternity UI, Radix primitives, Motion (animations), tw-animate-css
 - **Icons / Feedback:** lucide-react, Sonner
 - **State:** Zustand
 - **Forms / Validation:** React Hook Form, Zod, `@hookform/resolvers`
 - **Backend:** Next.js Server Actions and Route Handlers
 - **Database / Auth:** Supabase SSR SDK and Supabase PostgreSQL
-
-Redux Toolkit is not part of this codebase anymore.
+- **Canvas:** tldraw 5, @tldraw/sync, @tldraw/sync-core
+- **Analytics:** PostHog (client: posthog-js, server: posthog-node)
+- **Email:** SendGrid (@sendgrid/mail)
+- **Testing:** Vitest, @testing-library/react, jsdom
+- **Infrastructure:** Vercel (hosting), Render (sync server)
+- **Additional:** next-themes, simplex-noise, @vercel/analytics, @vercel/speed-insights
 
 ---
 
@@ -68,24 +75,28 @@ AI, comments, large realtime collaboration, and advanced scaling are later ideas
 
 ```txt
 src/
-├── actions/              # Server Actions
-├── app/                  # Next.js App Router pages and route handlers
+├── actions/              # Server Actions (auth, board, invite, member, workspace, profile, settings)
+├── app/                  # Next.js App Router (layouts, pages, route handlers)
+│   ├── (auth)/           # Login, register, forgot-password, reset-password, link-expired
+│   ├── (landing)/        # Home, about, contact, features, pricing, privacy, terms
+│   └── (protected)/      # Workspaces, board, invite pages (behind auth middleware)
 ├── components/
-│   ├── auth/             # Auth UI
-│   ├── board/            # Board cards, lists, and form dialogs
-│   ├── landing/          # Landing page UI
-│   ├── ui/               # shadcn/ui components
-│   ├── whiteboard/       # Whiteboard canvas wrapper and sub-modules
-│   │   ├── hooks/        # Whiteboard collaboration hooks
-│   │   └── utils/        # Whiteboard WebSocket helpers
-│   └── workspace/        # Workspace dashboard UI
-├── hooks/                # Custom React hooks (e.g. hooks/auth/)
-├── lib/                  # Shared utilities (e.g. constants.ts)
-├── services/             # Supabase data access
-├── store/                # Zustand stores
-├── types/                # TypeScript types and Zod schemas
-├── utils/supabase/       # Supabase browser/server clients
-└── proxy.ts              # Auth route guard
+│   ├── auth/             # Auth UI (login-form, forgot-password-form, reset-password-form, github-button, etc.)
+│   ├── board/            # Board cards, lists, and form dialogs (create, edit, delete)
+│   ├── landing/          # Landing page UI (hero, features, footer, navbar, mockup, lazy-sections)
+│   ├── shared/           # Shared components (error-boundary, unauthorized-access)
+│   ├── settings/         # Settings modal (profile, workspaces, notifications, appearance, account, members, invites)
+│   ├── ui/               # shadcn/ui & custom components (avatar, badge, button, dialog, card, dropdown, etc.)
+│   ├── whiteboard/       # tldraw canvas wrapper (editor, canvas, save-status, kicked-overlay) + hooks & utils
+│   └── workspace/        # Workspace dashboard (cards, lists, members, invites, notifications, dialogs)
+├── hooks/                # Custom React hooks (use-auth-form, use-pagination)
+├── lib/                  # Shared utilities (constants, utils, avatar, posthog-server)
+├── services/             # Supabase data access (board, invite, member, profile, workspace, email)
+├── store/                # Zustand stores (workspace, board, member, notification, whiteboard, settings)
+├── types/                # TypeScript types & Zod schemas (auth, profile, whiteboard, workspace)
+├── utils/supabase/       # Supabase browser/server/middleware clients
+├── __tests__/            # Vitest test suite (26 files, 284 tests) mirroring src/ structure
+└── proxy.ts              # Auth route guard middleware
 
 sync-server/              # Multiplayer WS Sync Server (Modular)
 ├── config.ts             # Configurations and env setup
@@ -131,11 +142,12 @@ sync-server/              # Multiplayer WS Sync Server (Modular)
 - Do not duplicate validation rules inside components if a schema already exists.
 
 ### Client State & Hydration
-- Use Zustand stores in `src/store/` (`useWorkspaceStore`, `useBoardStore`, `useWhiteboardStore`, `useMemberStore`, `useNotificationStore`).
+- Use Zustand stores in `src/store/` (`useWorkspaceStore`, `useBoardStore`, `useWhiteboardStore`, `useMemberStore`, `useNotificationStore`, `useSettingsStore`).
 - Keep server-fetched data authoritative; hydrate Zustand only for interactive client UI.
 - When loading a parent page, hydrate the Zustand store via `useWorkspaceStore.setState(...)` or `useBoardStore.setState(...)` inside an effect or component mount phase. Do not recreate independent react state for fetched lists or user auth details.
 - `useMemberStore` manages workspace member and invite lists with optimistic updates (add/remove/role-change) for the `WorkspaceDetailsClient`.
 - `useNotificationStore` manages real-time workspace activity notifications across the application.
+- `settings-store.ts` manages app settings (appearance, etc.) with persistence via Zustand middleware.
 - Do not add Redux providers, slices, or RTK Query.
 
 ### React Hooks
@@ -143,10 +155,23 @@ sync-server/              # Multiplayer WS Sync Server (Modular)
 - Group related hooks under feature-based subdirectories (e.g., `src/hooks/auth/`).
 
 ### UI
-- Use existing shadcn/ui components from `src/components/ui/` (e.g. `DropdownMenu`, `Pagination`).
+- Use existing shadcn/ui components from `src/components/ui/` (e.g. `DropdownMenu`, `Pagination`, `Badge`, `Avatar`).
 - Use lucide-react icons where icons are needed.
 - Use Sonner for user-facing toast feedback.
+- Use `Motion` (from the `motion` package) for animations rather than raw CSS transitions where appropriate.
 - Keep UI patterns consistent with existing auth and workspace components.
+
+### Settings & Account Management
+- Settings UI is a modal-based system in `src/components/settings/`.
+- Settings consist of multiple tabs: Profile, Workspaces, Notifications, Appearance, Account, Members, Invites.
+- The `settings-store.ts` manages open/close state; individual tabs render via `settings-content.tsx`.
+- Profile updates go through `src/actions/profile.ts`; workspace management through `src/actions/settings.ts`.
+- Notifications use `useNotificationStore` for real-time updates.
+
+### Page Routes (Landing & Auth)
+- **Landing pages** (`about`, `contact`, `features`, `pricing`, `privacy`, `terms`) are in `src/app/(landing)/`.
+- **Auth pages** (`login`, `register`, `forgot-password`, `reset-password`, `link-expired`) are in `src/app/(auth)/`.
+- **Protected pages** (`workspaces`, `board/[boardId]`, `invite/[token]`) are in `src/app/(protected)/` and guarded by `src/proxy.ts`.
 
 ---
 
@@ -169,7 +194,11 @@ Examples:
 - Member mutations belong in `src/actions/member.ts`.
 - Invite DB logic belongs in `src/services/invite.ts`.
 - Invite mutations belong in `src/actions/invite.ts`.
-- Notifications UI belongs in `src/components/workspace/` (e.g. `notification-inbox.tsx`).
+- Notifications UI belongs in `src/components/workspace/notifications/` (e.g. `notification-item.tsx`) and `notification-inbox.tsx`.
+- Profile DB logic belongs in `src/services/profile.ts`.
+- Profile mutations belong in `src/actions/profile.ts`.
+- Settings UI belongs in `src/components/settings/`.
+- Settings mutations belong in `src/actions/settings.ts`.
 - Board DB logic belongs in `src/services/board.ts`.
 - Board mutations belong in `src/actions/board.ts`.
 - Board UI belongs in `src/components/board/`.
@@ -185,11 +214,12 @@ Do not create log files for normal changes.
 
 Instead, update the relevant docs:
 
-- Update `docs/timestamp.md` when a task is completed, added, removed, or moved.
-- Update `docs/PHASES.md` when the roadmap or phase order changes.
-- Update `docs/DATABASE.md` when tables, columns, relationships, or database behavior changes.
-- Update `docs/DEPLOYMENT.md` when deployment flows, environment variables, or config changes.
-- Update `docs/Whiteboard.md` when architecture or runtime flow changes.
+- Update `docs/progress.md` when a task is completed, added, removed, or moved.
+- Update `docs/phases.md` when the roadmap or phase order changes.
+- Update `docs/database.md` when tables, columns, relationships, or database behavior changes.
+- Update `docs/deployment.md` when deployment flows, environment variables, or config changes.
+- Update `docs/whiteboard.md` when architecture or runtime flow changes.
+- Update `docs/code-review-report.md` after significant code quality improvements or major changes.
 - Update `README.md` only for high-level project scope, setup, or structure changes.
 - Update this `AGENT.md` when codebase conventions change.
 

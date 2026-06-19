@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
-
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
@@ -63,11 +63,19 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full dark antialiased font-sans", inter.variable)}
+      className={cn("h-full antialiased font-sans", inter.variable)}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col overflow-x-hidden">
-        {children}
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

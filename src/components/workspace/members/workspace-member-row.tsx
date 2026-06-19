@@ -66,7 +66,6 @@ export function WorkspaceMemberRow({
   return (
     <div className="flex items-center justify-between gap-2 group relative">
       <div className="flex items-center gap-2.5 min-w-0">
-        {/* eslint-disable @next/next/no-img-element */}
         {member.avatar_url ? (
           <img
             src={getOptimizedAvatarUrl(member.avatar_url, 28)}
@@ -81,7 +80,6 @@ export function WorkspaceMemberRow({
             {initials}
           </div>
         )}
-        {/* eslint-enable @next/next/no-img-element */}
         <div className="flex flex-col min-w-0 flex-1">
           <span className="text-xs font-bold text-foreground truncate">
             {member.name || member.email.split("@")[0]}

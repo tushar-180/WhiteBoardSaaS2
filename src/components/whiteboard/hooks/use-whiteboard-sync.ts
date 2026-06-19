@@ -70,17 +70,29 @@ export function useWhiteboardSync({ boardId }: UseWhiteboardSyncOptions) {
 
   const syncStore = useSync(syncOptions);
 
+  const setIsOffline = useWhiteboardStore((state) => state.setIsOffline);
+
   // Synchronize WebSocket sync connection status with Whiteboard Zustand store
   useEffect(() => {
+    const storeObj = syncStore as Record<string, unknown>;
+    const connectionStatus = storeObj.connectionStatus as string | undefined;
+    const offline = connectionStatus === "offline";
+    
+    setIsOffline(offline);
+    
     if (syncStore.status === "loading") {
       setSaveStatus("idle");
     } else if (syncStore.status === "synced-remote") {
-      setSaveStatus("saved");
-      setLastSavedAt(new Date());
+      if (offline) {
+        setSaveStatus("error");
+      } else {
+        setSaveStatus("saved");
+        setLastSavedAt(new Date());
+      }
     } else if (syncStore.status === "error") {
       setSaveStatus("error");
     }
-  }, [syncStore.status, setSaveStatus, setLastSavedAt]);
+  }, [syncStore, setSaveStatus, setLastSavedAt, setIsOffline]);
 
   return syncStore;
 }

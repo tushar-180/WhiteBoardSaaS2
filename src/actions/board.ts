@@ -28,7 +28,6 @@ export async function getBoardsAction(workspaceId: string): Promise<Board[]> {
 
     return await fetchBoardsByWorkspace(workspaceId);
   } catch (error: unknown) {
-    console.error("Action error in getBoardsAction:", error);
     throw new Error((error as Error).message || "Failed to load boards.");
   }
 }
@@ -95,7 +94,6 @@ export async function createBoardAction(
 
     return board;
   } catch (error: unknown) {
-    console.error("Action error in createBoardAction:", error);
     throw new Error((error as Error).message || "Failed to create board.");
   }
 }
@@ -148,7 +146,6 @@ export async function updateBoardAction(
 
     return board;
   } catch (error: unknown) {
-    console.error("Action error in updateBoardAction:", error);
     throw new Error((error as Error).message || "Failed to update board.");
   }
 }
@@ -173,7 +170,6 @@ export async function deleteBoardAction(
     // Revalidate the workspace details route
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
   } catch (error: unknown) {
-    console.error("Action error in deleteBoardAction:", error);
     throw new Error((error as Error).message || "Failed to delete board.");
   }
 }
@@ -204,7 +200,6 @@ export async function updateBoardCanvasAction(
 
     return board;
   } catch (error: unknown) {
-    console.error("Action error in updateBoardCanvasAction:", error);
     throw new Error(
       (error as Error).message || "Failed to update board canvas.",
     );

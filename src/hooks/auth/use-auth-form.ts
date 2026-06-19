@@ -3,7 +3,7 @@ import { useSearchParams } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createClient } from "@/utils/supabase/client";
-import { authSchema, type AuthFormData } from "@/types/auth";
+import { getAuthSchema, type AuthFormData } from "@/types/auth";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
 import { ROUTES, DEFAULT_REDIRECTS } from "@/lib/constants";
 import posthog from "posthog-js";
@@ -24,7 +24,7 @@ export function useAuthForm() {
   }, []);
 
   const form = useForm<AuthFormData>({
-    resolver: zodResolver(authSchema),
+    resolver: zodResolver(getAuthSchema(isSignUp)),
     defaultValues: {
       name: "",
       email: "",
@@ -160,7 +160,10 @@ export function useAuthForm() {
     emailLoading,
     githubLoading,
     isSignUp,
-    setIsSignUp,
+    setIsSignUp: (value: boolean | ((prevState: boolean) => boolean)) => {
+      form.clearErrors();
+      setIsSignUp(value);
+    },
     showPassword,
     setShowPassword,
     isPasswordValid,

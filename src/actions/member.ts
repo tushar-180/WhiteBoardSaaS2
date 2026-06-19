@@ -73,7 +73,6 @@ export async function removeMemberAction(workspaceId: string, memberId: string):
     // Revalidate paths
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
   } catch (error: unknown) {
-    console.error("Action error in removeMemberAction:", error);
     throw new Error((error as Error).message || "Failed to remove member.");
   }
 }
@@ -154,7 +153,6 @@ export async function updateMemberRoleAction(
     // Revalidate paths
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
   } catch (error: unknown) {
-    console.error("Action error in updateMemberRoleAction:", error);
     throw new Error((error as Error).message || "Failed to update member role.");
   }
 }
@@ -197,7 +195,6 @@ export async function leaveWorkspaceAction(workspaceId: string): Promise<void> {
     // Revalidate paths
     revalidatePath(ROUTES.WORKSPACES);
   } catch (error: unknown) {
-    console.error("Action error in leaveWorkspaceAction:", error);
     throw new Error((error as Error).message || "Failed to leave workspace.");
   }
 }
@@ -210,8 +207,7 @@ export async function getWorkspaceMembersAction(workspaceId: string) {
     await requireActionAuth("You must be logged in to view workspace members.");
     
     return await fetchWorkspaceMembers(workspaceId);
-  } catch (error) {
-    console.error("Action error in getWorkspaceMembersAction:", error);
+  } catch {
     throw new Error("Failed to fetch workspace members. Please try again.");
   }
 }
@@ -249,7 +245,6 @@ export async function bulkRemoveMembersAction(workspaceId: string, memberIds: st
     // Revalidate paths
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
   } catch (error: unknown) {
-    console.error("Action error in bulkRemoveMembersAction:", error);
     throw new Error((error as Error).message || "Failed to remove members.");
   }
 }

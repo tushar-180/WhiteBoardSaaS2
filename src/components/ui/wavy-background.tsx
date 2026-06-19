@@ -35,6 +35,16 @@ export const WavyBackground = ({
     ctx: CanvasRenderingContext2D,
     canvas: HTMLCanvasElement;
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const resolveFillColor = (fill: string | undefined): string => {
+    if (!fill) return "black";
+    const match = fill.match(/^var\((--[\w-]+)\)$/);
+    if (match) {
+      return getComputedStyle(document.documentElement).getPropertyValue(match[1]).trim() || "black";
+    }
+    return fill;
+  };
+
   const getSpeed = () => {
     switch (speed) {
       case "slow":
@@ -88,7 +98,7 @@ export const WavyBackground = ({
 
   let animationId: number;
   const render = () => {
-    ctx.fillStyle = backgroundFill || "black";
+    ctx.fillStyle = resolveFillColor(backgroundFill);
     ctx.globalAlpha = waveOpacity || 0.5;
     ctx.fillRect(0, 0, w, h);
     drawWave(5);
@@ -100,13 +110,10 @@ export const WavyBackground = ({
     return () => {
       cancelAnimationFrame(animationId);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [isSafari, setIsSafari] = useState(false);
   useEffect(() => {
-    // I'm sorry but i have got to support it on safari.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsSafari(
       typeof window !== "undefined" &&
         navigator.userAgent.includes("Safari") &&
