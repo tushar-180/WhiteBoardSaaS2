@@ -18,6 +18,7 @@ import {
   bulkCreateWorkspaceInvites,
   bulkRevokeWorkspaceInvites,
 } from "@/services/invite";
+import { checkMemberInviteLimit } from "@/services/billing";
 import { fetchWorkspaceById } from "@/services/workspace";
 import { fetchWorkspaceMemberRole, checkIfEmailIsMember } from "@/services/member";
 import { type WorkspaceRole, inviteSchema, type WorkspaceInviteWithWorkspace } from "@/types/workspace";
@@ -67,7 +68,10 @@ export async function createInviteAction(
       );
     }
 
-    // 4. Check if the email is already a member of the workspace
+    // 4. Check subscription plan limit for member invites
+    await checkMemberInviteLimit(workspaceId);
+
+    // 5. Check if the email is already a member of the workspace
     const existingMemberRole = await checkIfEmailIsMember(workspaceId, trimmedEmail);
     if (existingMemberRole) {
       throw new Error(
@@ -75,13 +79,13 @@ export async function createInviteAction(
       );
     }
 
-    // 5. Check if an invite is already pending for this email
+    // 6. Check if an invite is already pending for this email
     const isPending = await checkIfInviteIsPending(workspaceId, trimmedEmail);
     if (isPending) {
       throw new Error(`An invitation for ${trimmedEmail} is already pending.`);
     }
 
-    // 6. Create the invite row in the database
+    // 7. Create the invite row in the database
     const invite = await createWorkspaceInvite(
       workspaceId,
       trimmedEmail,
@@ -89,7 +93,7 @@ export async function createInviteAction(
       user.id,
     );
 
-    // 7. Build the invite link dynamically using environment variables or request headers
+    // 8. Build the invite link dynamically using environment variables or request headers
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
     let inviteLink = "";
 
@@ -105,7 +109,7 @@ export async function createInviteAction(
       inviteLink = `${protocol}://${host}/invite/${invite.token}`;
     }
 
-    // 8. Attempt to send invitation email using the email service
+    // 9. Attempt to send invitation email using the email service
     const { success: emailSent, error: emailError } = await sendWorkspaceInviteEmail(
       trimmedEmail,
       workspace.name,
@@ -333,6 +337,9 @@ export async function bulkInviteUsersAction(
     if (!currentUserRole || (currentUserRole !== "owner" && currentUserRole !== "admin")) {
       throw new Error("Only workspace owners and administrators can invite new members.");
     }
+
+    // Check subscription plan limit for member invites
+    await checkMemberInviteLimit(workspaceId);
 
     // Filter valid emails (not member, not pending)
     const validEmails: string[] = [];

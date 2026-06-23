@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type SettingsTab = "profile" | "workspaces" | "notifications" | "appearance" | "account";
+export type SettingsTab = "profile" | "workspaces" | "notifications" | "appearance" | "account" | "billing";
 export type WorkspaceDetailTab = "members" | "invites" | "danger";
 
 interface SettingsState {

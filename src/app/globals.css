@@ -192,3 +192,11 @@
 html[data-magicui-theme-vt]::view-transition-new(root) {
   clip-path: var(--magicui-theme-vt-clip-from, circle(0%));
 }
+
+/* Ensure Razorpay checkout container is interactive */
+/* Razorpay's checkout.js sets pointer-events: none on the container during
+   loading but sometimes doesn't remove it, blocking interactions */
+div[id*="razorpay-container"],
+div[class*="razorpay-container"] {
+  pointer-events: auto !important;
+}

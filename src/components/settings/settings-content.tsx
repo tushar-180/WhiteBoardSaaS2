@@ -6,6 +6,7 @@ import { WorkspacesSettings } from "./workspaces-settings";
 import { NotificationsSettings } from "./notifications-settings";
 import { AppearanceSettings } from "./appearance-settings";
 import { AccountSettings } from "./account-settings";
+import { BillingSettings } from "./billing-tab";
 import { WorkspaceDetailPanel } from "./workspace-detail-panel";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export function SettingsContent() {
         {activeTab === "notifications" && <NotificationsSettings />}
         {activeTab === "appearance" && <AppearanceSettings />}
         {activeTab === "account" && <AccountSettings />}
+        {activeTab === "billing" && <BillingSettings />}
       </div>
     </div>
   );

@@ -54,3 +54,5 @@ docs/code-review-report.md
 *.tsbuildinfo
 next-env.d.ts
 
+
+certificates

@@ -7,6 +7,7 @@ import {
   Bell,
   Palette,
   ShieldAlert,
+  CreditCard,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ const navItems: { id: SettingsTab; label: string; icon: React.ElementType }[] =
   [
     { id: "profile", label: "Profile", icon: UserCircle },
     { id: "workspaces", label: "My Workspaces", icon: Briefcase },
+    { id: "billing", label: "Billing", icon: CreditCard },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "appearance", label: "Appearance", icon: Palette },
     { id: "account", label: "Account", icon: ShieldAlert },

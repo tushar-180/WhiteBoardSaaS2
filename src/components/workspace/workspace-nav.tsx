@@ -9,6 +9,8 @@ import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { useSettingsStore } from "@/store/settings-store";
 import { ROUTES, ASSETS } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
@@ -20,9 +22,10 @@ interface WorkspaceNavProps {
   userName?: string;
   userAvatar?: string;
   logoHref?: string;
+  planType?: "free" | "pro" | "ultra";
 }
 
-export function WorkspaceNav({ userEmail, userId, userName, userAvatar, logoHref = ROUTES.HOME }: WorkspaceNavProps) {
+export function WorkspaceNav({ userEmail, userId, userName, userAvatar, logoHref = ROUTES.HOME, planType = "free" }: WorkspaceNavProps) {
   const [mounted, setMounted] = useState(false);
   const { setIsOpen, setActiveTab } = useSettingsStore();
   const { setTheme, resolvedTheme } = useTheme();
@@ -31,25 +34,42 @@ export function WorkspaceNav({ userEmail, userId, userName, userAvatar, logoHref
     setMounted(true);
   }, []);
 
+  const planStyles: Record<string, string> = {
+    free: "bg-muted text-muted-foreground border-border/50",
+    pro: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
+    ultra: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+  };
+
+  const planLabels: Record<string, string> = {
+    free: "Free",
+    pro: "Pro",
+    ultra: "Ultra",
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <Link
-          href={logoHref}
-          className="flex items-center gap-2 hover:opacity-90 transition-opacity"
-        >
-          <Image
-            src={ASSETS.LOGO}
-            alt="Zentrox Logo"
-            width={32}
-            height={32}
-            className="object-contain w-auto h-auto"
-            style={{ width: "auto", height: "auto" }}
-          />
-          <span className="font-black tracking-tight text-lg text-foreground hidden sm:inline">
-            Zentrox
-          </span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href={logoHref}
+            className="flex items-center gap-2 hover:opacity-90 transition-opacity"
+          >
+            <Image
+              src={ASSETS.LOGO}
+              alt="Zentrox Logo"
+              width={32}
+              height={32}
+              className="object-contain w-auto h-auto"
+              style={{ width: "auto", height: "auto" }}
+            />
+            <span className="font-black tracking-tight text-lg text-foreground hidden sm:inline">
+              Zentrox
+            </span>
+          </Link>
+          <Badge variant="outline" className={cn("uppercase tracking-wide text-[10px] leading-none py-0.5", planStyles[planType])}>
+            {planLabels[planType]}
+          </Badge>
+        </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
           {userEmail && (

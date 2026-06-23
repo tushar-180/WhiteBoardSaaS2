@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireActionAuth, createClient } from "@/utils/supabase/server";
 import { insertWorkspace, deleteWorkspace, bulkDeleteWorkspaces, updateWorkspace } from "@/services/workspace";
 import { bulkLeaveWorkspaces, fetchWorkspaceMemberRole } from "@/services/member";
+import { checkWorkspaceCreationLimit } from "@/services/billing";
 import { type Workspace, workspaceSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
 import { getPostHogClient } from "@/lib/posthog-server";
@@ -17,6 +18,9 @@ import { getPostHogClient } from "@/lib/posthog-server";
 export async function createWorkspaceAction(name: string): Promise<Workspace> {
   try {
     const { user } = await requireActionAuth("You must be logged in to create a workspace.");
+
+    // Check subscription plan limit
+    await checkWorkspaceCreationLimit(user.id);
 
     const validated = workspaceSchema.safeParse({ name });
     if (!validated.success) {
