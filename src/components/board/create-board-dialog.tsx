@@ -56,8 +56,11 @@ export function CreateBoardDialog({
   // Proactive limit check when dialog opens
   useEffect(() => {
     if (!open || !workspaceId) return;
-    setCheckingLimit(true);
-    setLimitCheck(null);
+    // Defer state updates to microtask to avoid cascading render warning
+    Promise.resolve().then(() => {
+      setLimitCheck(null);
+      setCheckingLimit(true);
+    });
     checkBoardLimitAction(workspaceId)
       .then(setLimitCheck)
       .catch(() => setLimitCheck(null))
@@ -130,36 +133,39 @@ export function CreateBoardDialog({
           <>
             <DialogHeader>
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-foreground">
                   <Lock className="h-4 w-4" />
                 </div>
-                <DialogTitle className="text-lg font-bold">Board Limit Reached</DialogTitle>
+                <DialogTitle className="text-base font-semibold">Board Limit Reached</DialogTitle>
               </div>
-              <DialogDescription className="text-muted-foreground text-xs">
+              <DialogDescription className="text-sm text-muted-foreground mt-1.5">
                 You&apos;ve hit the board limit for your current plan.
               </DialogDescription>
             </DialogHeader>
 
             <div className="py-4 space-y-4">
-              <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 space-y-3">
+              <div className="border border-border rounded-lg p-4 space-y-3 bg-card">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Current usage</span>
-                  <span className="text-sm font-bold text-amber-500">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+                    <span>Current usage</span>
+                  </div>
+                  <span className="text-sm font-medium text-foreground">
                     {limitCheck.current} / {limitCheck.limit}
                   </span>
                 </div>
-                <div className="w-full h-2 bg-amber-500/10 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-amber-500 rounded-full transition-all"
-                    style={{ width: `${Math.min((limitCheck.current / limitCheck.limit) * 100, 100)}%` }}
+                    className="h-full bg-foreground rounded-full"
+                    style={{ width: `${Math.min((limitCheck.current / Math.max(limitCheck.limit, 1)) * 100, 100)}%` }}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  <Badge variant="outline" className="uppercase tracking-wide text-[10px] mr-1 bg-amber-500/5 text-amber-500 border-amber-500/20">
+                <p className="text-xs text-muted-foreground leading-relaxed pt-1">
+                  <Badge variant="secondary" className="uppercase tracking-wide text-[10px] mr-1.5 font-semibold">
                     {limitCheck.planType}
                   </Badge>
                   {limitCheck.planType === "free"
-                    ? "Free plan allows only 3 boards per workspace. Upgrade to Pro for 10 boards or Ultra for unlimited."
+                    ? "Free plan allows 3 boards per workspace. Upgrade to Pro for 10 boards or Ultra for unlimited."
                     : `Plan allows ${limitCheck.limit} boards.`}
                 </p>
               </div>
@@ -167,13 +173,13 @@ export function CreateBoardDialog({
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  className="flex-1 h-10 rounded-xl"
+                  className="flex-1"
                   onClick={() => onOpenChange(false)}
                 >
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+                  className="flex-1"
                   onClick={async () => {
                     await fetchCurrentPlan();
                     setShowUpgrade(true);

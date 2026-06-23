@@ -24,7 +24,6 @@ const tierDetails: Record<PlanType, {
       "1 workspace",
       "3 boards per workspace",
       "Owner-only access",
-      "Real-time collaboration",
     ],
   },
   pro: {
@@ -41,7 +40,7 @@ const tierDetails: Record<PlanType, {
   },
   ultra: {
     icon: Infinity,
-    description: "For power users and large teams",
+    description: "For power users & large teams",
     features: [
       "Unlimited workspaces",
       "Unlimited boards",
@@ -56,7 +55,7 @@ export function PricingCards({ currentPlan, onSelectPlan, isLoading }: PricingCa
   const plans: PlanType[] = ["free", "pro", "ultra"];
 
   return (
-    <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3 max-w-4xl mx-auto">
+    <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
       {plans.map((plan) => {
         const details = tierDetails[plan];
         const Icon = details.icon;
@@ -68,84 +67,76 @@ export function PricingCards({ currentPlan, onSelectPlan, isLoading }: PricingCa
           <div
             key={plan}
             className={cn(
-              "relative rounded-2xl border p-5 sm:p-6 flex flex-col transition-all duration-200",
-              plan === "pro"
-                ? "border-indigo-500/40 bg-card shadow-md ring-1 ring-indigo-500/20 scale-[1.02] sm:scale-105"
-                : "border-border/60 bg-card shadow-sm hover:shadow-md",
+              "relative flex flex-col rounded-lg border bg-card p-5 transition-colors",
+              plan === "pro" ? "border-foreground/20 ring-1 ring-foreground/10 shadow-sm" : "border-border"
             )}
           >
             {details.highlight && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-500 text-white px-3 py-1 text-[10px] font-bold rounded-full whitespace-nowrap">
-                {details.highlight}
+              <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
+                <span className="bg-foreground text-background px-3 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-full whitespace-nowrap inline-flex">
+                  {details.highlight}
+                </span>
               </div>
             )}
 
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className={cn(
-                "p-2 rounded-lg",
-                plan === "free" && "bg-muted",
-                plan === "pro" && "bg-indigo-500/10 text-indigo-500",
-                plan === "ultra" && "bg-amber-500/10 text-amber-500",
-              )}>
-                <Icon className="h-4 w-4" />
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Icon className="h-4 w-4 text-foreground/70" />
+                <h3 className="text-base font-semibold capitalize tracking-tight">{plan}</h3>
               </div>
-              <h3 className="text-base font-bold capitalize">{plan}</h3>
+              <p className="text-xs text-muted-foreground h-8">
+                {details.description}
+              </p>
             </div>
 
-            <p className="text-xs text-muted-foreground mb-4">{details.description}</p>
-
-            <div className="mb-5">
+            <div className="mb-6">
               {price ? (
-                <div className="flex items-baseline gap-0.5">
-                  <span className="text-2xl font-extrabold">₹{price}</span>
-                  <span className="text-xs text-muted-foreground">/month</span>
+                <div className="flex items-end gap-1">
+                  <span className="text-2xl font-bold tracking-tight">₹{price}</span>
+                  <span className="text-xs font-medium text-muted-foreground mb-1">/mo</span>
                 </div>
               ) : (
-                <span className="text-2xl font-extrabold">Free</span>
+                <span className="text-2xl font-bold tracking-tight">Free</span>
               )}
             </div>
 
             <ul className="space-y-2.5 mb-6 flex-1">
               {details.features.map((feature) => (
-                <li key={feature} className="flex items-start gap-2 text-xs">
-                  <Check className={cn(
-                    "h-3.5 w-3.5 mt-0.5 shrink-0",
-                    isCurrentPlan ? "text-emerald-500" : "text-muted-foreground/60"
-                  )} />
-                  <span className="text-muted-foreground">{feature}</span>
+                <li key={feature} className="flex items-start gap-2 text-sm">
+                  <Check className="h-3.5 w-3.5 mt-0.5 shrink-0 text-foreground/60" />
+                  <span className="text-foreground/80 text-xs font-medium">{feature}</span>
                 </li>
               ))}
             </ul>
 
-            {isCurrentPlan ? (
-              <Button
-                disabled
-                variant={plan === "free" ? "secondary" : "outline"}
-                className="w-full rounded-xl text-xs"
-              >
-                Current Plan
-              </Button>
-            ) : plan !== "free" ? (
-              <Button
-                onClick={() => onSelectPlan(plan as "pro" | "ultra")}
-                disabled={isLoading}
-                className={cn(
-                  "w-full rounded-xl text-xs font-semibold",
-                  plan === "pro" && "bg-indigo-600 hover:bg-indigo-700 text-white",
-                  plan === "ultra" && "bg-amber-600 hover:bg-amber-700 text-white",
-                )}
-              >
-                {isLoading ? "Processing..." : `Upgrade to ${plan === "pro" ? "Pro" : "Ultra"}`}
-              </Button>
-            ) : (
-              <Button
-                disabled
-                variant="secondary"
-                className="w-full rounded-xl text-xs"
-              >
-                Downgrade not available
-              </Button>
-            )}
+            <div className="mt-auto">
+              {isCurrentPlan ? (
+                <Button
+                  disabled
+                  variant="outline"
+                  className="w-full h-8 text-xs font-medium"
+                >
+                  Current Plan
+                </Button>
+              ) : plan !== "free" ? (
+                <Button
+                  onClick={() => onSelectPlan(plan as "pro" | "ultra")}
+                  disabled={isLoading}
+                  variant={plan === "pro" ? "default" : "secondary"}
+                  className="w-full h-8 text-xs font-medium"
+                >
+                  {isLoading ? "Processing..." : `Upgrade to ${plan === "pro" ? "Pro" : "Ultra"}`}
+                </Button>
+              ) : (
+                <Button
+                  disabled
+                  variant="secondary"
+                  className="w-full h-8 text-xs font-medium"
+                >
+                  Downgrade not available
+                </Button>
+              )}
+            </div>
           </div>
         );
       })}

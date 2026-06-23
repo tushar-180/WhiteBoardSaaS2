@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { BillingPlan } from "@/types/billing";
 import { useSettingsStore } from "@/store/settings-store";
+import { invalidateSubscriptionCache } from "@/components/settings/billing-tab";
 
 // Shared Razorpay global type declaration
 declare global {
@@ -97,6 +98,7 @@ export function useRazorpay() {
 
             toast.success(`Successfully upgraded to ${plan === "pro" ? "Pro" : "Ultra"}!`);
             
+            invalidateSubscriptionCache();
             setIsOpen(false);
             router.refresh();
           } catch (err) {
@@ -120,7 +122,7 @@ export function useRazorpay() {
       toast.error((error as Error).message || "Something went wrong.");
       setIsProcessing(false);
     }
-  }, [router]);
+  }, [router, setIsOpen]);
 
   return { openRazorpay, isProcessing };
 }
