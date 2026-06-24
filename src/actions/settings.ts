@@ -3,7 +3,7 @@
 import { requireActionAuth, createAdminClient } from "@/utils/supabase/server";
 import { fetchProfileById } from "@/services/profile";
 import { fetchAllUserWorkspaces } from "@/services/workspace";
-import { getUserSubscription } from "@/services/billing";
+import { getUserSubscription, getUserPayments } from "@/services/billing";
 
 export async function getSettingsDataAction() {
   const { user } = await requireActionAuth("You must be logged in to view settings.");
@@ -82,4 +82,13 @@ export async function cancelSubscriptionAction(): Promise<void> {
     console.error("Error canceling subscription:", updateError);
     throw new Error("Failed to cancel subscription. Please try again.");
   }
+}
+
+/**
+ * Fetches the user's transaction history.
+ */
+export async function getUserPaymentsAction() {
+  const { user } = await requireActionAuth("You must be logged in to view billing.");
+  const payments = await getUserPayments(user.id);
+  return payments;
 }
