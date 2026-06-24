@@ -65,13 +65,13 @@ export function NotificationsSettings() {
   const outgoingStatuses = notifications.filter(n => n.created_by === user?.id && (n.status === "accepted" || n.status === "rejected"));
 
   return (
-    <div className="p-6 md:p-8 max-w-3xl mx-auto w-full">
-      <div className="mb-8">
+    <div className="p-6 md:p-8 max-w-3xl mx-auto w-full flex flex-col flex-1 overflow-hidden space-y-6">
+      <div className="shrink-0">
         <h1 className="text-2xl font-bold">Notifications</h1>
         <p className="text-muted-foreground mt-1">Manage your pending invitations and updates.</p>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-8 overflow-y-auto flex-1 min-h-0 pb-4">
         {incoming.length === 0 && outgoingStatuses.length === 0 ? (
           <div className="text-center py-12 flex flex-col items-center justify-center text-muted-foreground border border-border/50 rounded-lg bg-muted/20">
             <Bell className="w-12 h-12 mb-4 opacity-50" />

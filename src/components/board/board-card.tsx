@@ -69,7 +69,10 @@ export function BoardCard({ board, currentUserRole }: BoardCardProps) {
   return (
     <>
       <Link href={`/board/${board.id}`} className="block group w-full">
-        <Card className="h-full min-h-[160px] flex flex-col border border-border/60 bg-card/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0 group cursor-pointer focus-within:ring-2 focus-within:ring-primary/50">
+        <Card className="h-full min-h-[160px] flex flex-col border border-white/5 bg-card/20 backdrop-blur-xl shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/30 hover:bg-card/40 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0 group cursor-pointer focus-within:ring-2 focus-within:ring-primary/50">
+          {/* Subtle gradient overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-0" />
+          
           {/* Meteors effect on hover */}
           <div className="absolute inset-0 z-0 overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
             <Meteors number={12} />
@@ -114,7 +117,7 @@ export function BoardCard({ board, currentUserRole }: BoardCardProps) {
               </span>
             </div>
 
-            <CardTitle className="text-base font-bold text-foreground group-hover:text-indigo-500 transition-colors duration-200 truncate pr-16">
+            <CardTitle className="text-base font-bold text-foreground group-hover:text-indigo-500 transition-colors duration-200 truncate pr-16 bg-clip-text group-hover:bg-gradient-to-r group-hover:from-indigo-500 group-hover:to-primary group-hover:text-transparent">
               {board.name}
             </CardTitle>
 

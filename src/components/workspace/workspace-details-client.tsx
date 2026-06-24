@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Plus, ArrowLeft, Calendar, Hash, Shield } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { BoardList } from "@/components/board/board-list";
@@ -87,6 +88,10 @@ export function WorkspaceDetailsClient({
     <>
       {/* Main Container */}
       <main className="flex-1 flex flex-col container mx-auto px-4 sm:px-6 lg:px-8 pb-6 pt-4 max-w-7xl relative overflow-hidden min-h-0">
+        {/* Background glow effects */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none -z-10" />
+        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none -z-10" />
+
         {/* Back navigation */}
         <Link
           href={ROUTES.WORKSPACES}
@@ -97,33 +102,51 @@ export function WorkspaceDetailsClient({
         </Link>
 
         {/* Workspace Header & Mobile Tabs */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between shrink-0 mb-6 gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl mb-1.5">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between shrink-0 mb-6 gap-4 relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <h1 className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground/70 sm:text-4xl mb-1.5 drop-shadow-sm">
               {workspace.name}
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground/80 font-mono leading-relaxed">
+            <p className="text-xs sm:text-sm text-muted-foreground/80 font-mono leading-relaxed bg-muted/40 w-fit px-2 py-0.5 rounded-md border border-border/50">
               /{workspace.slug}
             </p>
-          </div>
+          </motion.div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
             {/* Mobile Tab Toggle */}
-            <div className="flex lg:hidden bg-muted/40 p-1 rounded-xl border border-border/50 backdrop-blur-xs flex-1 sm:flex-initial">
+            <div className="flex lg:hidden bg-muted/40 p-1 rounded-xl border border-border/50 backdrop-blur-xs flex-1 sm:flex-initial relative">
               <button
                 onClick={() => setMobileTab("boards")}
-                className={`flex-1 sm:px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                  mobileTab === "boards" ? "bg-background text-foreground shadow-xs border border-border/50" : "text-muted-foreground hover:text-foreground hover:bg-muted/20 border border-transparent"
+                className={`relative flex-1 sm:px-6 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 z-10 ${
+                  mobileTab === "boards" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
+                {mobileTab === "boards" && (
+                  <motion.div
+                    layoutId="mobileTabActive"
+                    className="absolute inset-0 bg-background shadow-xs border border-border/50 rounded-lg -z-10"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
                 Boards
               </button>
               <button
                 onClick={() => setMobileTab("settings")}
-                className={`flex-1 sm:px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                  mobileTab === "settings" ? "bg-background text-foreground shadow-xs border border-border/50" : "text-muted-foreground hover:text-foreground hover:bg-muted/20 border border-transparent"
+                className={`relative flex-1 sm:px-6 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 z-10 ${
+                  mobileTab === "settings" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
+                {mobileTab === "settings" && (
+                  <motion.div
+                    layoutId="mobileTabActive"
+                    className="absolute inset-0 bg-background shadow-xs border border-border/50 rounded-lg -z-10"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
                 Settings
               </button>
             </div>
@@ -133,20 +156,21 @@ export function WorkspaceDetailsClient({
               <Button
                 onClick={() => setBoardOpen(true)}
                 size="sm"
-                className={`rounded-xl font-semibold shadow-xs active:scale-[0.99] transition-all duration-200 shrink-0 ${mobileTab === "settings" ? "hidden lg:flex" : "flex"}`}
+                className={`rounded-xl font-semibold shadow-xs active:scale-[0.99] transition-all duration-200 shrink-0 ${mobileTab === "settings" ? "hidden lg:flex" : "flex"} relative overflow-hidden group`}
               >
-                <Plus className="sm:mr-1 h-4 w-4" />
-                <span className="hidden sm:inline">New Board</span>
-                <span className="sm:hidden ml-1">New</span>
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-primary/10 via-white/20 to-primary/10 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+                <Plus className="sm:mr-1 h-4 w-4 relative z-10" />
+                <span className="hidden sm:inline relative z-10">New Board</span>
+                <span className="sm:hidden ml-1 relative z-10">New</span>
               </Button>
             )}
           </div>
         </div>
 
         {/* Layout Grid */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-8 overflow-hidden min-h-0">
-          {/* Left / Center - Boards Content (Col Span 3) */}
-          <div className={`lg:col-span-3 flex-col overflow-hidden min-h-0 ${mobileTab === "boards" ? "flex" : "hidden lg:flex"}`}>
+        <div className="flex-1 flex flex-col lg:flex-row gap-8 overflow-hidden min-h-0 relative z-10">
+          {/* Left / Center - Boards Content */}
+          <div className={`flex-1 flex-col overflow-hidden min-h-0 min-w-0 ${mobileTab === "boards" ? "flex" : "hidden lg:flex"}`}>
             <div className="flex-1 flex flex-col overflow-hidden min-h-0 lg:border-t lg:border-border/40 lg:pt-2">
               {boards.length === 0 ? (
                 <div className="flex-1 flex items-center justify-center overflow-y-auto">
@@ -165,10 +189,12 @@ export function WorkspaceDetailsClient({
             </div>
           </div>
 
-          {/* Right - Sidebar Metadata (Col Span 1) */}
-          <div className={`lg:col-span-1 space-y-6 lg:border-l lg:border-border/40 lg:pl-8 overflow-y-auto pr-1.5 pb-4 min-h-0 shrink-0 lg:shrink ${mobileTab === "settings" ? "block" : "hidden lg:block"}`}>
+          {/* Right - Sidebar Metadata */}
+          <div className={`w-full lg:w-[320px] xl:w-[360px] flex-1 lg:flex-none space-y-6 lg:border-l lg:border-border/40 lg:pl-8 overflow-y-auto pr-1.5 pb-4 min-h-0 shrink lg:shrink-0 custom-scrollbar ${mobileTab === "settings" ? "block" : "hidden lg:block"}`}>
             {/* Workspace Info Card */}
-            <div className="rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur-xs space-y-4">
+            <div className="rounded-xl border border-white/5 bg-card/20 p-5 backdrop-blur-xl shadow-lg relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
               <h2 className="text-sm font-bold text-foreground">
                 Workspace Info
               </h2>

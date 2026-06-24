@@ -215,7 +215,7 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
   }
 
   return (
-    <div className="relative pb-24 h-full flex flex-col gap-6 sm:gap-8">
+    <div className="relative pb-20 h-full flex flex-col gap-6 sm:gap-8 min-h-0">
       <form onSubmit={handleInvite} className="space-y-4">
         {/* Email Capsule Input */}
         <div className="space-y-2">
@@ -342,9 +342,9 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
           No pending invites.
         </div>
       ) : (
-        <div className="border border-border/50 rounded-lg overflow-hidden flex-1 overflow-y-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-muted/50 border-b border-border/50 text-muted-foreground sticky top-0">
+        <div className="border border-border/50 rounded-lg overflow-auto flex-1 min-h-0 shadow-sm">
+          <table className="w-full text-left text-sm min-w-[400px]">
+            <thead className="bg-card border-b border-border/50 text-muted-foreground sticky top-0 z-10 shadow-sm">
               <tr>
                 <th className="p-3 sm:p-4 w-10 sm:w-12 font-medium">
                   <input 

@@ -85,7 +85,7 @@ export function BillingSettings() {
   const planLimits = PLAN_LIMITS[currentPlan];
 
   return (
-    <div className="max-w-4xl mx-auto py-6 md:py-10 px-2 md:px-8 flex flex-col justify-center min-h-full space-y-8">
+    <div className="max-w-4xl w-full mx-auto pb-24 md:pb-10 pt-2 md:pt-6 px-2 md:px-8 flex flex-col flex-1 space-y-6 md:space-y-8">
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-xl font-semibold text-foreground">Plan & Billing</h2>

@@ -70,10 +70,15 @@ export function useRazorpay() {
         key: orderData.key_id,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: "Zentrox",
-        description: `${plan === "pro" ? "Pro" : "Ultra"} Plan`,
+        name: `Zentrox - ${plan === "pro" ? "Pro" : "Ultra"} Plan`,
+        description: `Upgrade to ${plan === "pro" ? "Pro" : "Ultra"}`,
+        image: `${window.location.origin}/logo.png`,
         order_id: orderData.order_id,
         prefill: { contact: "" },
+        theme: {
+          color: "#6366f1", // Matches the primary indigo brand color
+          backdrop_color: "#020817" // Adds a sleek dark backdrop behind the popup
+        },
         handler: async function (response: {
           razorpay_order_id: string;
           razorpay_payment_id: string;

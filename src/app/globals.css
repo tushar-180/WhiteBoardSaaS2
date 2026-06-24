@@ -200,3 +200,8 @@ div[id*="razorpay-container"],
 div[class*="razorpay-container"] {
   pointer-events: auto !important;
 }
+
+/* Prevent the browser from forcing an opaque white background on the Razorpay iframe in dark mode */
+iframe[src*="razorpay"] {
+  color-scheme: light !important;
+}

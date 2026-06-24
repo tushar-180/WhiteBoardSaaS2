@@ -75,7 +75,9 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
         href={`${ROUTES.WORKSPACES}/${workspace.id}`}
         className="block group h-full w-full"
       >
-        <div className="h-full max-w-none max-h-none flex flex-col border border-border/60 bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/30 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0">
+        <div className="h-full max-w-none max-h-none flex flex-col border border-white/5 bg-card/20 backdrop-blur-xl shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/30 hover:bg-card/40 relative overflow-hidden rounded-xl p-4 sm:p-5 gap-0 ring-0 group cursor-pointer focus-within:ring-2 focus-within:ring-primary/50">
+          {/* Subtle gradient overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-0" />
 
           {/* Action buttons (revealed on hover) */}
           <div className="absolute top-3 right-3 z-20 flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300">
@@ -129,7 +131,7 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
                 )}
               </div>
             </div>
-            <CardTitle className="text-base font-bold text-foreground group-hover:text-primary transition-colors duration-200 truncate pr-16 relative z-10">
+            <CardTitle className="text-base font-bold text-foreground group-hover:text-primary transition-colors duration-200 truncate pr-16 relative z-10 bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-purple-500 group-hover:text-transparent">
               {workspace.name}
             </CardTitle>
             <CardDescription className="text-xs text-muted-foreground mt-1 font-mono truncate pr-16 relative z-10">

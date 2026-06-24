@@ -89,7 +89,7 @@ export function WorkspacesSettings() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-6 md:py-10 px-2 md:px-8 flex flex-col min-h-full space-y-8 relative">
+    <div className="max-w-4xl w-full mx-auto flex flex-col flex-1 space-y-6 relative overflow-hidden">
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-xl font-semibold text-foreground">My Workspaces</h2>
@@ -99,17 +99,17 @@ export function WorkspacesSettings() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-24">
+      <div className="flex-1 flex flex-col min-h-0">
         {workspaces.length === 0 ? (
           <div className="text-center py-12 text-sm text-muted-foreground border border-border rounded-lg bg-card/50">
             No workspaces found.
           </div>
         ) : (
-          <div className="border border-border rounded-lg overflow-hidden bg-card">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-muted/40 border-b border-border text-muted-foreground">
+          <div className="border border-border rounded-lg overflow-auto bg-card flex-1 relative shadow-sm">
+            <table className="w-full text-left text-sm table-fixed min-w-[500px]">
+              <thead className="bg-card sticky top-0 z-10 border-b border-border text-muted-foreground shadow-sm">
                 <tr>
-                  <th className="p-3 sm:p-4 w-10 sm:w-12 font-medium">
+                  <th className="p-3 sm:p-4 w-12 font-medium">
                     <input 
                       type="checkbox"
                       className="w-4 h-4 rounded border-border text-foreground focus:ring-foreground cursor-pointer bg-background"
@@ -118,8 +118,8 @@ export function WorkspacesSettings() {
                     />
                   </th>
                   <th className="p-3 sm:p-4 text-xs uppercase tracking-wider font-semibold">Workspace Name</th>
-                  <th className="p-3 sm:p-4 text-xs uppercase tracking-wider font-semibold">Role</th>
-                  <th className="p-3 sm:p-4 text-xs uppercase tracking-wider font-semibold hidden sm:table-cell">Created</th>
+                  <th className="p-3 sm:p-4 w-24 sm:w-32 text-xs uppercase tracking-wider font-semibold">Role</th>
+                  <th className="p-3 sm:p-4 w-28 sm:w-40 text-xs uppercase tracking-wider font-semibold hidden sm:table-cell">Created</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -141,8 +141,8 @@ export function WorkspacesSettings() {
                           onChange={(e) => handleSelect(workspace.id, e.target.checked)} 
                         />
                       </td>
-                      <td className="p-3 sm:p-4 font-medium text-foreground">
-                        <div className="flex items-center gap-2 max-w-[120px] sm:max-w-[300px] md:max-w-[400px]">
+                      <td className="p-3 sm:p-4 font-medium text-foreground truncate">
+                        <div className="flex items-center gap-2">
                           {isOwned ? (
                             <Crown className="w-4 h-4 text-muted-foreground shrink-0" />
                           ) : (
@@ -161,7 +161,7 @@ export function WorkspacesSettings() {
                           {role}
                         </span>
                       </td>
-                      <td className="p-3 sm:p-4 text-muted-foreground hidden sm:table-cell text-xs">
+                      <td className="p-3 sm:p-4 text-muted-foreground hidden sm:table-cell text-xs whitespace-nowrap">
                         {formatDate(workspace.created_at)}
                       </td>
                     </tr>

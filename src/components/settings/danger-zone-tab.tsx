@@ -57,7 +57,7 @@ export function DangerZoneTab({ workspace, isOwner }: { workspace: Workspace, is
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl h-full overflow-y-auto pb-8">
       <div className="border border-destructive/20 rounded-xl overflow-hidden bg-destructive/5 p-6 space-y-4">
         <div className="flex gap-3">
           <ShieldAlert className="w-5 h-5 text-destructive shrink-0 mt-0.5" />

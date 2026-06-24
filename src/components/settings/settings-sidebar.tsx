@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "motion/react";
+
 import { useSettingsStore, type SettingsTab } from "@/store/settings-store";
 import {
   UserCircle,
@@ -27,22 +29,22 @@ export function SettingsSidebar() {
   const { activeTab, setActiveTab, setIsOpen } = useSettingsStore();
 
   return (
-    <div className="w-full md:w-[250px] shrink-0 md:border-r border-border/50 bg-muted/20 flex flex-col h-auto md:h-full">
+    <div className="w-full md:w-[250px] shrink-0 md:border-r border-white/5 bg-transparent flex flex-col h-auto md:h-full relative z-10">
       {/* Header with title and close button */}
-      <div className="flex items-center justify-between border-b border-border/50 px-4 py-3">
-        <h2 className="font-semibold text-lg">Settings</h2>
+      <div className="flex items-center justify-between border-b border-white/5 px-6 py-4 md:py-6">
+        <h2 className="font-bold text-xl tracking-tight">Settings</h2>
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden"
+          className="md:hidden hover:bg-white/10 rounded-full"
           onClick={() => setIsOpen(false)}
         >
           <X className="w-5 h-5" />
         </Button>
       </div>
 
-      {/* Nav items - horizontal scroll on mobile, vertical on desktop */}
-      <nav className="flex md:flex-col justify-start overflow-x-auto md:overflow-y-auto gap-1 md:gap-1 px-2 sm:px-4 md:px-0 py-2 md:py-0 md:flex-1 scrollbar-none">
+      {/* Nav items - icon only row on mobile, full text on desktop */}
+      <nav className="flex md:flex-col justify-between md:justify-start overflow-visible md:overflow-y-auto gap-1 md:gap-2 px-6 py-3 md:px-4 md:py-4 md:flex-1 relative">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -51,21 +53,25 @@ export function SettingsSidebar() {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={cn(
-                "flex flex-col md:flex-row items-center justify-center md:w-full md:justify-start gap-0.5 md:gap-3 p-1 md:px-3 md:py-2.5 rounded-md text-xs md:text-sm font-medium transition-colors cursor-pointer shrink-0 min-w-12 md:min-w-0",
+                "relative flex items-center justify-center md:justify-start gap-3 p-2.5 md:px-4 md:py-3 rounded-full md:rounded-xl text-sm font-semibold transition-colors cursor-pointer shrink-0 z-10 group",
                 isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ? "text-white"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
+              {isActive && (
+                <motion.div
+                  layoutId="active-tab-indicator"
+                  className="absolute inset-0 bg-white/10 border border-white/10 rounded-full md:rounded-xl -z-10 shadow-sm"
+                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                />
+              )}
               <Icon
                 className={cn(
-                  "w-4 h-4 shrink-0",
-                  isActive ? "text-primary" : "text-muted-foreground",
+                  "w-[22px] h-[22px] md:w-5 md:h-5 shrink-0 transition-transform duration-300 group-hover:scale-110",
+                  isActive ? "text-white drop-shadow-sm" : "text-muted-foreground",
                 )}
               />
-              <span className="text-[10px] leading-tight md:text-xs md:text-sm md:hidden">
-                {item.label}
-              </span>
               <span className="hidden md:inline">{item.label}</span>
             </button>
           );
@@ -73,8 +79,8 @@ export function SettingsSidebar() {
       </nav>
 
       {/* Desktop-only footer */}
-      <div className="p-4 border-t border-border/50 hidden md:flex items-center justify-center">
-        <p className="text-xs text-muted-foreground">Zentrox Settings</p>
+      <div className="p-4 border-t border-white/5 hidden md:flex items-center justify-center bg-transparent backdrop-blur-md">
+        <p className="text-xs font-medium text-muted-foreground/60 uppercase tracking-widest">Zentrox Settings</p>
       </div>
     </div>
   );
