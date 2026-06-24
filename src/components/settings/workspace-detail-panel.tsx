@@ -70,7 +70,7 @@ export function WorkspaceDetailPanel() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 md:p-8">
+      <div className="flex-1 flex flex-col min-h-0 p-6 md:p-8 overflow-hidden">
         {activeWorkspaceTab === "members" && <MembersTab workspace={workspace} currentUserRole={role as WorkspaceRole} />}
         {activeWorkspaceTab === "invites" && showInvites && <InvitesTab workspace={workspace} />}
         {activeWorkspaceTab === "danger" && <DangerZoneTab workspace={workspace} isOwner={isOwner} />}

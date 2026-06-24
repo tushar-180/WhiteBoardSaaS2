@@ -1,6 +1,6 @@
 # Development Timeline & Tasks Log
 
-This document tracks the practical build plan for the current Zentrox whiteboard app. The roadmap intentionally stays focused on the product being built now: authentication, workspaces, members/invites, boards, and canvas persistence.
+This document tracks the practical build plan for the current Zentrox whiteboard app. The roadmap intentionally stays focused on the product being built now: authentication, workspaces, members/invites, boards, canvas persistence, and subscription billing.
 
 AI diagram generation, AI chat, comments, and heavy production scaling are not part of the current roadmap.
 
@@ -9,16 +9,17 @@ AI diagram generation, AI chat, comments, and heavy production scaling are not p
 ## Schedule Overview
 
 ```txt
-Stage 1 -> Project setup, auth, Supabase clients, profiles
-Stage 2 -> Workspaces dashboard and workspace CRUD
-Stage 3 -> Workspace members, invites, and access control
-Stage 4 -> Board CRUD inside workspaces
-Stage 5 -> Whiteboard canvas and canvas_data persistence
-Stage 6 -> Polish, validation, errors, loading states, and deployment readiness
-Stage 7 -> Real-Time Collaboration
-Stage 8 -> Real-Time Notifications, Access Controls, and UI Polish
-Stage 9 -> SEO, Accessibility, and Codebase Polish
+Stage 1  -> Project setup, auth, Supabase clients, profiles
+Stage 2  -> Workspaces dashboard and workspace CRUD
+Stage 3  -> Workspace members, invites, and access control
+Stage 4  -> Board CRUD inside workspaces
+Stage 5  -> Whiteboard canvas and canvas_data persistence
+Stage 6  -> Polish, validation, errors, loading states, and deployment readiness
+Stage 7  -> Real-Time Collaboration
+Stage 8  -> Real-Time Notifications, Access Controls, and UI Polish
+Stage 9  -> SEO, Accessibility, and Codebase Polish
 Stage 10 -> Codebase Audit and Polish
+Stage 11 -> Payment/Subscription Billing with Razorpay
 ```
 
 ---
@@ -167,9 +168,63 @@ Stage 10 -> Codebase Audit and Polish
 - [x] Fix Sent At column visibility (hidden on mobile, fixes incorrect removal of `hidden sm:table-cell`).
 - [x] Update all documentation (docs/database.md, docs/deployment.md, docs/phases.md, docs/whiteboard.md, docs/progress.md).
 
+## Stage 11: Payment/Subscription Billing with Razorpay
+
+**Goal:** Implement tiered subscription plans (Free/Pro/Ultra) with Razorpay payment processing, cryptographic signature verification, and plan limit enforcement across workspaces, boards, and member invites.
+
+### Database & Infrastructure
+- [x] Create billing migration `20260619000000_create_billing_tables.sql` with `user_subscriptions` and `payments` tables, enums (`plan_type`, `subscription_status`, `payment_status`), RLS policies, indexes, and auto-creation trigger on new user signup.
+- [x] Install `razorpay` npm package (v2.9.6).
+- [x] Initialize Razorpay SDK singleton in `src/lib/razorpay.ts`.
+- [x] Add Razorpay env vars (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`) to `.env.example`.
+
+### Billing Service
+- [x] Create `src/types/billing.ts` with PlanType, UserSubscription, Payment, PaymentVerificationInput types, PLAN_LIMITS constants (Free/Pro/Ultra pricing & limits), and Zod schemas.
+- [x] Create `src/services/billing.ts` with:
+  - `getUserSubscription()` — fetches subscription with built-in expiry detection and DB persistence
+  - `createPaymentOrder()` — creates Razorpay order + inserts pending payment record
+  - `verifyPayment()` — HMAC signature verification + Razorpay API re-verification + idempotency check
+  - `handleWebhookEvent()` — processes `payment.captured` and `payment.failed` events
+  - `checkWorkspaceCreationLimit()`, `checkBoardCreationLimit()`, `checkMemberInviteLimit()` — enforce soft limits with descriptive error messages
+
+### API Routes
+- [x] Create `POST /api/billing/create-order` — authenticated route that creates Razorpay order and inserts pending payment.
+- [x] Create `POST /api/billing/verify` — authenticated route that verifies payment signature, activates subscription, and revalidates cache.
+- [x] Create `POST /api/webhooks/billing` — webhook handler with Razorpay signature verification, processes `payment.captured` and `payment.failed`.
+
+### Client-Side Payment
+- [x] Create `src/hooks/use-razorpay.ts` — client-side Razorpay checkout hook with script loading, order creation, checkout opening, payment verification, and subscription cache invalidation.
+- [x] Create `src/components/billing/pricing-cards.tsx` — Free/Pro/Ultra tier comparison cards with feature lists and upgrade buttons.
+- [x] Create `src/components/billing/upgrade-dialog.tsx` — overlay dialog for plan-limit enforcement with Razorpay integration.
+- [x] Create `src/components/billing/pricing-client.tsx` — client component for public `/pricing` page with plan fetching and login redirect.
+- [x] Create public `/pricing` landing page with `PointerHighlight` UI effect.
+- [x] Fix Razorpay container pointer-events CSS issue in `globals.css`.
+- [x] Add Razorpay checkout theme customization (indigo brand color, dark backdrop).
+
+### Settings & Billing UI
+- [x] Add `"billing"` to `SettingsTab` type union in `settings-store.ts`.
+- [x] Create `src/components/settings/billing-tab.tsx` — billing settings with current plan card, usage limits display, "Compare Plans" pricing cards, transaction history table, cancel subscription flow, and subscription cache invalidation.
+- [x] Create `src/components/settings/payment-receipt-modal.tsx` — modal with printable receipt design, payment details (date, plan, order/transaction IDs), print using hidden iframe with style injection.
+- [x] Add Billing nav item (`CreditCard` icon) to `SettingsSidebar`.
+- [x] Wire `BillingSettings` component in `SettingsContent`.
+
+### Limit Enforcement in Dialogs
+- [x] Create `src/actions/billing.ts` with proactive limit check actions (`checkWorkspaceLimitAction`, `checkBoardLimitAction`, `checkMemberLimitAction`) returning `LimitCheckResult`.
+- [x] Update `CreateWorkspaceDialog` — proactive limit check on open, limit reached UI with usage bar and badge, Upgrade button triggers Razorpay checkout.
+- [x] Update `CreateBoardDialog` — proactive limit check on open, limit reached UI with usage bar and badge.
+- [x] Update `InviteMemberDialog` — proactive limit check on open, limit reached UI with usage bar and badge.
+- [x] Add workspace plan badge display (plan type chip with `workspacePlan` prop) to workspace detail page sidebar.
+
+### Server-Side Limit Enforcement
+- [x] Add `checkWorkspaceCreationLimit()` call in `createWorkspaceAction`.
+- [x] Add `checkBoardCreationLimit()` call in `createBoardAction`.
+- [x] Add `checkMemberInviteLimit()` call in `createInviteAction` and `bulkInviteUsersAction`.
+- [x] Pass `ownerSubscription` to `WorkspaceDetailsClient` for plan badge display.
+
 ## Later / Optional
 
 - [ ] AI features.
 - [ ] Comments.
 - [ ] Realtime board chat (chat panel per board).
+- [ ] Recurring subscription billing (auto-renew with Razorpay Subscriptions API).
 - [ ] Advanced scaling infrastructure.

@@ -51,7 +51,7 @@ export function SettingsModal() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        className="sm:max-w-[1000px] max-h-[90dvh] sm:h-[85vh] p-0 flex flex-col md:flex-row overflow-hidden bg-background border-border/50 shadow-2xl rounded-xl"
+        className="sm:max-w-[1000px] h-[90dvh] max-h-[90dvh] sm:h-[85vh] p-0 flex flex-col md:flex-row overflow-hidden bg-background/80 backdrop-blur-3xl border-white/10 shadow-2xl rounded-2xl"
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">Settings</DialogTitle>

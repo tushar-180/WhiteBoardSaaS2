@@ -92,10 +92,10 @@ export function MembersTab({ workspace, currentUserRole }: { workspace: Workspac
   const isAdmin = currentUserRole === "admin";
 
   return (
-    <div className="relative pb-24 h-full">
-      <div className="border border-border/50 rounded-lg overflow-x-auto">
+    <div className="relative pb-20 h-full flex flex-col min-h-0">
+      <div className="border border-border/50 rounded-lg overflow-auto flex-1 min-h-0 shadow-sm">
         <table className="w-full text-left text-sm">
-          <thead className="bg-muted/50 border-b border-border/50 text-muted-foreground">
+          <thead className="bg-card border-b border-border/50 text-muted-foreground sticky top-0 z-10 shadow-sm">
             <tr>
               {isOwner && (
                 <th className="p-3 sm:p-4 w-10 sm:w-12 font-medium">

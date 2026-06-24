@@ -16,12 +16,11 @@ Before making code changes, read these files in this order:
 4. `docs/progress.md` - task checklist and progress.
 5. `docs/database.md` - current Supabase schema.
 6. `docs/deployment.md` - Vercel deployment and Supabase configuration.
-7. `docs/code-review-report.md` - latest code quality report.
-8. `docs/whiteboard.md` - whiteboard architecture and runtime flow.
-9. `docs/README.md` - docs directory overview & navigation.
-8. Relevant source files for the feature being changed.
+7. `docs/whiteboard.md` - whiteboard architecture and runtime flow.
+8. `docs/README.md` - docs directory overview & navigation.
+10. Relevant source files for the feature being changed.
 
-Do not assume old plans are still active. The current app scope is auth, workspaces, members/invites, boards, and canvas persistence.
+Do not assume old plans are still active. The current app scope is auth, workspaces, members/invites, boards, canvas persistence, **and payment/subscription billing**.
 
 ---
 
@@ -37,6 +36,7 @@ Do not assume old plans are still active. The current app scope is auth, workspa
 - **Canvas:** tldraw 5, @tldraw/sync, @tldraw/sync-core
 - **Analytics:** PostHog (client: posthog-js, server: posthog-node)
 - **Email:** SendGrid (@sendgrid/mail)
+- **Payments:** Razorpay SDK (`razorpay` npm package, version 2.9.6)
 - **Testing:** Vitest, @testing-library/react, jsdom
 - **Infrastructure:** Vercel (hosting), Render (sync server)
 - **Additional:** next-themes, simplex-noise, @vercel/analytics, @vercel/speed-insights
@@ -62,9 +62,11 @@ The product flow is:
 Login / Register
   -> Workspaces
   -> Members / Invites (owners/editors/viewers)
-  -> Boards (owner-only creation)
+  -> Boards
   -> Whiteboard canvas (read-only for editors/viewers)
   -> Save/load boards.canvas_data
+  -> Subscription plans (Free/Pro/Ultra) with Razorpay payments
+  -> Limit enforcement: workspace creation, board creation, member invites
 ```
 
 AI, comments, large realtime collaboration, and advanced scaling are later ideas only. Do not design around them unless the user explicitly asks.
@@ -75,38 +77,45 @@ AI, comments, large realtime collaboration, and advanced scaling are later ideas
 
 ```txt
 src/
-├── actions/              # Server Actions (auth, board, invite, member, workspace, profile, settings)
-├── app/                  # Next.js App Router (layouts, pages, route handlers)
-│   ├── (auth)/           # Login, register, forgot-password, reset-password, link-expired
-│   ├── (landing)/        # Home, about, contact, features, pricing, privacy, terms
-│   └── (protected)/      # Workspaces, board, invite pages (behind auth middleware)
+├── actions/               # Server Actions (auth, board, billing, invite, member, workspace, profile, settings)
+├── app/                   # Next.js App Router (layouts, pages, route handlers)
+│   ├── (auth)/            # Login, register, forgot-password, reset-password, link-expired
+│   ├── (landing)/         # Home, about, contact, features, pricing, privacy, terms
+│   └── (protected)/       # Workspaces, board, invite pages (behind auth middleware)
+│   └── api/
+│       ├── billing/
+│       │   ├── create-order/route.ts   # POST — Creates Razorpay order + pending payment
+│       │   └── verify/route.ts         # POST — Verifies payment signature, activates subscription
+│       └── webhooks/
+│           └── billing/route.ts        # POST — Razorpay webhook handler
 ├── components/
-│   ├── auth/             # Auth UI (login-form, forgot-password-form, reset-password-form, github-button, etc.)
-│   ├── board/            # Board cards, lists, and form dialogs (create, edit, delete)
-│   ├── landing/          # Landing page UI (hero, features, footer, navbar, mockup, lazy-sections)
-│   ├── shared/           # Shared components (error-boundary, unauthorized-access)
-│   ├── settings/         # Settings modal (profile, workspaces, notifications, appearance, account, members, invites)
-│   ├── ui/               # shadcn/ui & custom components (avatar, badge, button, dialog, card, dropdown, etc.)
-│   ├── whiteboard/       # tldraw canvas wrapper (editor, canvas, save-status, kicked-overlay) + hooks & utils
-│   └── workspace/        # Workspace dashboard (cards, lists, members, invites, notifications, dialogs)
-├── hooks/                # Custom React hooks (use-auth-form, use-pagination)
-├── lib/                  # Shared utilities (constants, utils, avatar, posthog-server)
-├── services/             # Supabase data access (board, invite, member, profile, workspace, email)
-├── store/                # Zustand stores (workspace, board, member, notification, whiteboard, settings)
-├── types/                # TypeScript types & Zod schemas (auth, profile, whiteboard, workspace)
-├── utils/supabase/       # Supabase browser/server/middleware clients
-├── __tests__/            # Vitest test suite (26 files, 284 tests) mirroring src/ structure
-└── proxy.ts              # Auth route guard middleware
+│   ├── auth/              # Auth UI (login-form, forgot-password-form, reset-password-form, github-button, etc.)
+│   ├── billing/           # Payment & subscription UI (pricing-cards, pricing-client, upgrade-dialog)
+│   ├── board/             # Board cards, lists, and form dialogs (create, edit, delete)
+│   ├── landing/           # Landing page UI (hero, features, footer, navbar, mockup, lazy-sections)
+│   ├── shared/            # Shared components (error-boundary, unauthorized-access)
+│   ├── settings/          # Settings modal (profile, workspaces, billing, notifications, appearance, account)
+│   ├── ui/                # shadcn/ui & custom components (avatar, badge, button, dialog, card, dropdown, etc.)
+│   ├── whiteboard/        # tldraw canvas wrapper (editor, canvas, save-status, kicked-overlay) + hooks & utils
+│   └── workspace/         # Workspace dashboard (cards, lists, members, invites, notifications, dialogs)
+├── hooks/                 # Custom React hooks (use-auth-form, use-pagination, use-razorpay)
+├── lib/                   # Shared utilities (constants, utils, avatar, posthog-server, razorpay)
+├── services/              # Supabase data access (billing, board, email, invite, member, profile, workspace)
+├── store/                 # Zustand stores (workspace, board, member, notification, whiteboard, settings)
+├── types/                 # TypeScript types & Zod schemas (auth, billing, profile, whiteboard, workspace)
+├── utils/supabase/        # Supabase browser/server/middleware clients
+├── __tests__/             # Vitest test suite (26 files, 284 tests) mirroring src/ structure
+└── proxy.ts               # Auth route guard middleware
 
-sync-server/              # Multiplayer WS Sync Server (Modular)
-├── config.ts             # Configurations and env setup
-├── types.ts              # Sync types
-├── database.ts           # Supabase client helper
-├── auth.ts               # Authenticated board verification
-├── connection.ts         # Socket routing and connection queues
-├── rooms.ts              # Room registry and autosave loops
-├── persistence.ts        # Database snapshot savers
-└── server.ts             # Main entry point
+sync-server/               # Multiplayer WS Sync Server (Modular)
+├── config.ts              # Configurations and env setup
+├── types.ts               # Sync types
+├── database.ts            # Supabase client helper
+├── auth.ts                # Authenticated board verification
+├── connection.ts          # Socket routing and connection queues
+├── rooms.ts               # Room registry and autosave loops
+├── persistence.ts         # Database snapshot savers
+└── server.ts              # Main entry point
 ```
 
 ---
@@ -136,6 +145,22 @@ sync-server/              # Multiplayer WS Sync Server (Modular)
 - Put authenticated mutations and route revalidation in `src/actions/`.
 - Keep actions small: validate auth, validate input, call service, revalidate/redirect if needed.
 
+### Billing & Payments
+- **`src/types/billing.ts`** — All billing types (`PlanType`, `Payment`, `UserSubscription`), plan limit constants (`PLAN_LIMITS`), Zod schemas for validation.
+- **`src/lib/razorpay.ts`** — Razorpay SDK singleton initialized with `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`.
+- **`src/services/billing.ts`** — Core payment logic: `createPaymentOrder()`, `verifyPayment()`, `handleWebhookEvent()`, limit checking functions (`checkWorkspaceCreationLimit`, `checkBoardCreationLimit`, `checkMemberInviteLimit`), and `getUserSubscription()` with built-in expiry detection.
+- **`src/hooks/use-razorpay.ts`** — Client-side Razorpay checkout hook that loads the JS SDK, creates orders, opens checkout, and verifies payments.
+- **`src/actions/billing.ts`** — Server actions for proactive limit checking (`checkWorkspaceLimitAction`, `checkBoardLimitAction`, `checkMemberLimitAction`).
+- **`src/actions/settings.ts`** — Contains `getUserSubscriptionAction()`, `cancelSubscriptionAction()`, `getUserPaymentsAction()`.
+- **Billable actions** (`src/actions/workspace.ts`, `src/actions/board.ts`, `src/actions/invite.ts`) call `check*Limit()` from `src/services/billing.ts` before creating resources.
+- **Billing UI** lives in `src/components/billing/` (`PricingCards`, `PricingPageClient`, `UpgradeDialog`) and `src/components/settings/billing-tab.tsx`.
+- **API routes:** `src/app/api/billing/create-order/route.ts`, `src/app/api/billing/verify/route.ts`, `src/app/api/webhooks/billing/route.ts`.
+- **Migration:** `supabase/migrations/20260619000000_create_billing_tables.sql` — creates `user_subscriptions` and `payments` tables with enums, RLS, and auto-creation trigger.
+- **Env vars:** `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` (see `.env.example`).
+- **Pricing:** Free (1 workspace, 3 boards/WS, 0 members), Pro ₹499/mo (3 WS, 10 boards/WS, 10 members), Ultra ₹1499/mo (unlimited).
+- **Soft limits:** Existing data is preserved — only new creation is blocked when limits are exceeded.
+- **Plan badge** is displayed on the workspace detail page sidebar via `workspacePlan` prop.
+
 ### Types and Validation
 - Put shared TypeScript models and Zod schemas in `src/types/`.
 - Use React Hook Form with `zodResolver` for client forms.
@@ -147,7 +172,7 @@ sync-server/              # Multiplayer WS Sync Server (Modular)
 - When loading a parent page, hydrate the Zustand store via `useWorkspaceStore.setState(...)` or `useBoardStore.setState(...)` inside an effect or component mount phase. Do not recreate independent react state for fetched lists or user auth details.
 - `useMemberStore` manages workspace member and invite lists with optimistic updates (add/remove/role-change) for the `WorkspaceDetailsClient`.
 - `useNotificationStore` manages real-time workspace activity notifications across the application.
-- `settings-store.ts` manages app settings (appearance, etc.) with persistence via Zustand middleware.
+- `settings-store.ts` manages app settings (appearance, etc.) and settings modal state, including the `"billing"` tab in `SettingsTab` type.
 - Do not add Redux providers, slices, or RTK Query.
 
 ### React Hooks
@@ -163,9 +188,10 @@ sync-server/              # Multiplayer WS Sync Server (Modular)
 
 ### Settings & Account Management
 - Settings UI is a modal-based system in `src/components/settings/`.
-- Settings consist of multiple tabs: Profile, Workspaces, Notifications, Appearance, Account, Members, Invites.
+- Settings consist of multiple tabs: Profile, Workspaces, **Billing**, Notifications, Appearance, Account.
 - The `settings-store.ts` manages open/close state; individual tabs render via `settings-content.tsx`.
 - Profile updates go through `src/actions/profile.ts`; workspace management through `src/actions/settings.ts`.
+- Subscription/billing state goes through `src/actions/settings.ts` (`getUserSubscriptionAction`, `cancelSubscriptionAction`, `getUserPaymentsAction`).
 - Notifications use `useNotificationStore` for real-time updates.
 
 ### Page Routes (Landing & Auth)
@@ -202,6 +228,13 @@ Examples:
 - Board DB logic belongs in `src/services/board.ts`.
 - Board mutations belong in `src/actions/board.ts`.
 - Board UI belongs in `src/components/board/`.
+- **Billing DB logic** belongs in `src/services/billing.ts`
+- **Billing mutations** belong in `src/actions/billing.ts` (limit checks) and `src/actions/settings.ts` (subscription CRUD)
+- **Billing types and schemas** belong in `src/types/billing.ts`
+- **Billing UI** belongs in `src/components/billing/` (pricing cards, upgrade dialogs)
+- **Billing hooks** belong in `src/hooks/` (`use-razorpay.ts`)
+- **Razorpay SDK** belongs in `src/lib/razorpay.ts`
+- **Payment API routes** belong in `src/app/api/billing/` and `src/app/api/webhooks/billing/`
 - Whiteboard hooks belong in `src/components/whiteboard/hooks/`.
 - Whiteboard utils belong in `src/components/whiteboard/utils/`.
 - Whiteboard UI/canvas belongs in `src/components/whiteboard/`.
@@ -219,7 +252,7 @@ Instead, update the relevant docs:
 - Update `docs/database.md` when tables, columns, relationships, or database behavior changes.
 - Update `docs/deployment.md` when deployment flows, environment variables, or config changes.
 - Update `docs/whiteboard.md` when architecture or runtime flow changes.
-- Update `docs/code-review-report.md` after significant code quality improvements or major changes.
+- Update `docs/payment.md`, `docs/payment-working.md`, `docs/paymentflow.md` when payment/billing architecture changes.
 - Update `README.md` only for high-level project scope, setup, or structure changes.
 - Update this `AGENT.md` when codebase conventions change.
 

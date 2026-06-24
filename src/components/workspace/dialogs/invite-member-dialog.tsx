@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail } from "lucide-react";
+import { Mail, Lock, Loader2, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -14,9 +14,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { UpgradeDialog } from "@/components/billing/upgrade-dialog";
 import { createInviteAction, searchProfilesAction } from "@/actions/invite";
 import { inviteSchema, type InviteFormData } from "@/types/workspace";
 import { type Profile } from "@/types/profile";
+import { getUserSubscriptionAction } from "@/actions/settings";
+import { checkMemberLimitAction } from "@/actions/billing";
+import type { PlanType, LimitCheckResult } from "@/types/billing";
 import { InviteForm } from "./invite/invite-form";
 import { InviteSuccess } from "./invite/invite-success";
 
@@ -25,6 +31,12 @@ interface InviteMemberDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+}
+
+const LIMIT_KEYWORDS = ["does not support", "plan limit", "reached the"];
+
+function isLimitError(message: string): boolean {
+  return LIMIT_KEYWORDS.some((kw) => message.toLowerCase().includes(kw));
 }
 
 export function InviteMemberDialog({
@@ -40,6 +52,37 @@ export function InviteMemberDialog({
     emailSent: boolean;
     emailError?: string;
   } | null>(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<PlanType>("free");
+  const [limitCheck, setLimitCheck] = useState<LimitCheckResult | null>(null);
+  const [checkingLimit, setCheckingLimit] = useState(false);
+
+  // Proactive limit check when dialog opens
+  useEffect(() => {
+    if (!open || !workspaceId) return;
+    setCheckingLimit(true);
+    setLimitCheck(null);
+    checkMemberLimitAction(workspaceId)
+      .then(setLimitCheck)
+      .catch(() => setLimitCheck(null))
+      .finally(() => setCheckingLimit(false));
+  }, [open, workspaceId]);
+
+  // When upgrade pricing popup opens, close parent dialog so only one overlay exists
+  useEffect(() => {
+    if (showUpgrade) {
+      onOpenChange(false);
+    }
+  }, [showUpgrade, onOpenChange]);
+
+  const fetchCurrentPlan = async () => {
+    try {
+      const sub = await getUserSubscriptionAction();
+      setCurrentPlan((sub.plan_type as PlanType) || "free");
+    } catch {
+      setCurrentPlan("free");
+    }
+  };
 
   const {
     register,
@@ -110,7 +153,13 @@ export function InviteMemberDialog({
       if (onSuccess) onSuccess();
       handleClose();
     } catch (error: unknown) {
-      toast.error((error as Error).message || "Failed to invite member. Please try again.");
+      const message = (error as Error).message || "";
+      if (isLimitError(message)) {
+        await fetchCurrentPlan();
+        setShowUpgrade(true);
+      } else {
+        toast.error(message || "Failed to invite member. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -124,6 +173,8 @@ export function InviteMemberDialog({
     router.refresh();
   };
 
+  const isAtLimit = limitCheck && !limitCheck.allowed;
+
   return (
     <Dialog open={open} loading={loading} onOpenChange={(val) => {
       if (!val) {
@@ -133,41 +184,128 @@ export function InviteMemberDialog({
       }
     }}>
       <DialogContent className="sm:max-w-md rounded-2xl">
-        <DialogHeader>
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Mail className="h-4 w-4" />
-            </div>
-            <DialogTitle className="text-lg font-bold">Invite Collaborator</DialogTitle>
-          </div>
-          <DialogDescription className="text-muted-foreground text-xs">
-            Add team members to work together on your boards.
-          </DialogDescription>
-        </DialogHeader>
+        {isAtLimit ? (
+          <>
+            <DialogHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-foreground">
+                  <Lock className="h-4 w-4" />
+                </div>
+                <DialogTitle className="text-base font-semibold">Member Limit Reached</DialogTitle>
+              </div>
+              <DialogDescription className="text-sm text-muted-foreground mt-1.5">
+                You&apos;ve hit the member limit for your current plan.
+              </DialogDescription>
+            </DialogHeader>
 
-        {!inviteResult ? (
-          <InviteForm
-            onSubmit={handleSubmit(onSubmit)}
-            register={register}
-            errors={errors}
-            loading={loading}
-            searchLoading={searchLoading}
-            suggestions={suggestions}
-            showSuggestions={showSuggestions}
-            setShowSuggestions={setShowSuggestions}
-            setSuggestions={setSuggestions}
-            setValue={setValue}
-            trigger={trigger}
-            onClose={handleClose}
-          />
+            <div className="py-4 space-y-4">
+              <div className="border border-border rounded-lg p-4 space-y-3 bg-card">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span>Current usage</span>
+                  </div>
+                  <span className="text-sm font-medium text-foreground">
+                    {limitCheck.limit === 0 ? "—" : `${limitCheck.current} / ${limitCheck.limit}`}
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-foreground rounded-full"
+                    style={{ width: `${Math.min((limitCheck.current / Math.max(limitCheck.limit, 1)) * 100, 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed pt-1">
+                  <Badge variant="secondary" className="uppercase tracking-wide text-[10px] mr-1.5 font-semibold">
+                    {limitCheck.planType}
+                  </Badge>
+                  {limitCheck.planType === "free"
+                    ? "The Free plan does not support additional members. Upgrade to invite your team."
+                    : `Plan allows ${limitCheck.limit} members.`}
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleClose}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={async () => {
+                    await fetchCurrentPlan();
+                    setShowUpgrade(true);
+                  }}
+                >
+                  Upgrade Plan
+                </Button>
+              </div>
+            </div>
+          </>
+        ) : checkingLimit ? (
+          <>
+            <DialogHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Mail className="h-4 w-4" />
+                </div>
+                <DialogTitle className="text-lg font-bold">Invite Collaborator</DialogTitle>
+              </div>
+            </DialogHeader>
+            <div className="py-8 flex justify-center">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          </>
         ) : (
-          <InviteSuccess
-            inviteLink={inviteResult.link}
-            emailSent={inviteResult.emailSent}
-            onClose={handleClose}
-          />
+          <>
+            <DialogHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Mail className="h-4 w-4" />
+                </div>
+                <DialogTitle className="text-lg font-bold">Invite Collaborator</DialogTitle>
+              </div>
+              <DialogDescription className="text-muted-foreground text-xs">
+                Add team members to work together on your boards.
+              </DialogDescription>
+            </DialogHeader>
+
+            {!inviteResult ? (
+              <InviteForm
+                onSubmit={handleSubmit(onSubmit)}
+                register={register}
+                errors={errors}
+                loading={loading}
+                searchLoading={searchLoading}
+                suggestions={suggestions}
+                showSuggestions={showSuggestions}
+                setShowSuggestions={setShowSuggestions}
+                setSuggestions={setSuggestions}
+                setValue={setValue}
+                trigger={trigger}
+                onClose={handleClose}
+              />
+            ) : (
+              <InviteSuccess
+                inviteLink={inviteResult.link}
+                emailSent={inviteResult.emailSent}
+                onClose={handleClose}
+              />
+            )}
+          </>
         )}
       </DialogContent>
+
+      {/* Upgrade Dialog shown on plan limit errors */}
+      <UpgradeDialog
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        currentPlan={currentPlan}
+        limitType="member"
+      />
     </Dialog>
   );
 }

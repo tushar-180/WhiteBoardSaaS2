@@ -158,6 +158,17 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Modern Theme Flourishes */
+  ::selection {
+    background-color: color-mix(in srgb, var(--primary) 15%, transparent);
+    color: var(--foreground);
+  }
+  
+  input, textarea, [contenteditable="true"] {
+    caret-color: var(--primary);
+  }
+
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
   }
@@ -191,4 +202,17 @@
 
 html[data-magicui-theme-vt]::view-transition-new(root) {
   clip-path: var(--magicui-theme-vt-clip-from, circle(0%));
+}
+
+/* Ensure Razorpay checkout container is interactive */
+/* Razorpay's checkout.js sets pointer-events: none on the container during
+   loading but sometimes doesn't remove it, blocking interactions */
+div[id*="razorpay-container"],
+div[class*="razorpay-container"] {
+  pointer-events: auto !important;
+}
+
+/* Prevent the browser from forcing an opaque white background on the Razorpay iframe in dark mode */
+iframe[src*="razorpay"] {
+  color-scheme: light !important;
 }

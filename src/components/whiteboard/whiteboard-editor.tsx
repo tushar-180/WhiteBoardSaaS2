@@ -95,7 +95,7 @@ export default function WhiteboardEditor({
             table: "workspace_members",
           },
           (payload) => {
-            console.log("[Realtime] Received workspace member update:", payload);
+            // Payload received — verify access below
             if (payload.eventType === "DELETE") {
               verifyAccess();
             } else if (payload.eventType === "UPDATE") {

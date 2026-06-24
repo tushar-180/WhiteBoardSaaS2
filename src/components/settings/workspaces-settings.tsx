@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { bulkDeleteWorkspacesAction, bulkLeaveWorkspacesAction } from "@/actions/workspace";
 import { toast } from "sonner";
-import { LogOut, Trash2, Loader2, Building } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { LogOut, Trash2, Loader2, Crown, Users } from "lucide-react";
+import { formatDate, cn } from "@/lib/utils";
 
 export function WorkspacesSettings() {
   const { workspaces, user, deleteWorkspace } = useWorkspaceStore();
@@ -89,36 +89,40 @@ export function WorkspacesSettings() {
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 max-w-4xl mx-auto w-full relative h-full flex flex-col">
-      <div className="mb-4 sm:mb-6 flex-shrink-0">
-        <h1 className="text-xl sm:text-2xl font-bold">My Workspaces</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage workspaces you own or have joined.</p>
+    <div className="max-w-4xl w-full mx-auto flex flex-col flex-1 space-y-6 relative overflow-hidden">
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-xl font-semibold text-foreground">My Workspaces</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage workspaces you own or have joined.
+          </p>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-24">
+      <div className="flex-1 flex flex-col min-h-0">
         {workspaces.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
+          <div className="text-center py-12 text-sm text-muted-foreground border border-border rounded-lg bg-card/50">
             No workspaces found.
           </div>
         ) : (
-          <div className="border border-border/50 rounded-lg overflow-hidden">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-muted/50 border-b border-border/50 text-muted-foreground">
+          <div className="border border-border rounded-lg overflow-hidden bg-card flex-1 relative shadow-sm">
+            <table className="w-full text-left text-sm table-fixed">
+              <thead className="bg-card sticky top-0 z-10 border-b border-border text-muted-foreground shadow-sm">
                 <tr>
-                  <th className="p-3 sm:p-4 w-10 sm:w-12 font-medium">
+                  <th className="p-3 sm:p-4 w-12 font-medium">
                     <input 
                       type="checkbox"
-                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                      className="w-4 h-4 rounded border-border text-foreground focus:ring-foreground cursor-pointer bg-background"
                       checked={selectedIds.length === workspaces.length && workspaces.length > 0} 
                       onChange={handleSelectAll} 
                     />
                   </th>
-                  <th className="p-3 sm:p-4 font-medium">Workspace Name</th>
-                  <th className="p-3 sm:p-4 font-medium">Role</th>
-                  <th className="p-3 sm:p-4 font-medium hidden sm:table-cell">Created</th>
+                  <th className="p-3 sm:p-4 text-xs uppercase tracking-wider font-semibold">Workspace Name</th>
+                  <th className="p-3 sm:p-4 w-24 sm:w-32 text-xs uppercase tracking-wider font-semibold">Role</th>
+                  <th className="p-3 sm:p-4 w-28 sm:w-40 text-xs uppercase tracking-wider font-semibold hidden sm:table-cell">Created</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border">
                 {workspaces.map(workspace => {
                   const isOwned = workspace.owner_id === user?.id;
                   const role = workspace.currentUserRole || (isOwned ? "owner" : "member");
@@ -126,29 +130,38 @@ export function WorkspacesSettings() {
                   return (
                     <tr 
                       key={workspace.id} 
-                      className="border-b border-border/20 last:border-0 hover:bg-muted/20 transition-colors cursor-pointer group"
+                      className="group transition-colors hover:bg-muted/30 cursor-pointer"
                       onClick={() => setActiveWorkspaceId(workspace.id)}
                     >
                       <td className="p-3 sm:p-4" onClick={e => e.stopPropagation()}>
                         <input 
                           type="checkbox"
-                          className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                          className="w-4 h-4 rounded border-border text-foreground focus:ring-foreground cursor-pointer bg-background"
                           checked={selectedIds.includes(workspace.id)} 
                           onChange={(e) => handleSelect(workspace.id, e.target.checked)} 
                         />
                       </td>
-                      <td className="p-3 sm:p-4 font-medium">
-                        <div className="flex items-center gap-2 max-w-[120px] sm:max-w-[300px] md:max-w-[400px]">
-                          <Building className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <td className="p-3 sm:p-4 font-medium text-foreground truncate">
+                        <div className="flex items-center gap-2">
+                          {isOwned ? (
+                            <Crown className="w-4 h-4 text-muted-foreground shrink-0" />
+                          ) : (
+                            <Users className="w-4 h-4 text-muted-foreground shrink-0" />
+                          )}
                           <span className="truncate" title={workspace.name}>{workspace.name}</span>
                         </div>
                       </td>
                       <td className="p-3 sm:p-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary capitalize">
+                        <span className={cn(
+                          "inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold tracking-wider uppercase",
+                          role === "owner" ? "bg-amber-500/10 text-amber-600 dark:text-amber-500" :
+                          role === "editor" ? "bg-blue-500/10 text-blue-600 dark:text-blue-500" :
+                          "bg-muted text-foreground"
+                        )}>
                           {role}
                         </span>
                       </td>
-                      <td className="p-3 sm:p-4 text-muted-foreground hidden sm:table-cell">
+                      <td className="p-3 sm:p-4 text-muted-foreground hidden sm:table-cell text-xs whitespace-nowrap">
                         {formatDate(workspace.created_at)}
                       </td>
                     </tr>
@@ -161,19 +174,19 @@ export function WorkspacesSettings() {
       </div>
 
       {selectedIds.length > 0 && (
-        <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 bg-popover border shadow-lg rounded-full px-4 sm:px-6 py-3 flex items-center gap-2 sm:gap-4 animate-in slide-in-from-bottom-5 max-w-[95vw] sm:max-w-none overflow-x-auto">
-          <span className="text-xs sm:text-sm font-medium mr-1 sm:mr-2 shrink-0">{selectedIds.length} selected</span>
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-card border border-border shadow-md rounded-xl px-4 py-2.5 flex items-center gap-3 animate-in slide-in-from-bottom-5 max-w-[95vw] sm:max-w-none overflow-x-auto">
+          <span className="text-xs font-semibold mr-1 shrink-0 text-foreground">{selectedIds.length} selected</span>
           
           {ownedSelected.length > 0 && (
-            <Button variant="destructive" size="sm" onClick={handleBulkDelete} disabled={isDeleting} className="shrink-0 text-xs sm:text-sm">
-              {isDeleting ? <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" /> : <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />}
+            <Button variant="default" size="sm" onClick={handleBulkDelete} disabled={isDeleting} className="shrink-0 h-8 text-xs bg-red-600 hover:bg-red-700 text-white">
+              {isDeleting ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5 mr-1.5" />}
               Delete {ownedSelected.length}
             </Button>
           )}
           
           {joinedSelected.length > 0 && (
-            <Button variant="outline" size="sm" onClick={handleBulkLeave} disabled={isLeaving} className="shrink-0 text-xs sm:text-sm">
-              {isLeaving ? <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" /> : <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />}
+            <Button variant="outline" size="sm" onClick={handleBulkLeave} disabled={isLeaving} className="shrink-0 h-8 text-xs">
+              {isLeaving ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <LogOut className="w-3.5 h-3.5 mr-1.5" />}
               Leave {joinedSelected.length}
             </Button>
           )}

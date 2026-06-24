@@ -56,7 +56,7 @@ export function WorkspaceMembersList({
           table: "workspace_members",
         },
         (payload) => {
-          console.log("[Realtime Members List] Change received:", payload);
+          // Realtime change received — update local state below
           if (payload.eventType === "DELETE") {
             const deletedId = payload.old.id;
             const isMemberOfThisWorkspace = membersRef.current.some((m) => m.id === deletedId);
@@ -128,8 +128,9 @@ export function WorkspaceMembersList({
   const hasMore = sortedMembers.length > INITIAL_VISIBLE_COUNT;
 
   return (
-    <div className={`flex flex-col max-h-[400px] rounded-xl border border-border/50 bg-card/40 p-5 backdrop-blur-xs relative ${activeMenuMemberId ? "z-20" : "z-10"}`}>
-      <div className="flex items-center justify-between shrink-0 mb-4">
+    <div className={`flex flex-col rounded-xl border border-white/5 bg-card/20 p-5 backdrop-blur-xl shadow-lg relative overflow-hidden group ${activeMenuMemberId ? "z-20" : "z-10"}`}>
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="flex items-center justify-between shrink-0 mb-4 relative z-10">
         <h2 className="text-sm font-bold text-foreground flex items-center gap-1.5">
           <Users className="h-4 w-4 text-primary/80" />
           Members
@@ -139,7 +140,7 @@ export function WorkspaceMembersList({
         </span>
       </div>
 
-      <div className="space-y-3 overflow-y-auto flex-1 min-h-0 pr-1 pb-1 custom-scrollbar">
+      <div className="space-y-3 flex-1 min-h-0 pr-1 pb-1 relative z-10">
         {visibleMembers.map((member) => (
           <WorkspaceMemberRow
             key={member.id}
@@ -165,12 +166,12 @@ export function WorkspaceMembersList({
       </div>
 
       {canManage && (
-        <div className="pt-4 shrink-0 mt-2 border-t border-border/40">
+        <div className="pt-4 shrink-0 mt-2 border-t border-white/10 relative z-10">
           <Button
             onClick={onInviteClick}
             variant="outline"
             disabled={actionLoadingId !== null}
-            className="w-full h-8 rounded-xl text-xs font-semibold cursor-pointer border-dashed border-primary/40 text-primary hover:bg-primary/5 hover:border-primary/60 transition-all duration-200"
+            className="w-full h-8 rounded-xl text-xs font-semibold cursor-pointer border-dashed border-primary/40 text-primary hover:bg-primary/10 hover:border-primary/60 transition-all duration-200"
           >
             <Plus className="mr-1 h-3.5 w-3.5" />
             Invite Member

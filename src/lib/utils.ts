@@ -49,6 +49,19 @@ export function formatDate(dateString: string | null | undefined): string {
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(d);
 }
 
+export function formatDateTime(dateString: string | null | undefined): string {
+  if (!dateString) return "—";
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return "—";
+  return new Intl.DateTimeFormat('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  }).format(d);
+}
+
 /**
  * Checks whether a workspace role has manage permissions (owner or admin).
  */
