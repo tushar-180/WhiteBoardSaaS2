@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 interface PricingCardsProps {
   currentPlan: PlanType;
   onSelectPlan: (plan: "pro" | "ultra") => void;
-  isLoading?: boolean;
+  loadingPlan?: "pro" | "ultra" | null;
 }
 
 const tierDetails: Record<PlanType, {
@@ -51,7 +51,7 @@ const tierDetails: Record<PlanType, {
   },
 };
 
-export function PricingCards({ currentPlan, onSelectPlan, isLoading }: PricingCardsProps) {
+export function PricingCards({ currentPlan, onSelectPlan, loadingPlan }: PricingCardsProps) {
   const plans: PlanType[] = ["free", "pro", "ultra"];
 
   return (
@@ -121,11 +121,11 @@ export function PricingCards({ currentPlan, onSelectPlan, isLoading }: PricingCa
               ) : plan !== "free" ? (
                 <Button
                   onClick={() => onSelectPlan(plan as "pro" | "ultra")}
-                  disabled={isLoading}
+                  disabled={loadingPlan !== null}
                   variant={plan === "pro" ? "default" : "secondary"}
                   className="w-full h-8 text-xs font-medium"
                 >
-                  {isLoading ? "Processing..." : `Upgrade to ${plan === "pro" ? "Pro" : "Ultra"}`}
+                  {loadingPlan === plan ? "Processing..." : `Upgrade to ${plan === "pro" ? "Pro" : "Ultra"}`}
                 </Button>
               ) : (
                 <Button

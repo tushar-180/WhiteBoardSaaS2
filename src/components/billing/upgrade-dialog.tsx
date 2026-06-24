@@ -13,7 +13,7 @@ interface UpgradeDialogProps {
 }
 
 export function UpgradeDialog({ open, onOpenChange, currentPlan, limitType }: UpgradeDialogProps) {
-  const { openRazorpay, isProcessing } = useRazorpay();
+  const { openRazorpay, processingPlan } = useRazorpay();
 
   // Lock body scroll when overlay is open
   useEffect(() => {
@@ -66,7 +66,7 @@ export function UpgradeDialog({ open, onOpenChange, currentPlan, limitType }: Up
         <PricingCards
           currentPlan={currentPlan}
           onSelectPlan={handleUpgrade}
-          isLoading={isProcessing}
+          loadingPlan={processingPlan}
         />
       </div>
     </div>

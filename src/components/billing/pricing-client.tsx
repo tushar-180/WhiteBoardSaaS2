@@ -14,7 +14,7 @@ interface PricingPageClientProps {
 
 export function PricingPageClient({ isLoggedIn }: PricingPageClientProps) {
   const router = useRouter();
-  const { openRazorpay, isProcessing } = useRazorpay();
+  const { openRazorpay, processingPlan } = useRazorpay();
   const [currentPlan, setCurrentPlan] = useState<PlanType>("free");
 
   // Fetch current plan if logged in
@@ -43,7 +43,7 @@ export function PricingPageClient({ isLoggedIn }: PricingPageClientProps) {
     <PricingCards
       currentPlan={currentPlan}
       onSelectPlan={handleSelectPlan}
-      isLoading={isProcessing}
+      loadingPlan={processingPlan}
     />
   );
 }

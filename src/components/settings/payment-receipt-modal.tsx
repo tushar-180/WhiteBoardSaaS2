@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 export type Payment = {
@@ -97,6 +98,7 @@ export function PaymentReceiptModal({ payment }: { payment: Payment }) {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden border-border/60 shadow-xl">
+        <DialogDescription className="sr-only">Detailed view of your payment receipt.</DialogDescription>
         <div id="receipt-content" className="bg-card text-card-foreground">
           {/* Receipt Header */}
           <div className="bg-muted/30 p-8 flex flex-col items-center justify-center border-b border-border/50 relative">

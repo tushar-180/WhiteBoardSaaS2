@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 import Link from "next/link";
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,12 @@ export default function NotFound() {
   const wireframeY = useTransform(smoothMouseY, [-500, 500], [-45, 45]);
 
   useEffect(() => {
-    setIsClient(true);
+    startTransition(() => {
+      setIsClient(true);
+    });
+  }, []);
+
+  useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const { innerWidth, innerHeight } = window;
       const x = e.clientX - innerWidth / 2;

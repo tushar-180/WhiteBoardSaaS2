@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { useSettingsStore } from "@/store/settings-store";
 import { ROUTES, ASSETS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 

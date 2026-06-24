@@ -1,14 +1,7 @@
 "use server";
 
 import { requireActionAuth, createClient } from "@/utils/supabase/server";
-import { PLAN_LIMITS, type PlanType } from "@/types/billing";
-
-export interface LimitCheckResult {
-  allowed: boolean;
-  current: number;
-  limit: number;
-  planType: PlanType;
-}
+import { PLAN_LIMITS, type PlanType, type LimitCheckResult } from "@/types/billing";
 
 /**
  * Checks if the current user can create a workspace based on their plan.

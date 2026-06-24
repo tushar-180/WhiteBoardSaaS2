@@ -1,6 +1,6 @@
 # Zentrox Whiteboard Architecture
 
-This document is the current technical reference for Zentrox. The project is a workspace-based whiteboard app with authentication, workspace collaboration, board management, and canvas persistence.
+This document is the current technical reference for Zentrox. The project is a workspace-based whiteboard app with authentication, workspace collaboration, board management, canvas persistence, and subscription billing.
 
 AI features, comments, and advanced realtime scaling are intentionally out of scope for the current build.
 
@@ -22,6 +22,10 @@ Create or open Board
 Draw on whiteboard
   ↓
 Save and restore board canvas_data
+  ↓
+Upgrade plan (Free → Pro/Ultra via Razorpay)
+  ↓
+Limits enforced for workspaces, boards, and members
 ```
 
 ---
@@ -36,6 +40,7 @@ Save and restore board canvas_data
 - **Backend:** Next.js Server Actions and Route Handlers
 - **Database/Auth:** Supabase SSR SDK and Supabase PostgreSQL
 - **Canvas:** tldraw 5.1.0 with `useSync` for real-time multi-user collaboration
+- **Payments:** Razorpay SDK (`razorpay` npm package v2.9.6) with crypto-signed HMAC verification
 - **Analytics & Monitoring:** PostHog (client: posthog-js, server: posthog-node), @vercel/analytics, @vercel/speed-insights
 - **Email:** SendGrid (@sendgrid/mail) — transactional emails for workspace invites
 - **Sync Server:** tldraw sync backend (WebSocket server via `@tldraw/sync`, `@tldraw/sync-core`) deployed to Render
@@ -84,11 +89,12 @@ Workspace writes go through:
 
 ```txt
 src/actions/workspace.ts
+  -> checkWorkspaceCreationLimit(user.id)  // subscription plan check
   -> src/services/workspace.ts
   -> Supabase tables
 ```
 
-The current Zustand store is `src/store/use-workspace-store.ts`.
+The `createWorkspaceAction` calls `checkWorkspaceCreationLimit()` before creating, which enforces the Free plan limit of 1 workspace.
 
 ### Boards
 
@@ -97,6 +103,7 @@ The current Zustand store is `src/store/use-workspace-store.ts`.
   -> fetchWorkspaceById(workspaceId)
   -> hasWorkspaceAccess(workspaceId, user.id)
   -> fetchBoardsByWorkspace(workspaceId)
+  -> getUserSubscription(workspace.owner_id)  // for plan badge
   -> WorkspaceDetailsClient
   -> useBoardStore
 ```
@@ -105,11 +112,12 @@ Board writes go through:
 
 ```txt
 src/actions/board.ts
+  -> checkBoardCreationLimit(workspaceId)  // subscription plan check
   -> src/services/board.ts
   -> Supabase tables
 ```
 
-The board details and workspace list Zustand stores are `src/store/use-board-store.ts` and `src/store/use-workspace-store.ts`.
+The `createBoardAction` calls `checkBoardCreationLimit()` which checks the workspace owner's plan to enforce board limits.
 
 ### Whiteboard Canvas
 
@@ -137,17 +145,50 @@ The whiteboard canvas collaboration and persistence runtime flow:
 12. **Real-Time Access Revocation**: The `KickedOverlay` component monitors `workspace_members` Realtime changes and shows a kicked screen if the user's membership is revoked mid-session.
 13. **Collaborator Presence**: `EditorHeader` shows a live avatar stack of active collaborators. The `useCollaboratorNotifications` hook manages join/leave toast notifications.
 
+### Billing & Subscription Flow
+
+```txt
+User clicks "Upgrade" → useRazorpay hook → POST /api/billing/create-order
+  → createPaymentOrder() inserts pending payment → Returns order_id, key_id
+  → Razorpay checkout opens in iframe
+  → User pays → handler callback → POST /api/billing/verify
+  → verifyPayment() checks HMAC sig, verifies via Razorpay API
+  → Updates payment → "paid", upserts subscription → "active"
+  → revalidatePath("/", "layout") → UI updates instantly
+```
+
+**Payment entry points:**
+1. **Settings → Billing tab** (`billing-tab.tsx`): Shows current plan, limits, pricing cards, and payment history with printable receipts.
+2. **Upgrade Dialog** (`upgrade-dialog.tsx`): Shown when hitting plan limits during workspace/board/invite creation.
+
+**Database tables (see `database.md`):**
+- `user_subscriptions`: Tracks per-user plan type (`free`/`pro`/`ultra`) and status (`active`/`expired`)
+- `payments`: Stores Razorpay order/payment IDs, amounts, statuses
+
+**Key files:**
+- `src/types/billing.ts` — PlanType, Payment, UserSubscription, PLAN_LIMITS constants
+- `src/lib/razorpay.ts` — Razorpay SDK singleton
+- `src/services/billing.ts` — Core payment logic (create, verify, webhook, limit checks)
+- `src/hooks/use-razorpay.ts` — Client-side checkout hook
+- `src/actions/billing.ts` — Server actions for proactive limit checks
+- `src/actions/settings.ts` — Subscription CRUD actions
+- `src/app/api/billing/create-order/route.ts`, `verify/route.ts`, `webhooks/billing/route.ts`
+- `src/components/billing/pricing-cards.tsx`, `upgrade-dialog.tsx`, `pricing-client.tsx`
+- `src/components/settings/billing-tab.tsx`, `payment-receipt-modal.tsx`
+
 ---
 
 ## 4. Database Schema
 
-The current database has five application tables:
+The current database has seven application tables:
 
 - `profiles`
 - `workspaces`
 - `workspace_members`
 - `workspace_invites`
 - `boards`
+- `user_subscriptions`
+- `payments`
 
 See [database.md](database.md) for the exact table columns.
 
@@ -156,16 +197,17 @@ See [database.md](database.md) for the exact table columns.
 ## 5. Build Phases
 
 ```txt
-Phase 1 -> Auth and profiles
-Phase 2 -> Workspaces
-Phase 3 -> Workspace members and invites
-Phase 4 -> Boards
-Phase 5 -> Canvas persistence through boards.canvas_data
-Phase 6 -> Polish and deployment readiness
-Phase 7 -> Real-Time Collaboration
-Phase 8 -> Real-Time Notifications and Advanced Controls
-Phase 9 -> SEO, Accessibility, and Codebase Polish
+Phase 1  -> Auth and profiles
+Phase 2  -> Workspaces
+Phase 3  -> Workspace members and invites
+Phase 4  -> Boards
+Phase 5  -> Canvas persistence through boards.canvas_data
+Phase 6  -> Polish and deployment readiness
+Phase 7  -> Real-Time Collaboration
+Phase 8  -> Real-Time Notifications and Advanced Controls
+Phase 9  -> SEO, Accessibility, and Codebase Polish
 Phase 10 -> Codebase Audit and Polish
+Phase 11 -> Payment/Subscription Billing with Razorpay
 ```
 
 See [phases.md](phases.md) and [progress.md](progress.md) for the current task breakdown.
@@ -176,17 +218,21 @@ See [phases.md](phases.md) and [progress.md](progress.md) for the current task b
 
 ```txt
 src/
-├── actions/              # Server Actions (auth, board, invite, member, workspace, profile, settings)
+├── actions/              # Server Actions (auth, billing, board, invite, member, workspace, profile, settings)
 ├── app/                  # Next.js App Router (layouts, pages, route handlers)
 │   ├── (auth)/           # Login, register, forgot-password, reset-password, link-expired
 │   ├── (landing)/        # Home, about, contact, features, pricing, privacy, terms
 │   └── (protected)/      # Workspaces, boards, invite pages (behind auth middleware)
+│   └── api/
+│       ├── billing/      # Razorpay create-order + verify API routes
+│       └── webhooks/     # Razorpay webhook handler (billing)
 ├── components/
 │   ├── auth/             # Auth UI (login-form, forgot-password-form, reset-password-form, etc.)
+│   ├── billing/          # PricingCards, UpgradeDialog, PricingPageClient
 │   ├── board/            # Board cards, lists, form dialogs (create, edit, delete)
 │   ├── landing/          # Landing page (hero, features, footer, navbar, mockup, lazy-sections)
 │   ├── shared/           # Shared components (error-boundary, unauthorized-access)
-│   ├── settings/         # Settings modal (profile, workspaces, notifications, appearance, account, members, invites)
+│   ├── settings/         # Settings modal (profile, workspaces, billing, notifications, appearance, account, members, invites)
 │   ├── ui/               # shadcn/ui & custom components (avatar, badge, button, card, dialog, dropdown, etc.)
 │   ├── whiteboard/       # tldraw canvas wrapper (editor, canvas, save-status, kicked-overlay, editor-header)
 │   │   ├── hooks/        # Collaboration custom hooks
@@ -194,11 +240,11 @@ src/
 │   │   │   └─ use-whiteboard-sync.ts
 │   │   └── utils/        # Utility helpers (sync-uri.ts)
 │   └── workspace/        # Workspace dashboard (cards, lists, members, invites, notifications, dialogs)
-├── hooks/                # Custom React hooks (use-auth-form, use-pagination)
-├── lib/                  # Shared utilities (constants, utils, avatar, posthog-server)
-├── services/             # Supabase data access (board, invite, member, profile, workspace, email)
+├── hooks/                # Custom React hooks (use-auth-form, use-pagination, use-razorpay)
+├── lib/                  # Shared utilities (constants, utils, avatar, posthog-server, razorpay)
+├── services/             # Supabase data access (billing, board, email, invite, member, profile, workspace)
 ├── store/                # Zustand stores (workspace, board, member, notification, whiteboard, settings)
-├── types/                # TypeScript types and Zod schemas (auth, profile, whiteboard, workspace)
+├── types/                # TypeScript types and Zod schemas (auth, billing, profile, whiteboard, workspace)
 ├── utils/supabase/       # Supabase browser/server/middleware clients
 ├── __tests__/            # Vitest test suite (26 files, 284 tests) mirroring src/ structure
 └── proxy.ts              # Auth route guard
@@ -223,4 +269,5 @@ These can be explored only after the core app is stable:
 - Realtime board chat (chat panel per board)
 - Comments
 - AI helpers
+- Recurring subscription billing (auto-renew)
 - Advanced deployment/scaling work

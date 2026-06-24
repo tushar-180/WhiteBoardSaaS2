@@ -56,7 +56,7 @@ export function WorkspaceMembersList({
           table: "workspace_members",
         },
         (payload) => {
-          console.log("[Realtime Members List] Change received:", payload);
+          // Realtime change received — update local state below
           if (payload.eventType === "DELETE") {
             const deletedId = payload.old.id;
             const isMemberOfThisWorkspace = membersRef.current.some((m) => m.id === deletedId);

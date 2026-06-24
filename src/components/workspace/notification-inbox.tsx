@@ -105,7 +105,7 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
           table: "workspace_invites",
         },
         (payload) => {
-          console.log("[Realtime] Invite change received:", payload);
+          // Invite change received — update state below
           
           if (payload.eventType === "DELETE") {
             const deletedId = payload.old.id;
@@ -144,9 +144,7 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
           }
         }
       )
-      .subscribe((status) => {
-        console.log(`[Realtime] Subscription status for user-notifications-${cleanEmail}:`, status);
-      });
+      .subscribe();
 
     return () => {
       if (fetchTimeoutRef.current) {

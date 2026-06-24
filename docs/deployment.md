@@ -10,7 +10,8 @@ Before starting, ensure you have:
 1. A [GitHub](https://github.com) account.
 2. A [Vercel](https://vercel.com) account.
 3. A [Supabase](https://supabase.com) project already created.
-4. (Optional) A `TLDRAW_API` license key if you are using tldraw's paid features/services.
+4. (Optional) A [Razorpay](https://razorpay.com) account for payment processing (test mode available).
+5. (Optional) A `TLDRAW_API` license key if you are using tldraw's paid features/services.
 
 ---
 
@@ -47,7 +48,7 @@ Under the **Environment Variables** section in Vercel, add the following variabl
 | :--- | :--- | :--- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Settings -> API -> Project URL | `https://xxxx.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Settings -> API -> `anon` public key | `eyJhbGciOiJIUzI1NiIsIn...` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Settings -> API -> `service_role` key (for sync server) | `eyJhbGciOiJIUzI1NiIsIn...` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Settings -> API -> `service_role` key (for sync server + billing admin ops) | `eyJhbGciOiJIUzI1NiIsIn...` |
 | `SENDGRID_API_KEY` | SendGrid API key for sending transactional emails | `SG.xxxxxxxxxxxxxxxx` |
 | `SENDGRID_FROM_EMAIL` | Verified sender email in SendGrid | `noreply@zentrox.app` |
 | `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | PostHog project token for analytics | `phc_xxxxxxxxxxxxxxxx` |
@@ -55,6 +56,9 @@ Under the **Environment Variables** section in Vercel, add the following variabl
 | `NEXT_PUBLIC_SYNC_SERVER_URL` | Deployed sync server URL (WebSocket) | `wss://whiteboardsaas2.onrender.com` |
 | `NEXT_PUBLIC_BASE_URL` | Base URL for invite links (production) | `https://zentrox-one.vercel.app` |
 | `NEXT_PUBLIC_APP_URL` | Public app URL for metadata/OG tags | `https://zentrox-one.vercel.app` |
+| `RAZORPAY_KEY_ID` | Razorpay Dashboard -> Settings -> API Keys | `rzp_live_xxxxxxxxxxxx` or `rzp_test_xxxxxxxxxxxx` |
+| `RAZORPAY_KEY_SECRET` | Razorpay Dashboard -> Settings -> API Keys | `your_razorpay_secret` |
+| `RAZORPAY_WEBHOOK_SECRET` | Razorpay Dashboard -> Settings -> Webhooks | `whsec_ztx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` |
 
 Click **Add** for each variable, then click **Deploy**.
 
@@ -87,11 +91,21 @@ Since this app uses Supabase Auth, you must explicitly allow Supabase to redirec
 
 The application requires specific database schemas and Realtime configurations (like enabling `workspace_invites` and `workspace_members` for live notifications).
 
-Ensure you apply the latest migrations to your production Supabase database:
+Ensure you apply all migrations to your production Supabase database:
+
 ```bash
 supabase link --project-ref your-project-ref
 supabase db push
 ```
+
+The migrations include:
+1. `20260604000000_create_profiles_table_and_trigger.sql` — profiles table + auth sync trigger
+2. `20260605000000_enable_realtime_workspace_invites.sql` — Realtime for invites
+3. `20260605000100_add_inviter_seen_to_invites.sql` — inviter_seen column
+4. `20260605000200_enable_realtime_workspace_members.sql` — Realtime for members
+5. `20260615164800_add_profiles_email_index.sql` — email trigram index for search
+6. `20260618160000_fix_invites_created_at_default.sql` — fix created_at default
+7. **`20260619000000_create_billing_tables.sql`** — `user_subscriptions` + `payments` tables, enums, RLS, auto-creation trigger
 
 ---
 
@@ -126,7 +140,9 @@ If you prefer to deploy directly from your local terminal without connecting Git
    ```bash
    vercel env add NEXT_PUBLIC_SUPABASE_URL
    vercel env add NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-   vercel env add TLDRAW_API
+   vercel env add RAZORPAY_KEY_ID
+   vercel env add RAZORPAY_KEY_SECRET
+   vercel env add RAZORPAY_WEBHOOK_SECRET
    ```
 5. Deploy to production:
    ```bash
@@ -163,3 +179,6 @@ After deployment, verify that:
 2. **Auth** — Sign Up and Login redirect correctly to `/workspaces`.
 3. **Canvas** — Create a Workspace and Board; drawing data persists after reloading.
 4. **Real-time sync** — Open the same board in two tabs and confirm strokes appear on both; the sync server at https://whiteboardsaas2.onrender.com should be reachable.
+5. **Pricing page** loads at `/pricing` and shows Free/Pro/Ultra plans.
+6. **Billing** — Settings > Billing tab shows current plan and limits. Upgrade flow works with Razorpay test mode (`rzp_test_*` keys).
+7. **Limit enforcement** — Create resources to trigger plan limits and verify the upgrade dialog appears.

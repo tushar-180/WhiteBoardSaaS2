@@ -43,7 +43,7 @@ export function BillingSettings() {
   const [isCanceling, setIsCanceling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const fetchedRef = useRef(false);
-  const { openRazorpay, isProcessing } = useRazorpay();
+  const { openRazorpay, processingPlan } = useRazorpay();
 
   const fetchSubscription = useCallback(async () => {
     if (hasFetchedSubscription) {
@@ -248,7 +248,7 @@ export function BillingSettings() {
       <PricingCards
         currentPlan={currentPlan}
         onSelectPlan={openRazorpay}
-        isLoading={isProcessing}
+        loadingPlan={processingPlan}
       />
 
 

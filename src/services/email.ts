@@ -1,6 +1,6 @@
 import sgMail from "@sendgrid/mail";
 
-export interface SendEmailOptions {
+interface SendEmailOptions {
   to: string | string[];
   subject: string;
   html: string;
@@ -18,7 +18,7 @@ export async function sendEmail(
   const apiKey = process.env.SENDGRID_API_KEY;
 
   if (!apiKey) {
-    console.log(
+    console.error(
       "[Email Service] No SENDGRID_API_KEY found. Skipping email send.",
     );
     return { success: false, error: "No API key configured." };
@@ -53,15 +53,7 @@ export async function sendEmail(
       html: options.html,
     };
 
-    console.log("----------------------------------------");
-    console.log("[Email Service] Attempting to send email via SendGrid...");
-    console.log("  FROM: ", JSON.stringify(msg.from));
-    console.log("  TO:   ", JSON.stringify(msg.to));
-    console.log("----------------------------------------");
-
     const response = await sgMail.send(msg);
-
-    console.log("[Email Service] Email successfully sent to", options.to);
     return { success: true, data: response };
   } catch (err: unknown) {
     const error = err as Error & { response?: { body: unknown } };

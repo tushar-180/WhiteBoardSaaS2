@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Plus, ArrowLeft, Calendar, Hash, Shield, Crown } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { BoardList } from "@/components/board/board-list";

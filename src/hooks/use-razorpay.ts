@@ -36,11 +36,13 @@ export function useRazorpay() {
   const setIsOpen = useSettingsStore((state) => state.setIsOpen);
   const isProcessingRef = useRef(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingPlan, setProcessingPlan] = useState<BillingPlan | null>(null);
 
   const openRazorpay = useCallback(async (plan: BillingPlan) => {
     if (isProcessingRef.current) return;
     isProcessingRef.current = true;
     setIsProcessing(true);
+    setProcessingPlan(plan);
 
     try {
       // 1. Load Razorpay SDK
@@ -111,12 +113,14 @@ export function useRazorpay() {
           } finally {
             isProcessingRef.current = false;
             setIsProcessing(false);
+            setProcessingPlan(null);
           }
         },
         modal: {
           ondismiss: function () {
             isProcessingRef.current = false;
             setIsProcessing(false);
+            setProcessingPlan(null);
           },
         },
       });
@@ -126,8 +130,9 @@ export function useRazorpay() {
       isProcessingRef.current = false;
       toast.error((error as Error).message || "Something went wrong.");
       setIsProcessing(false);
+      setProcessingPlan(null);
     }
   }, [router, setIsOpen]);
 
-  return { openRazorpay, isProcessing };
+  return { openRazorpay, isProcessing, processingPlan };
 }
