@@ -56,9 +56,10 @@ export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps)
   const hasMore = invites.length > INITIAL_VISIBLE_COUNT;
 
   return (
-    <div className="flex flex-col max-h-[300px] rounded-xl border bg-card p-4 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300 relative z-10">
+    <div className="flex flex-col rounded-xl border border-white/5 bg-card/20 p-5 backdrop-blur-xl shadow-lg relative overflow-hidden group z-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      <div className="flex items-center justify-between shrink-0 mb-4">
+      <div className="flex items-center justify-between shrink-0 mb-4 relative z-10">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
           <ShieldAlert className="h-4 w-4 text-primary/80" />
           Pending Invites
@@ -68,7 +69,7 @@ export function WorkspaceInvitesList({ workspaceId }: WorkspaceInvitesListProps)
         </span>
       </div>
 
-      <div className="space-y-1.5 overflow-y-auto flex-1 min-h-0 pr-1 pb-1 custom-scrollbar">
+      <div className="space-y-1.5 flex-1 min-h-0 pr-1 pb-1 relative z-10">
         {visibleInvites.map((invite) => (
           <div
             key={invite.id}

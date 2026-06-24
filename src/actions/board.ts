@@ -10,6 +10,7 @@ import {
   updateBoardCanvas,
 } from "@/services/board";
 import { hasWorkspaceAccess } from "@/services/workspace";
+import { checkBoardCreationLimit } from "@/services/billing";
 import { type Board, boardSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
 import { getPostHogClient } from "@/lib/posthog-server";
@@ -47,6 +48,9 @@ export async function createBoardAction(
     if (!hasAccess) {
       throw new Error("You do not have access to modify this workspace.");
     }
+
+    // Check subscription plan limit for board creation
+    await checkBoardCreationLimit(workspaceId);
 
     const validated = boardSchema.safeParse({ name, description });
     if (!validated.success) {

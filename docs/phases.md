@@ -13,8 +13,9 @@ Reference docs:
 - **Frontend:** Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, shadcn/ui, Aceternity UI, Radix primitives, lucide-react, Sonner, Motion (animations)
 - **State, Forms, Validation:** Zustand, React Hook Form, Zod 4.4.3, `@hookform/resolvers`
 - **Backend:** Next.js Server Actions, Route Handlers, Supabase SSR SDK
-- **Database:** Supabase PostgreSQL
+- **Database:** Supabase PostgreSQL (7 tables: profiles, workspaces, workspace_members, workspace_invites, boards, user_subscriptions, payments)
 - **Canvas:** tldraw 5.1.0 with `boards.canvas_data` persistence, role-based read-only mode, and real-time multi-user sync via `@tldraw/sync` / `@tldraw/sync-core`
+- **Payments:** Razorpay SDK v2.9.6 with HMAC crypto-signed verification and webhook fallback
 - **Analytics & Monitoring:** PostHog (client: posthog-js, server: posthog-node), @vercel/analytics, @vercel/speed-insights
 - **Email:** SendGrid (@sendgrid/mail) — transactional emails for workspace invites
 - **Sync Server:** tldraw sync backend (WebSocket) deployed to Render
@@ -38,6 +39,7 @@ graph TD
     P7 --> P8[Phase 8: Real-Time Notifications]
     P8 --> P9[Phase 9: SEO + Accessibility]
     P9 --> P10[Phase 10: Codebase Audit + Polish]
+    P10 --> P11[Phase 11: Payment/Subscription Billing]
 ```
 
 ---
@@ -51,6 +53,8 @@ erDiagram
     profiles ||--o{ workspace_members : "joins"
     profiles ||--o{ workspace_invites : "creates or accepts"
     profiles ||--o{ boards : "creates"
+    profiles ||--o| user_subscriptions : "has"
+    profiles ||--o{ payments : "makes"
 
     workspaces ||--o{ workspace_members : "has"
     workspaces ||--o{ workspace_invites : "has"
@@ -185,7 +189,23 @@ erDiagram
 - **Comprehensive test suite** — 284 tests across 26 files covering all critical paths.
 - **Performance monitoring** via @vercel/speed-insights.
 - **Error boundary** added for whiteboard canvas crash protection.
-- All documentation (database.md, deployment.md, phases.md, whiteboard.md, progress.md, code-review-report.md) audited and updated.
+- All documentation audited and updated.
+
+## Phase 11: Payment/Subscription Billing with Razorpay ✅
+
+**Goal:** Implement tiered subscription plans (Free/Pro/Ultra) with Razorpay payment processing, cryptographic signature verification, and plan limit enforcement across workspaces, boards, and member invites.
+
+- **Database:** `user_subscriptions` and `payments` tables with enums, RLS, indexes, and auto-creation trigger.
+- **Service Layer:** `src/services/billing.ts` with `createPaymentOrder`, `verifyPayment`, `handleWebhookEvent`, `getUserSubscription` (with expiry detection), and limit check functions.
+- **API Routes:** Razorpay order creation (`POST /api/billing/create-order`), payment verification (`POST /api/billing/verify`), and webhook handler (`POST /api/webhooks/billing`).
+- **Client-Side Checkout:** `useRazorpay` hook with script loading, checkout opening, payment verification, and subscription cache invalidation.
+- **Pricing UI:** `PricingCards` (Free/Pro/Ultra tier comparison), `UpgradeDialog` (limit enforcement), `PricingPageClient` (public pricing page).
+- **Settings Billing Tab:** Current plan card with usage limits, transaction history with printable receipts, pricing cards, cancel subscription flow.
+- **Limit Enforcement:** Proactive checks in creation dialogs (`CreateWorkspaceDialog`, `CreateBoardDialog`, `InviteMemberDialog`) with visual usage bars and upgrade prompts.
+- **Server-Side Enforcement:** Limit checks in `createWorkspaceAction`, `createBoardAction`, `createInviteAction`, and `bulkInviteUsersAction`.
+- **Plan Badge:** Workspace detail page sidebar shows workspace owner's plan type.
+- **Security:** HMAC cryptographic signature verification, Razorpay API re-verification, idempotency checks, admin Supabase client for billing operations.
+- **Soft Limits:** Existing data preserved — only new creation is blocked.
 
 ---
 
@@ -195,4 +215,5 @@ These features can be revisited after the core product is working:
 
 - Realtime board chat (chat panel per board)
 - AI features
+- Recurring subscription billing (auto-renew with Razorpay Subscriptions API)
 - Advanced scaling infrastructure

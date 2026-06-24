@@ -105,7 +105,7 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
           table: "workspace_invites",
         },
         (payload) => {
-          console.log("[Realtime] Invite change received:", payload);
+          // Invite change received — update state below
           
           if (payload.eventType === "DELETE") {
             const deletedId = payload.old.id;
@@ -144,9 +144,7 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
           }
         }
       )
-      .subscribe((status) => {
-        console.log(`[Realtime] Subscription status for user-notifications-${cleanEmail}:`, status);
-      });
+      .subscribe();
 
     return () => {
       if (fetchTimeoutRef.current) {
@@ -204,7 +202,6 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
     setActionLoadingId(`${inviteId}-dismiss`);
     try {
       await dismissNotificationAction(inviteId);
-      toast.success("Notification dismissed.");
       removeInvite(inviteId);
       router.refresh();
     } catch (err: unknown) {
@@ -215,6 +212,7 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
   };
 
   const notificationCount = invites.length;
+  const sortedInvites = [...invites].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -261,7 +259,7 @@ export function NotificationInbox({ userEmail, userId: propUserId }: Notificatio
                 <p className="text-[10px] opacity-75">No new notifications.</p>
               </div>
             ) : (
-              invites.map((invite) => (                  <NotificationItem
+              sortedInvites.map((invite) => (                  <NotificationItem
                     key={invite.id}
                     invite={invite}
                     actionLoadingId={actionLoadingId}

@@ -9,8 +9,17 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Trash2, Loader2, Send, X } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { UpgradeDialog } from "@/components/billing/upgrade-dialog";
 import { formatDate } from "@/lib/utils";
 import { type Profile } from "@/types/profile";
+import { getUserSubscriptionAction } from "@/actions/settings";
+import type { PlanType } from "@/types/billing";
+
+const LIMIT_KEYWORDS = ["does not support", "plan limit", "reached the"];
+
+function isLimitError(message: string): boolean {
+  return LIMIT_KEYWORDS.some((kw) => message.toLowerCase().includes(kw));
+}
 
 export function InvitesTab({ workspace }: { workspace: Workspace }) {
   const [invites, setInvites] = useState<WorkspaceInvite[]>([]);
@@ -22,6 +31,8 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
   const [emailList, setEmailList] = useState<string[]>([]);
   const [emailInput, setEmailInput] = useState("");
   const [inviteRole, setInviteRole] = useState<string>("viewer");
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<PlanType>("free");
   const MAX_INVITES = 10;
 
   // Profile suggestion state
@@ -156,6 +167,15 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
     }
   };
 
+  const fetchCurrentPlan = async () => {
+    try {
+      const sub = await getUserSubscriptionAction();
+      setCurrentPlan((sub.plan_type as PlanType) || "free");
+    } catch {
+      setCurrentPlan("free");
+    }
+  };
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailList.length) return;
@@ -178,7 +198,13 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
       const data = await getPendingInvitesAction(workspace.id);
       setInvites(data);
     } catch (error: unknown) {
-      toast.error((error as Error).message);
+      const message = (error as Error).message || "";
+      if (isLimitError(message)) {
+        await fetchCurrentPlan();
+        setShowUpgrade(true);
+      } else {
+        toast.error(message || "Failed to send invites. Please try again.");
+      }
     } finally {
       setIsInviting(false);
     }
@@ -189,7 +215,7 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
   }
 
   return (
-    <div className="relative pb-24 h-full flex flex-col gap-6 sm:gap-8">
+    <div className="relative pb-20 h-full flex flex-col gap-6 sm:gap-8 min-h-0">
       <form onSubmit={handleInvite} className="space-y-4">
         {/* Email Capsule Input */}
         <div className="space-y-2">
@@ -316,9 +342,9 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
           No pending invites.
         </div>
       ) : (
-        <div className="border border-border/50 rounded-lg overflow-hidden flex-1 overflow-y-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-muted/50 border-b border-border/50 text-muted-foreground sticky top-0">
+        <div className="border border-border/50 rounded-lg overflow-auto flex-1 min-h-0 shadow-sm">
+          <table className="w-full text-left text-sm min-w-[400px]">
+            <thead className="bg-card border-b border-border/50 text-muted-foreground sticky top-0 z-10 shadow-sm">
               <tr>
                 <th className="p-3 sm:p-4 w-10 sm:w-12 font-medium">
                   <input 
@@ -375,6 +401,14 @@ export function InvitesTab({ workspace }: { workspace: Workspace }) {
         onConfirm={executeBulkRevoke}
         variant="destructive"
         loading={isRevoking}
+      />
+
+      {/* Upgrade Dialog shown on plan limit errors */}
+      <UpgradeDialog
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        currentPlan={currentPlan}
+        limitType="member"
       />
     </div>
   );
