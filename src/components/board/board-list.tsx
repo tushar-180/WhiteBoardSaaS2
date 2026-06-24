@@ -59,9 +59,9 @@ export function BoardList({
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
       <div className="flex items-center gap-2 shrink-0 pt-2 px-1 relative z-0">
         <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-        <h3 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <h2 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           All Boards ({boards.length})
-        </h3>
+        </h2>
       </div>
       <div className="flex-1 overflow-y-auto min-h-0 px-1 pt-4 pb-4 -mx-1 relative z-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">

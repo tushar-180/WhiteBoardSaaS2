@@ -36,8 +36,8 @@ export function WorkspaceNav({ userEmail, userId, userName, userAvatar, logoHref
 
   const planStyles: Record<string, string> = {
     free: "bg-muted text-muted-foreground border-border/50",
-    pro: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
-    ultra: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    pro: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20",
+    ultra: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
   };
 
   const planLabels: Record<string, string> = {
@@ -66,9 +66,9 @@ export function WorkspaceNav({ userEmail, userId, userName, userAvatar, logoHref
               Zentrox
             </span>
           </Link>
-          <Badge variant="outline" className={cn("uppercase tracking-wide text-[10px] leading-none py-0.5", planStyles[planType])}>
+          <div className={cn("sm:hidden text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md border leading-none shadow-sm", planStyles[planType])}>
             {planLabels[planType]}
-          </Badge>
+          </div>
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
@@ -101,17 +101,22 @@ export function WorkspaceNav({ userEmail, userId, userName, userAvatar, logoHref
 
               <button 
                 onClick={() => { setActiveTab("profile"); setIsOpen(true); }}
-                className="flex items-center gap-2.5 ml-1 mr-2 px-1.5 py-1.5 rounded-full hover:bg-muted/40 transition-colors border border-transparent hover:border-border/30 cursor-pointer text-left"
+                className="flex items-center gap-2 ml-1 mr-2 px-1.5 py-1.5 rounded-full hover:bg-muted/40 transition-colors border border-transparent hover:border-border/30 cursor-pointer text-left"
               >
-                <Avatar className="h-8 w-8 border border-border/50 shadow-sm">
+                <Avatar className="h-8 w-8 border border-border/50 shadow-sm shrink-0">
                   {userAvatar && <AvatarImage src={userAvatar} alt={userName || userEmail || "User"} />}
                   <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
                     {userName ? userName.charAt(0).toUpperCase() : userEmail ? userEmail.charAt(0).toUpperCase() : "U"}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-semibold hidden sm:inline-block text-foreground max-w-[140px] truncate pr-2">
-                  {userName || (userEmail ? userEmail.split("@")[0] : "User")}
-                </span>
+                <div className="hidden sm:flex items-center gap-2 mr-2">
+                  <span className="text-sm font-semibold text-foreground max-w-[120px] truncate">
+                    {userName || (userEmail ? userEmail.split("@")[0] : "User")}
+                  </span>
+                  <div className={cn("text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md border leading-none shadow-sm", planStyles[planType])}>
+                    {planLabels[planType]}
+                  </div>
+                </div>
               </button>
             </>
           )}

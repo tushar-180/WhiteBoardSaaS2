@@ -82,7 +82,7 @@ export function PricingCards({ currentPlan, onSelectPlan, isLoading }: PricingCa
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-1.5">
                 <Icon className="h-4 w-4 text-foreground/70" />
-                <h3 className="text-base font-semibold capitalize tracking-tight">{plan}</h3>
+                <h2 className="text-base font-semibold capitalize tracking-tight">{plan}</h2>
               </div>
               <p className="text-xs text-muted-foreground h-8">
                 {details.description}

@@ -61,8 +61,13 @@ export function NotificationsSettings() {
     return <div className="py-12 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
   }
 
-  const incoming = notifications.filter(n => n.email.toLowerCase().trim() === user?.email.toLowerCase().trim() && n.status === "pending");
-  const outgoingStatuses = notifications.filter(n => n.created_by === user?.id && (n.status === "accepted" || n.status === "rejected"));
+  const incoming = notifications
+    .filter(n => n.email.toLowerCase().trim() === user?.email.toLowerCase().trim() && n.status === "pending")
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    
+  const outgoingStatuses = notifications
+    .filter(n => n.created_by === user?.id && (n.status === "accepted" || n.status === "rejected"))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
     <div className="p-6 md:p-8 max-w-3xl mx-auto w-full flex flex-col flex-1 overflow-hidden space-y-6">

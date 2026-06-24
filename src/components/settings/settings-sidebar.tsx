@@ -29,14 +29,14 @@ export function SettingsSidebar() {
   const { activeTab, setActiveTab, setIsOpen } = useSettingsStore();
 
   return (
-    <div className="w-full md:w-[250px] shrink-0 md:border-r border-white/5 bg-transparent flex flex-col h-auto md:h-full relative z-10">
+    <div className="w-full md:w-[250px] shrink-0 md:border-r border-border/50 bg-transparent flex flex-col h-auto md:h-full relative z-10">
       {/* Header with title and close button */}
-      <div className="flex items-center justify-between border-b border-white/5 px-6 py-4 md:py-6">
-        <h2 className="font-bold text-xl tracking-tight">Settings</h2>
+      <div className="flex items-center justify-between border-b border-border/50 px-6 py-4 md:py-6">
+        <h2 className="font-bold text-xl tracking-tight text-foreground">Settings</h2>
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden hover:bg-white/10 rounded-full"
+          className="md:hidden hover:bg-muted rounded-full"
           onClick={() => setIsOpen(false)}
         >
           <X className="w-5 h-5" />
@@ -55,21 +55,21 @@ export function SettingsSidebar() {
               className={cn(
                 "relative flex items-center justify-center md:justify-start gap-3 p-2.5 md:px-4 md:py-3 rounded-full md:rounded-xl text-sm font-semibold transition-colors cursor-pointer shrink-0 z-10 group",
                 isActive
-                  ? "text-white"
+                  ? "text-primary dark:text-white"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
               {isActive && (
                 <motion.div
                   layoutId="active-tab-indicator"
-                  className="absolute inset-0 bg-white/10 border border-white/10 rounded-full md:rounded-xl -z-10 shadow-sm"
+                  className="absolute inset-0 bg-primary/10 border border-primary/10 dark:bg-white/10 dark:border-white/10 rounded-full md:rounded-xl -z-10 shadow-sm"
                   transition={{ type: "spring", stiffness: 300, damping: 25 }}
                 />
               )}
               <Icon
                 className={cn(
                   "w-[22px] h-[22px] md:w-5 md:h-5 shrink-0 transition-transform duration-300 group-hover:scale-110",
-                  isActive ? "text-white drop-shadow-sm" : "text-muted-foreground",
+                  isActive ? "text-primary dark:text-white drop-shadow-sm" : "text-muted-foreground",
                 )}
               />
               <span className="hidden md:inline">{item.label}</span>
@@ -79,7 +79,7 @@ export function SettingsSidebar() {
       </nav>
 
       {/* Desktop-only footer */}
-      <div className="p-4 border-t border-white/5 hidden md:flex items-center justify-center bg-transparent backdrop-blur-md">
+      <div className="p-4 border-t border-border/50 hidden md:flex items-center justify-center bg-transparent backdrop-blur-md">
         <p className="text-xs font-medium text-muted-foreground/60 uppercase tracking-widest">Zentrox Settings</p>
       </div>
     </div>

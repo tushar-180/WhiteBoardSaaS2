@@ -108,7 +108,7 @@ export default function Features() {
                 <div className="absolute top-10 left-6 w-14 h-6 bg-foreground/5 rounded-[1px]" />
                 <div className="absolute top-8 left-24 w-6 h-6 bg-foreground/10 rounded-[1px]" />
               </div>
-              <div className="absolute bottom-3 right-3 text-[9px] font-bold text-muted-foreground/80 bg-muted px-1.5 py-0.5 rounded">
+              <div className="absolute bottom-3 right-3 text-[9px] font-bold text-foreground bg-muted px-1.5 py-0.5 rounded">
                 250%
               </div>
             </div>
@@ -202,7 +202,7 @@ export default function Features() {
                   <div className="px-2 py-1.5 flex items-center justify-between rounded-lg hover:bg-accent cursor-pointer group/item transition-colors">
                     <div className="flex items-center gap-2 overflow-hidden">
                       <span className="text-[10px] opacity-70 shrink-0">🖥️</span>
-                      <span className="text-xs font-medium text-muted-foreground/60 group-hover/item:text-foreground/90 truncate">
+                      <span className="text-xs font-medium text-muted-foreground group-hover/item:text-foreground/90 truncate">
                         Architecture
                       </span>
                     </div>
@@ -211,7 +211,7 @@ export default function Features() {
                   <div className="px-2 py-1.5 flex items-center justify-between rounded-lg hover:bg-accent cursor-pointer group/item transition-colors">
                     <div className="flex items-center gap-2 overflow-hidden">
                       <span className="text-[10px] opacity-70 shrink-0">📝</span>
-                      <span className="text-xs font-medium text-muted-foreground/60 group-hover/item:text-foreground/90 truncate">
+                      <span className="text-xs font-medium text-muted-foreground group-hover/item:text-foreground/90 truncate">
                         Q3 Planning
                       </span>
                     </div>

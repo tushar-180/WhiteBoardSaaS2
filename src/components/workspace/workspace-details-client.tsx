@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, ArrowLeft, Calendar, Hash, Shield } from "lucide-react";
+import { Plus, ArrowLeft, Calendar, Hash, Shield, Crown } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ interface WorkspaceDetailsClientProps {
   currentUserRole: WorkspaceRole;
   userEmail?: string;
   initialWorkspaces: Workspace[];
+  workspacePlan?: "free" | "pro" | "ultra";
 }
 
 export function WorkspaceDetailsClient({
@@ -43,6 +44,7 @@ export function WorkspaceDetailsClient({
   currentUserRole,
   userEmail,
   initialWorkspaces,
+  workspacePlan = "free",
 }: WorkspaceDetailsClientProps) {
   const [boardOpen, setBoardOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -210,6 +212,15 @@ export function WorkspaceDetailsClient({
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Shield className="h-4 w-4 shrink-0 text-primary/70" />
                   <span className="capitalize">Role: {currentUserRole}</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Crown className="h-4 w-4 shrink-0 text-primary/70" />
+                  <span className="capitalize flex items-center">
+                    Plan: 
+                    <span className="ml-2 font-bold bg-foreground text-background px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider select-none selection:bg-background selection:text-foreground">
+                      {workspacePlan}
+                    </span>
+                  </span>
                 </div>
               </div>
             </div>

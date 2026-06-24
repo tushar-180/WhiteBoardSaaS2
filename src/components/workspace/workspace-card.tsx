@@ -148,7 +148,7 @@ export function WorkspaceCard({ workspace, userId }: WorkspaceCardProps) {
                 Created: {formattedDate}
               </span>
               {workspace.owner_name && (
-                <span className="text-[10px] text-muted-foreground/70">
+                <span className="text-[10px] text-muted-foreground">
                   Owner: <span className="font-semibold text-muted-foreground">{workspace.owner_name}</span>
                 </span>
               )}

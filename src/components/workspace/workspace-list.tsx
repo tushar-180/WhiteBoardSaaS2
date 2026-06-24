@@ -171,13 +171,13 @@ export function WorkspaceList({ workspaces, userId, onCreateClick }: WorkspaceLi
               filter === "joined" ? "bg-purple-500" : "bg-primary"
             }`}
           />
-          <h3 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          <h2 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             {filter === "all" && `All Workspaces (${workspaces.length})`}
             {filter === "owned" &&
               `Owned Workspaces (${ownedWorkspaces.length})`}
             {filter === "joined" &&
               `Joined Workspaces (${joinedWorkspaces.length})`}
-          </h3>
+          </h2>
         </div>
 
        <div className="flex-1 pt-1 pb-2">

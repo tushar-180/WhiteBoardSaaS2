@@ -158,6 +158,17 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Modern Theme Flourishes */
+  ::selection {
+    background-color: color-mix(in srgb, var(--primary) 15%, transparent);
+    color: var(--foreground);
+  }
+  
+  input, textarea, [contenteditable="true"] {
+    caret-color: var(--primary);
+  }
+
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
   }

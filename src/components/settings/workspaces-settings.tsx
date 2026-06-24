@@ -105,8 +105,8 @@ export function WorkspacesSettings() {
             No workspaces found.
           </div>
         ) : (
-          <div className="border border-border rounded-lg overflow-auto bg-card flex-1 relative shadow-sm">
-            <table className="w-full text-left text-sm table-fixed min-w-[500px]">
+          <div className="border border-border rounded-lg overflow-hidden bg-card flex-1 relative shadow-sm">
+            <table className="w-full text-left text-sm table-fixed">
               <thead className="bg-card sticky top-0 z-10 border-b border-border text-muted-foreground shadow-sm">
                 <tr>
                   <th className="p-3 sm:p-4 w-12 font-medium">
