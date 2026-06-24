@@ -6,6 +6,7 @@ import { fetchWorkspaceById, fetchAllUserWorkspaces, hasWorkspaceAccess } from "
 import { fetchBoardsByWorkspace } from "@/services/board";
 import { fetchWorkspaceMembers, fetchWorkspaceMemberRole } from "@/services/member";
 import { fetchPendingInvitesByWorkspace } from "@/services/invite";
+import { getUserSubscription } from "@/services/billing";
 import { hasManagePermission } from "@/lib/utils";
 import { WorkspaceDetailsClient } from "@/components/workspace/workspace-details-client";
 
@@ -50,14 +51,17 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
     (workspace.owner_id === user.id ? "owner" : "viewer");
 
   // 3. Fetch boards, members, invites, and all user workspaces in parallel
-  const [boards, members, invites, workspaces] = await Promise.all([
+  const [boards, members, invites, workspaces, ownerSubscription] = await Promise.all([
     fetchBoardsByWorkspace(workspaceId),
     fetchWorkspaceMembers(workspaceId),
     hasManagePermission(currentUserRole)
       ? fetchPendingInvitesByWorkspace(workspaceId)
       : Promise.resolve([]),
     fetchAllUserWorkspaces(user.id),
+    getUserSubscription(workspace.owner_id),
   ]);
+
+  const workspacePlan = ownerSubscription?.plan_type || "free";
 
   return (
     <div className="px-4 md:px-8 flex-1 flex flex-col overflow-hidden min-h-0">
@@ -69,6 +73,7 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
         currentUserRole={currentUserRole}
         userEmail={user.email || ""}
         initialWorkspaces={workspaces}
+        workspacePlan={workspacePlan as "free" | "pro" | "ultra"}
       />
     </div>
   );

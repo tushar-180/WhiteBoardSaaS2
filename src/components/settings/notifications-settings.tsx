@@ -61,17 +61,22 @@ export function NotificationsSettings() {
     return <div className="py-12 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
   }
 
-  const incoming = notifications.filter(n => n.email.toLowerCase().trim() === user?.email.toLowerCase().trim() && n.status === "pending");
-  const outgoingStatuses = notifications.filter(n => n.created_by === user?.id && (n.status === "accepted" || n.status === "rejected"));
+  const incoming = notifications
+    .filter(n => n.email.toLowerCase().trim() === user?.email.toLowerCase().trim() && n.status === "pending")
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    
+  const outgoingStatuses = notifications
+    .filter(n => n.created_by === user?.id && (n.status === "accepted" || n.status === "rejected"))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
-    <div className="p-6 md:p-8 max-w-3xl mx-auto w-full">
-      <div className="mb-8">
+    <div className="p-6 md:p-8 max-w-3xl mx-auto w-full flex flex-col flex-1 overflow-hidden space-y-6">
+      <div className="shrink-0">
         <h1 className="text-2xl font-bold">Notifications</h1>
         <p className="text-muted-foreground mt-1">Manage your pending invitations and updates.</p>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-8 overflow-y-auto flex-1 min-h-0 pb-4">
         {incoming.length === 0 && outgoingStatuses.length === 0 ? (
           <div className="text-center py-12 flex flex-col items-center justify-center text-muted-foreground border border-border/50 rounded-lg bg-muted/20">
             <Bell className="w-12 h-12 mb-4 opacity-50" />

@@ -5,11 +5,15 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "https://zentrox-one.vercel.app"
+    process.env.NEXT_PUBLIC_APP_URL || "https://zentrox-one.vercel.app",
   ),
   title: {
     default: "Zentrox | The Collaborative Whiteboard for Teams",

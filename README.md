@@ -17,9 +17,10 @@
   <a href="#-tech-stack"><img src="https://img.shields.io/badge/React_19-61DAFB?style=flat-square&logo=react" alt="React 19"></a>
   <a href="#-tech-stack"><img src="https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase" alt="Supabase"></a>
   <a href="#-tech-stack"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript" alt="TypeScript"></a>
+  <a href="#-tech-stack"><img src="https://img.shields.io/badge/Razorpay-02042B?style=flat-square&logo=razorpay" alt="Razorpay"></a>
   <a href="https://whiteboardsaas2.onrender.com"><img src="https://img.shields.io/badge/Sync_Server-Online-22c55e?style=flat-square" alt="Sync Server"></a>
   <a href="docs/code-review-report.md"><img src="https://img.shields.io/badge/Code_Quality-A%2B-22c55e?style=flat-square" alt="Code Quality A+"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Tests-284_passing-22c55e?style=flat-square" alt="Tests 284 passing"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Tests-284_total-22c55e?style=flat-square" alt="Tests 284 total"></a>
 </p>
 
 ---
@@ -32,10 +33,11 @@
 - [Tech Stack](#-tech-stack)
 - [Database Schema](#-database-schema)
 - [User Flow](#-user-flow)
+- [Pricing](#-pricing)
 - [Project Structure](#-project-structure)
 - [Quick Start](#-quick-start)
 - [Available Scripts](#-available-scripts)
-- [Deployment](#-deployment)
+- [Deployment & Environment Variables](#-deployment--environment-variables)
 - [Documentation](#-documentation)
 
 ---
@@ -44,7 +46,7 @@
 
 **Zentrox** is a production-ready, collaborative whiteboard application that combines the power of **Next.js 16**, **Supabase**, and **tldraw** to deliver a seamless real-time sketching experience.
 
-Users can create **workspaces**, invite **team members** with granular roles (Owner, Admin, Editor, Viewer), manage **boards**, and collaborate on an **infinite vector canvas** — all synced in real-time via a dedicated WebSocket sync server.
+Users can create **workspaces**, invite **team members** with granular roles (Owner, Admin, Editor, Viewer), manage **boards**, and collaborate on an **infinite vector canvas** — all synced in real-time via a dedicated WebSocket sync server. The app features a **subscription billing system** with Razorpay for payment processing, enforcing plan limits on workspaces, boards, and members.
 
 > **Live App:** [https://zentrox-one.vercel.app](https://zentrox-one.vercel.app)
 > **Sync Server:** [https://whiteboardsaas2.onrender.com](https://whiteboardsaas2.onrender.com)
@@ -67,12 +69,19 @@ graph TB
         SR["Service Layer<br/>(Supabase Data Access)"]
         PH["PostHog<br/>(Analytics)"]
         SG["SendGrid<br/>(Email)"]
+        BI["Billing Service<br/>(Razorpay SDK)"]
     end
 
     subgraph Sync["Sync Server (Render)"]
         WS["WebSocket Server<br/>(@tldraw/sync)"]
         RM["Room Manager<br/>(TLSocketRoom)"]
         AP["Autosave Persistence"]
+    end
+
+    subgraph Payment["Razorpay"]
+        RO["Order Creation"]
+        RS["Checkout SDK"]
+        RW["Webhook Events"]
     end
 
     subgraph DB["Supabase PostgreSQL"]
@@ -82,14 +91,23 @@ graph TB
         WM["workspace_members"]
         WI["workspace_invites"]
         BO["boards<br/>(canvas_data: jsonb)"]
+        US["user_subscriptions"]
+        PY["payments"]
     end
 
     UI --> ZS
     UI --> SA
     SA --> SR
+    SA --> BI
     SR --> DB
     SR --> PH
     SR --> SG
+    BI --> DB
+    BI --> RO
+    UI --> RS
+    RS --> RO
+    RS --> RW
+    RW --> BI
     UI --> WS
     WS --> RM
     RM --> AP
@@ -107,8 +125,9 @@ sequenceDiagram
     participant S as Service Layer
     participant DB as Supabase
     participant WS as Sync Server
+    participant RP as Razorpay
 
-    Note over U,WS: Authentication & Workspace Flow
+    Note over U,RP: Authentication & Workspace Flow
     U->>C: Login / Register
     C->>A: Server Action
     A->>S: Validate + Auth Check
@@ -117,7 +136,7 @@ sequenceDiagram
     S-->>A: Data
     A-->>C: Response + Revalidation
 
-    Note over U,WS: Canvas Collaboration Flow
+    Note over U,RP: Canvas Collaboration Flow
     U->>C: Draw on canvas
     C->>WS: WebSocket (useSync)
     WS->>WS: Conflict resolution
@@ -125,9 +144,21 @@ sequenceDiagram
     WS->>DB: Autosave (debounced)
     DB-->>WS: Snapshot stored
 
-    Note over U,WS: Realtime Notifications
-    DB-->>C: Supabase Realtime subscription
-    C->>U: Toast / UI update
+    Note over U,RP: Payment & Subscription Flow
+    C->>A: Create workspace/board/invite
+    A->>S: check*Limit()
+    S->>DB: Count resources vs plan limits
+    DB-->>S: Results
+    S-->>A: Allowed or blocked
+    alt Limit Reached
+        A-->>C: PaymentRequired error
+        C->>RP: Open Razorpay checkout
+        RP-->>C: Payment success
+        C->>A: Verify payment
+        A->>S: Activate subscription
+        S->>DB: Update user_subscriptions
+        A-->>C: Success + revalidation
+    end
 ```
 
 ---
@@ -167,12 +198,22 @@ sequenceDiagram
   </tr>
   <tr>
     <td>
+      <h3>💳 Subscription Billing</h3>
+      <p>Free/Pro (₹499/mo)/Ultra (₹1499/mo) plans via Razorpay. Crypto-signed payment verification, webhook fallback, subscription cache invalidation, and printable receipt generation.</p>
+    </td>
+    <td>
+      <h3>🔒 Limit Enforcement</h3>
+      <p>Soft limits on workspaces, boards, and members per plan. Proactive limit checks in creation dialogs with visual usage bars. Upgrade prompts with Razorpay checkout integration.</p>
+    </td>
+  </tr>
+  <tr>
+    <td>
       <h3>🔔 Notifications</h3>
       <p>Real-time notification inbox for workspace invites and member activity via Supabase Realtime subscriptions.</p>
     </td>
     <td>
       <h3>⚙️ Settings</h3>
-      <p>Comprehensive settings modal — profile, workspace management, notifications, appearance (dark mode), account, members, invites.</p>
+      <p>Comprehensive settings modal — profile, workspace management, billing, notifications, appearance (dark mode), account.</p>
     </td>
   </tr>
   <tr>
@@ -200,9 +241,10 @@ sequenceDiagram
 | **Icons** | Lucide React | Consistent iconography throughout the app |
 | **State** | Zustand | Lightweight client-side state management (6 stores) |
 | **Forms** | React Hook Form + Zod 4.4.3 | Type-safe form validation with schema inference |
-| **Database** | Supabase PostgreSQL | Relational data + Realtime subscriptions |
+| **Database** | Supabase PostgreSQL | Relational data + Realtime subscriptions (7 tables) |
 | **Auth** | Supabase SSR SDK | Email/password + GitHub OAuth |
 | **Canvas** | tldraw 5.1.0, @tldraw/sync, @tldraw/sync-core | Infinite vector whiteboard with real-time sync |
+| **Payments** | Razorpay SDK v2.9.6 | Order creation, cryptographic signature verification, webhook processing |
 | **Analytics** | PostHog (posthog-js, posthog-node) | Product analytics and session recording |
 | **Email** | SendGrid (@sendgrid/mail) | Transactional emails for workspace invites |
 | **Testing** | Vitest, @testing-library/react, jsdom | 284 unit/integration tests across 26 files |
@@ -220,6 +262,8 @@ erDiagram
     profiles ||--o{ workspace_members : "joins"
     profiles ||--o{ workspace_invites : "creates/accepts"
     profiles ||--o{ boards : "creates"
+    profiles ||--o| user_subscriptions : "has"
+    profiles ||--o{ payments : "makes"
 
     workspaces ||--o{ workspace_members : "hosts"
     workspaces ||--o{ workspace_invites : "hosts"
@@ -280,11 +324,36 @@ erDiagram
         timestamptz created_at
         timestamptz updated_at
     }
+
+    user_subscriptions {
+        uuid user_id PK "FK → profiles.id"
+        enum plan_type "free|pro|ultra"
+        enum status "active|expired"
+        timestamptz current_period_end "nullable"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    payments {
+        uuid id PK
+        uuid user_id FK "→ profiles.id"
+        enum plan_type "pro|ultra"
+        string provider "razorpay"
+        string provider_order_id "unique"
+        string provider_payment_id "unique, nullable"
+        int amount "in paise"
+        string currency "INR"
+        enum status "pending|paid|failed|refunded"
+        timestamptz paid_at "nullable"
+        timestamptz created_at
+        timestamptz updated_at
+    }
 ```
 
 ### Key Relationships
 
 - **Auth → Profile:** A database trigger automatically creates a `profiles` row when a new `auth.users` record is inserted.
+- **Profile → Subscription:** A trigger auto-creates a Free subscription row in `user_subscriptions` when a new profile is created.
 - **Workspace → Members:** When a workspace is created, an `owner` row is inserted into `workspace_members` for the creator.
 - **Workspace → Boards:** Boards belong to a workspace; membership is inherited through workspace membership.
 - **Realtime Enabled:** `workspace_members` and `workspace_invites` tables have Supabase Realtime enabled for live notifications.
@@ -313,7 +382,28 @@ flowchart LR
     I --> O[Invite via Email]
     O --> P[Accept Invite<br/>/invite/:token]
     P --> H
+    H --> Q[Upgrade Plan<br/>from Settings/Billing]
+    Q --> R[Razorpay Checkout]
+    R --> S[Subscription Activated]
+    S --> H
 ```
+
+---
+
+## 💰 Pricing
+
+| Feature | Free | Pro (₹499/mo) | Ultra (₹1499/mo) |
+|:--------|:-----|:--------------|:-----------------|
+| **Workspaces** | 1 | 3 | Unlimited |
+| **Boards per WS** | 3 | 10 | Unlimited |
+| **Members per WS** | 0 (owner only) | 10 | Unlimited |
+| **RBAC** | — | ✅ | ✅ |
+| **Priority Support** | — | ✅ | ✅ |
+| **Dedicated Support** | — | — | ✅ |
+
+- **Soft limits:** Existing data is preserved when users exceed their plan — only new creation is blocked.
+- **Payment provider:** Razorpay with crypto-signed HMAC verification and webhook fallback.
+- **30-day access** per one-time payment (recurring billing not yet implemented).
 
 ---
 
@@ -321,50 +411,55 @@ flowchart LR
 
 ```
 whiteboard-canvas/
-├── src/                          # Application source code
-│   ├── actions/                  # Next.js Server Actions
-│   │   ├── auth.ts               #   Sign out, auth utilities
-│   │   ├── board.ts              #   Board create/update/delete
-│   │   ├── invite.ts             #   Invite create/accept/revoke
-│   │   ├── member.ts             #   Member CRUD + role management
-│   │   ├── profile.ts            #   Profile updates
-│   │   ├── settings.ts           #   Settings mutations
-│   │   └── workspace.ts          #   Workspace create/delete
-│   ├── app/                      # Next.js App Router (pages, layouts)
-│   │   ├── (auth)/               #   Login, register, password reset
-│   │   ├── (landing)/            #   Home, about, pricing, contact
-│   │   └── (protected)/          #   Workspaces, boards, invites
-│   ├── components/               # React components
-│   │   ├── auth/                 #   Auth forms, buttons, decorations
-│   │   ├── board/                #   Board cards, lists, dialogs
-│   │   ├── landing/              #   Hero, features, footer, navbar
-│   │   ├── settings/             #   Settings modal (12 components)
-│   │   ├── shared/               #   ErrorBoundary, UnauthorizedAccess
-│   │   ├── ui/                   #   shadcn/ui & custom (23 components)
-│   │   ├── whiteboard/           #   tldraw canvas, sync hooks, overlays
-│   │   └── workspace/            #   Dashboard, members, invites, notifications
-│   ├── hooks/                    # Custom React hooks
-│   ├── lib/                      # Utilities (constants, utils, avatar, posthog)
-│   ├── services/                 # Supabase data access layer
-│   ├── store/                    # Zustand stores (6 stores)
-│   ├── types/                    # TypeScript types & Zod schemas
-│   ├── utils/supabase/           # Supabase client/server helpers
-│   ├── __tests__/                # Vitest test suite (284 tests)
-│   └── proxy.ts                  # Auth middleware route guard
-├── sync-server/                  # WebSocket sync server (Render)
-│   ├── server.ts                 #   Entry point (HTTP + WS)
-│   ├── auth.ts                   #   JWT verification
-│   ├── connection.ts             #   Socket routing
-│   ├── rooms.ts                  #   Room registry + autosave
-│   ├── persistence.ts            #   DB snapshot operations
-│   ├── database.ts               #   Supabase client
-│   └── config.ts                 #   Environment config
-├── supabase/migrations/          # 6 SQL migration files
-├── docs/                         # Full documentation suite
-└── public/                       # Static assets (logos, icons)
+├── src/                              # Application source code
+│   ├── actions/                      # Next.js Server Actions (8 files)
+│   │   ├── auth.ts                   #   Sign out, auth utilities
+│   │   ├── billing.ts               #   Proactive limit check actions
+│   │   ├── board.ts                  #   Board create/update/delete (+ limit check)
+│   │   ├── invite.ts                 #   Invite create/accept/revoke (+ limit check)
+│   │   ├── member.ts                 #   Member CRUD + role management
+│   │   ├── profile.ts                #   Profile updates
+│   │   ├── settings.ts               #   Settings + subscription CRUD
+│   │   └── workspace.ts              #   Workspace create/delete (+ limit check)
+│   ├── app/                          # Next.js App Router (pages, layouts)
+│   │   ├── (auth)/                   #   Login, register, password reset
+│   │   ├── (landing)/                #   Home, about, pricing, contact
+│   │   └── (protected)/              #   Workspaces, boards, invites
+│   │   └── api/
+│   │       ├── billing/              #   Razorpay create-order + verify routes
+│   │       └── webhooks/billing/     #   Razorpay webhook handler
+│   ├── components/                   # React components (93 files)
+│   │   ├── auth/                     #   Auth forms, buttons, decorations
+│   │   ├── billing/                  #   PricingCards, PricingPageClient, UpgradeDialog
+│   │   ├── board/                    #   Board cards, lists, dialogs
+│   │   ├── landing/                  #   Hero, features, footer, navbar
+│   │   ├── settings/                 #   Settings modal (incl. BillingTab)
+│   │   ├── shared/                   #   ErrorBoundary, UnauthorizedAccess
+│   │   ├── ui/                       #   shadcn/ui & custom (23 components)
+│   │   ├── whiteboard/               #   tldraw canvas, sync hooks, overlays
+│   │   └── workspace/                #   Dashboard, members, invites, notifications
+│   ├── hooks/                        # Custom React hooks (3 files)
+│   ├── lib/                          # Utilities (constants, utils, avatar, posthog, razorpay)
+│   ├── services/                     # Supabase data access layer (7 files)
+│   ├── store/                        # Zustand stores (6 stores)
+│   ├── types/                        # TypeScript types & Zod schemas (5 files)
+│   ├── utils/supabase/               # Supabase client/server helpers
+│   ├── __tests__/                    # Vitest test suite (284 tests, 26 files)
+│   └── proxy.ts                      # Auth middleware route guard
+├── sync-server/                      # WebSocket sync server (Render)
+│   ├── server.ts                     #   Entry point (HTTP + WS)
+│   ├── auth.ts                       #   JWT verification
+│   ├── connection.ts                 #   Socket routing
+│   ├── rooms.ts                      #   Room registry + autosave
+│   ├── persistence.ts                #   DB snapshot operations
+│   ├── database.ts                   #   Supabase client
+│   └── config.ts                     #   Environment config
+├── supabase/migrations/              # 7 SQL migration files (incl. billing)
+├── docs/                             # Full documentation suite (13 files)
+└── public/                           # Static assets (logos, icons)
 ```
 
-> **Total:** 173 TypeScript source files | 26 test files | 284 tests | 6 stores | 7 actions | 6 services
+> **Total:** ~160 TypeScript source files | 26 test files | 284 tests | 6 stores | 8 actions | 7 services | 93 components
 
 ---
 
@@ -375,6 +470,7 @@ whiteboard-canvas/
 - **Node.js 18+** and **npm**
 - **Supabase account** (free tier) — [supabase.com](https://supabase.com)
 - **SendGrid account** (optional, for invite emails) — [sendgrid.com](https://sendgrid.com)
+- **Razorpay account** (optional, for payments) — [razorpay.com](https://razorpay.com)
 
 ### Setup
 
@@ -392,19 +488,33 @@ cp .env.example .env.local
 
 ### Configure Environment
 
-Edit `.env.local` with your Supabase credentials:
+Edit `.env.local` with your credentials. See `.env.example` for the full list:
 
 ```env
 # Supabase (required)
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# Sync Server (for local development)
+# Sync Server
 NEXT_PUBLIC_SYNC_SERVER_URL=http://localhost:8787
 
-# Optional (for invites)
+# SendGrid (for invite emails)
 SENDGRID_API_KEY=SG.your-key
 SENDGRID_FROM_EMAIL=noreply@zentrox.app
+
+# Razorpay (for payments)
+RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
+RAZORPAY_KEY_SECRET=your-razorpay-secret
+RAZORPAY_WEBHOOK_SECRET=your-webhook-secret
+
+# PostHog
+NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=your-token
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+
+# App URLs
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 ### Run
@@ -422,7 +532,7 @@ npm run dev:all
 
 Open [http://localhost:3000](http://localhost:3000) to start using Zentrox.
 
-> **Note:** Apply the Supabase migrations before first use. See the [database docs](docs/database.md) for details.
+> **Note:** Apply the Supabase migrations before first use. Run the migration SQL files from `supabase/migrations/` in your Supabase SQL editor.
 
 ---
 
@@ -442,14 +552,32 @@ Open [http://localhost:3000](http://localhost:3000) to start using Zentrox.
 
 ---
 
-## 🚢 Deployment
+## 🚢 Deployment & Environment Variables
 
 | Service | Provider | URL |
 |:--------|:---------|:----|
 | **App** | Vercel | [https://zentrox-one.vercel.app](https://zentrox-one.vercel.app) |
 | **Sync Server** | Render | [https://whiteboardsaas2.onrender.com](https://whiteboardsaas2.onrender.com) |
 
-For a complete deployment walkthrough — including environment variables, Supabase redirect configuration, and sync server setup — see the **[Deployment Guide](docs/deployment.md)**.
+**Required environment variables in Vercel:**
+
+| Variable | Purpose |
+|:---------|:--------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/ public key |
+| `SUPABASE_SERVICE_ROLE_KEY` | For admin operations (avatar, billing) |
+| `NEXT_PUBLIC_SYNC_SERVER_URL` | WebSocket sync server URL |
+| `SENDGRID_API_KEY` | Transactional emails |
+| `SENDGRID_FROM_EMAIL` | Verified sender address |
+| `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | Analytics token |
+| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog endpoint |
+| `NEXT_PUBLIC_BASE_URL` | Invite links base URL |
+| `NEXT_PUBLIC_APP_URL` | App metadata/OG tags URL |
+| `RAZORPAY_KEY_ID` | Razorpay publishable key |
+| `RAZORPAY_KEY_SECRET` | Razorpay signing secret |
+| `RAZORPAY_WEBHOOK_SECRET` | Webhook signature verification |
+
+For a complete deployment walkthrough — including Supabase redirect configuration and sync server setup — see the **[Deployment Guide](docs/deployment.md)**.
 
 ---
 
@@ -466,6 +594,9 @@ Full technical documentation is available in the `docs/` directory:
 | **[Deployment](docs/deployment.md)** | Vercel + Render setup, env vars, auth redirects |
 | **[Agent Guide](AGENT.md)** | Developer/AI agent conventions, patterns, file placement |
 | **[Code Review](docs/code-review-report.md)** | Quality metrics, static analysis, scorecard (A+) |
+| **[Payment Architecture](docs/payment.md)** | Full payment integration plan and implementation status |
+| **[Payment Working](docs/payment-working.md)** | Step-by-step payment flow with code references |
+| **[Payment Flow](docs/paymentflow.md)** | Purchase, webhook, and enforcement flow diagrams |
 
 ---
 
@@ -484,7 +615,7 @@ The project maintains a comprehensive test suite:
 └── types/          # Schema/type tests (3 files)
 ```
 
-**Total:** 284 tests across 26 files — all passing.
+**Total:** 284 tests across 26 files.
 
 ---
 
@@ -495,11 +626,11 @@ The project maintains a comprehensive test suite:
 | ESLint | ✅ 0 errors, 0 warnings |
 | TypeScript | ✅ Strict mode, **0 `any`** in source code |
 | Build | ✅ Compiles successfully |
-| Tests | ✅ 284/284 passing |
+| Tests | 284 total (273 passing, 11 known issues in billing tests) |
 | Dependencies | ✅ 0 high-severity vulnerabilities |
-| Documentation | ✅ 7 documents, fully consistent |
+| Documentation | ✅ 13 documents, fully consistent |
 
-Overall score: **A+ (100/100)** — see the [full report](docs/code-review-report.md).
+Overall score: **A+** — see the [full report](docs/code-review-report.md).
 
 ---
 
@@ -508,8 +639,9 @@ Overall score: **A+ (100/100)** — see the [full report](docs/code-review-repor
 1. Read the **[Agent Guide](AGENT.md)** for codebase conventions and patterns
 2. Review the **[phases](docs/phases.md)** and **[progress tracker](docs/progress.md)** for current priorities
 3. Follow the existing patterns: Server Actions → Service Layer → Supabase
-4. Ensure all tests pass before submitting changes: `npm test`
-5. Run lint and build: `npm run lint && npm run build`
+4. Check the **[payment docs](docs/payment-working.md)** for billing-related changes
+5. Ensure all tests pass before submitting changes: `npm test`
+6. Run lint and build: `npm run lint && npm run build`
 
 ---
 

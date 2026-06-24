@@ -22,9 +22,13 @@ export function getOptimizedAvatarUrl(
     }
 
     if (u.pathname.includes("/storage/v1/")) {
+      if (u.pathname.includes("/object/public/")) {
+        u.pathname = u.pathname.replace("/object/public/", "/render/image/public/");
+      }
       u.searchParams.set("width", String(size));
       u.searchParams.set("height", String(size));
       u.searchParams.set("resize", "cover");
+      u.searchParams.set("format", "webp");
       u.searchParams.set("quality", "80");
       return u.toString();
     }

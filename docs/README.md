@@ -12,10 +12,13 @@ This directory contains the full technical and project documentation for **Zentr
 | **[README.md](../README.md)** | Project overview, features, tech stack, and setup instructions | New contributors, setup |
 | **[database.md](database.md)** | Supabase PostgreSQL schema, tables, columns, relationships, and migrations | Before DB changes |
 | **[deployment.md](deployment.md)** | Vercel deployment setup, environment variables, Supabase auth redirects, Render sync server | Before deploying |
-| **[phases.md](phases.md)** | Build phases and roadmap — from auth to production polish | Understanding project history & scope |
+| **[phases.md](phases.md)** | Build phases and roadmap — from auth to payment billing | Understanding project history & scope |
 | **[whiteboard.md](whiteboard.md)** | Whiteboard architecture, runtime flow, sync server, persistence pipeline | Before canvas/sync changes |
 | **[progress.md](progress.md)** | Detailed task checklist across all build stages | Tracking what's done and left |
 | **[code-review-report.md](code-review-report.md)** | Code quality assessment, static analysis results, metrics, scorecard | Code quality review |
+| **[payment.md](payment.md)** | Full payment integration plan — database schema, limit enforcement, Razorpay integration | Before payment changes |
+| **[payment-working.md](payment-working.md)** | Step-by-step payment flow with code references, file map, and environment variables | Understanding payment system |
+| **[paymentflow.md](paymentflow.md)** | Purchase, webhook, and enforcement flow diagrams with sequence charts | Quick payment architecture overview |
 
 ---
 
@@ -29,35 +32,40 @@ Each document should be updated when relevant parts of the codebase change:
 - **`whiteboard.md`** — when architecture, runtime flow, or sync logic changes
 - **`progress.md`** — when tasks are completed, added, or removed
 - **`code-review-report.md`** — after significant code quality improvements or major audits
+- **`payment.md`** — when payment architecture or billing logic changes
+- **`payment-working.md`** — when checkout flow or implementation details change
+- **`paymentflow.md`** — when payment flow diagrams need updating
 
 ---
 
 ## 🏗️ Codebase Architecture (High-Level)
 
 ```
-┌─────────────────────────────────────────────┐
-│              UI Components (React)           │
-│  auth  board  landing  settings  whiteboard  │
-│  shared  ui  workspace                       │
-├─────────────────────────────────────────────┤
-│         Client State (Zustand Stores)        │
-│  workspace  board  member  notification      │
-│  whiteboard  settings                        │
-├─────────────────────────────────────────────┤
-│           Server Actions (src/actions/)       │
-│  auth  board  invite  member  profile        │
-│  settings  workspace                         │
-├─────────────────────────────────────────────┤
-│         Service Layer (src/services/)         │
-│  board  email  invite  member  profile       │
-│  workspace                                   │
-├─────────────────────────────────────────────┤
-│         Database (Supabase PostgreSQL)        │
-│  profiles  workspaces  workspace_members     │
-│  workspace_invites  boards                    │
-└─────────────────────────────────────────────┘
+┌────────────────────────────────────────────────┐
+│              UI Components (React)               │
+│  auth  billing  board  landing  settings         │
+│  shared  ui  whiteboard  workspace               │
+├────────────────────────────────────────────────┤
+│         Client State (Zustand Stores)            │
+│  workspace  board  member  notification          │
+│  whiteboard  settings                            │
+├────────────────────────────────────────────────┤
+│           Server Actions (src/actions/)           │
+│  auth  billing  board  invite  member  profile   │
+│  settings  workspace                             │
+├────────────────────────────────────────────────┤
+│         Service Layer (src/services/)             │
+│  billing  board  email  invite  member  profile   │
+│  workspace                                       │
+├────────────────────────────────────────────────┤
+│         Database (Supabase PostgreSQL)            │
+│  profiles  workspaces  workspace_members          │
+│  workspace_invites  boards  user_subscriptions   │
+│  payments                                        │
+└────────────────────────────────────────────────┘
 
 WebSocket Sync Server (Render) ←→ tldraw canvas
+Razorpay Payments ↔ API Routes ↔ Billing Service
 ```
 
 ---
@@ -66,5 +74,6 @@ WebSocket Sync Server (Render) ←→ tldraw canvas
 
 1. **Browser** → Next.js App Router → Server Component (data fetch + auth)
 2. **Server Component** → Supabase service → hydrated Zustand store → Client Component
-3. **User Action** → Server Action (auth + validation) → Service layer → Supabase + revalidation
+3. **User Action** → Server Action (auth + validation + plan limit check) → Service layer → Supabase + revalidation
 4. **Canvas Edit** → tldraw sync → WebSocket sync server → autosave → Supabase `boards.canvas_data`
+5. **Payment** → User clicks "Upgrade" → `useRazorpay` hook → Razorpay checkout → Payment verification API → Subscription activation → Cache revalidation
