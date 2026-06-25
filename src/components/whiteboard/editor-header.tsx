@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MessageSquare } from "lucide-react";
 import { type Board } from "@/types/workspace";
 import { type CurrentUser } from "@/types/whiteboard";
 import { ROUTES } from "@/lib/constants";
@@ -9,6 +9,8 @@ import WhiteboardSaveStatus from "./whiteboard-save-status";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { EditorMembersPopover } from "./editor-members-popover";
+import { useSidebar } from "@/components/ui/sidebar";
+import { useChatStore } from "@/store/use-chat-store";
 
 interface EditorHeaderProps {
   board: Board;
@@ -16,11 +18,33 @@ interface EditorHeaderProps {
   onSave: () => void;
 }
 
+function HeaderChatToggle() {
+  const { toggleSidebar, state, isMobile, openMobile } = useSidebar();
+  const unreadCount = useChatStore((state) => state.unreadCount);
+
+  if ((!isMobile && state === "expanded") || (isMobile && openMobile)) return null;
+
+  return (
+    <button
+      onClick={toggleSidebar}
+      className="relative shrink-0 inline-flex items-center justify-center h-9 w-9 rounded-xl border border-border/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 cursor-pointer"
+      title="Open Chat"
+    >
+      <MessageSquare className="h-4 w-4" />
+      {unreadCount > 0 && (
+        <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[9px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full border-2 border-background animate-in zoom-in">
+          {unreadCount > 9 ? "9+" : unreadCount}
+        </span>
+      )}
+    </button>
+  );
+}
+
 export function EditorHeader({ board, currentUser, onSave }: EditorHeaderProps) {
 
   return (
-    <header className="h-16 border-b border-border/40 bg-background/80 backdrop-blur-md z-40 flex items-center justify-between px-6 shrink-0">
-      <div className="flex items-center gap-4 min-w-0">
+    <header className="h-16 border-b border-border/40 bg-background/80 backdrop-blur-md z-40 flex items-center justify-between px-3 sm:px-6 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
         <Link
           href={`${ROUTES.WORKSPACES}/${board.workspace_id}`}
           className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-border/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 cursor-pointer"
@@ -38,7 +62,7 @@ export function EditorHeader({ board, currentUser, onSave }: EditorHeaderProps) 
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {/* Real-time Save Status Indicators */}
         <WhiteboardSaveStatus onSave={onSave} />
         
@@ -68,6 +92,9 @@ export function EditorHeader({ board, currentUser, onSave }: EditorHeaderProps) 
             </div>
           </button>
         </EditorMembersPopover>
+
+        {/* Chat Toggle */}
+        <HeaderChatToggle />
       </div>
     </header>
   );
