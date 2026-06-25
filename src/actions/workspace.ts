@@ -8,7 +8,7 @@ import { checkWorkspaceCreationLimit } from "@/services/billing";
 import { type Workspace, workspaceSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
 import { getPostHogClient } from "@/lib/posthog-server";
-
+import { logActivity } from "@/services/activity";
 
 
 
@@ -112,7 +112,21 @@ export async function updateWorkspaceAction(workspaceId: string, name: string): 
       throw new Error(validated.error.issues[0].message);
     }
 
+    // Fetch old workspace to get the old name
+    const supabase = await createClient();
+    const { data: oldWorkspace } = await supabase.from("workspaces").select("name").eq("id", workspaceId).single();
+    const oldName = oldWorkspace?.name || "Unknown";
+
     const updatedWorkspace = await updateWorkspace(workspaceId, validated.data.name);
+
+    await logActivity(supabase, {
+      workspaceId,
+      actorId: user.id,
+      actionType: "workspace_renamed",
+      entityType: "workspace",
+      entityId: workspaceId,
+      metadata: { old_name: oldName, new_name: updatedWorkspace.name },
+    });
 
     getPostHogClient().capture({
       distinctId: user.id,

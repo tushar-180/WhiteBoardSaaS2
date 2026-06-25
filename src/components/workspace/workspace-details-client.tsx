@@ -19,9 +19,11 @@ import {
   type WorkspaceRole,
   type WorkspaceMemberWithProfile,
 } from "@/types/workspace";
+import { type WorkspaceActivityWithProfile } from "@/types/activity";
 import { useBoardStore } from "@/store/use-board-store";
 import { useMemberStore } from "@/store/use-member-store";
 import { useWorkspaceStore } from "@/store/use-workspace-store";
+import { WorkspaceTimeline } from "@/components/workspace/activity/workspace-timeline";
 import { ROUTES } from "@/lib/constants";
 import { hasManagePermission } from "@/lib/utils";
 
@@ -34,6 +36,7 @@ interface WorkspaceDetailsClientProps {
   userEmail?: string;
   initialWorkspaces: Workspace[];
   workspacePlan?: "free" | "pro" | "ultra";
+  initialActivities: WorkspaceActivityWithProfile[];
 }
 
 export function WorkspaceDetailsClient({
@@ -45,12 +48,14 @@ export function WorkspaceDetailsClient({
   userEmail,
   initialWorkspaces,
   workspacePlan = "free",
+  initialActivities,
 }: WorkspaceDetailsClientProps) {
   const [boardOpen, setBoardOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  const [mobileTab, setMobileTab] = useState<"boards" | "settings">("boards");
+  const [mainTab, setMainTab] = useState<"boards" | "activity">("boards");
+  const [mobileTab, setMobileTab] = useState<"content" | "settings">("content");
 
   // Sync server data with client-side Zustand store on mount/update
   useEffect(() => {
@@ -122,19 +127,19 @@ export function WorkspaceDetailsClient({
             {/* Mobile Tab Toggle */}
             <div className="flex lg:hidden bg-muted/40 p-1 rounded-xl border border-border/50 backdrop-blur-xs flex-1 sm:flex-initial relative">
               <button
-                onClick={() => setMobileTab("boards")}
+                onClick={() => setMobileTab("content")}
                 className={`relative flex-1 sm:px-6 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 z-10 ${
-                  mobileTab === "boards" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                  mobileTab === "content" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {mobileTab === "boards" && (
+                {mobileTab === "content" && (
                   <motion.div
                     layoutId="mobileTabActive"
                     className="absolute inset-0 bg-background shadow-xs border border-border/50 rounded-lg -z-10"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-                Boards
+                Content
               </button>
               <button
                 onClick={() => setMobileTab("settings")}
@@ -154,7 +159,7 @@ export function WorkspaceDetailsClient({
             </div>
 
             {/* New Board Button */}
-            {boards.length > 0 && currentUserRole !== "viewer" && currentUserRole !== "editor" && (
+            {boards.length > 0 && currentUserRole !== "viewer" && currentUserRole !== "editor" && mainTab === "boards" && (
               <Button
                 onClick={() => setBoardOpen(true)}
                 size="sm"
@@ -169,24 +174,54 @@ export function WorkspaceDetailsClient({
           </div>
         </div>
 
+        {/* Desktop / Main Content Tab Toggle */}
+        <div className={`flex border-b border-border/40 mb-4 ${mobileTab === "content" ? "flex" : "hidden lg:flex"}`}>
+          <div className="flex space-x-6">
+            <button
+              onClick={() => setMainTab("boards")}
+              className={`py-2 text-sm font-medium transition-colors border-b-2 ${
+                mainTab === "boards"
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground"
+              }`}
+            >
+              Boards
+            </button>
+            <button
+              onClick={() => setMainTab("activity")}
+              className={`py-2 text-sm font-medium transition-colors border-b-2 ${
+                mainTab === "activity"
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground"
+              }`}
+            >
+              Activity Timeline
+            </button>
+          </div>
+        </div>
+
         {/* Layout Grid */}
         <div className="flex-1 flex flex-col lg:flex-row gap-8 overflow-hidden min-h-0 relative z-10">
-          {/* Left / Center - Boards Content */}
-          <div className={`flex-1 flex-col overflow-hidden min-h-0 min-w-0 ${mobileTab === "boards" ? "flex" : "hidden lg:flex"}`}>
-            <div className="flex-1 flex flex-col overflow-hidden min-h-0 lg:border-t lg:border-border/40 lg:pt-2">
-              {boards.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center overflow-y-auto">
-                  <EmptyBoards 
-                    onCreateClick={() => setBoardOpen(true)} 
+          {/* Left / Center - Main Content */}
+          <div className={`flex-1 flex-col overflow-hidden min-h-0 min-w-0 ${mobileTab === "content" ? "flex" : "hidden lg:flex"}`}>
+            <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+              {mainTab === "boards" ? (
+                boards.length === 0 ? (
+                  <div className="flex-1 flex items-center justify-center overflow-y-auto">
+                    <EmptyBoards 
+                      onCreateClick={() => setBoardOpen(true)} 
+                      currentUserRole={currentUserRole}
+                    />
+                  </div>
+                ) : (
+                  <BoardList
+                    boards={boards}
                     currentUserRole={currentUserRole}
+                    onCreateClick={() => setBoardOpen(true)}
                   />
-                </div>
+                )
               ) : (
-                <BoardList
-                  boards={boards}
-                  currentUserRole={currentUserRole}
-                  onCreateClick={() => setBoardOpen(true)}
-                />
+                <WorkspaceTimeline workspaceId={workspace.id} initialActivities={initialActivities} />
               )}
             </div>
           </div>

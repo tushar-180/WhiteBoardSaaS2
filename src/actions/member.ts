@@ -1,8 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireActionAuth } from "@/utils/supabase/server";
+import { requireActionAuth, createClient } from "@/utils/supabase/server";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { logActivity } from "@/services/activity";
 import {
   fetchWorkspaceMemberRole,
   removeWorkspaceMember,
@@ -68,6 +69,16 @@ export async function removeMemberAction(workspaceId: string, memberId: string):
         removed_member_id: memberId,
         removed_member_role: targetMember.role,
       },
+    });
+
+    const supabase = await createClient();
+    await logActivity(supabase, {
+      workspaceId,
+      actorId: user.id,
+      actionType: "member_removed",
+      entityType: "member",
+      entityId: memberId,
+      metadata: { email: targetMember.email, role: targetMember.role },
     });
 
     // Revalidate paths
@@ -150,6 +161,16 @@ export async function updateMemberRoleAction(
       },
     });
 
+    const supabase = await createClient();
+    await logActivity(supabase, {
+      workspaceId,
+      actorId: user.id,
+      actionType: "role_changed",
+      entityType: "member",
+      entityId: memberId,
+      metadata: { old_role: targetMember.role, new_role: validatedRole, email: targetMember.email },
+    });
+
     // Revalidate paths
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
   } catch (error: unknown) {
@@ -190,6 +211,16 @@ export async function leaveWorkspaceAction(workspaceId: string): Promise<void> {
       distinctId: user.id,
       event: "workspace_left",
       properties: { workspace_id: workspaceId, role: currentMember.role },
+    });
+
+    const supabase = await createClient();
+    await logActivity(supabase, {
+      workspaceId,
+      actorId: user.id,
+      actionType: "member_left",
+      entityType: "member",
+      entityId: currentMember.id,
+      metadata: { email: user.email, role: currentMember.role },
     });
 
     // Revalidate paths
@@ -241,6 +272,23 @@ export async function bulkRemoveMembersAction(workspaceId: string, memberIds: st
 
     // 3. Perform deletion
     await bulkRemoveWorkspaceMembers(workspaceId, validMemberIds);
+
+    const supabase = await createClient();
+    await Promise.all(
+      validMemberIds.map((id) => {
+        const targetMember = members.find((m) => m.id === id);
+        if (targetMember) {
+          return logActivity(supabase, {
+            workspaceId,
+            actorId: user.id,
+            actionType: "member_removed",
+            entityType: "member",
+            entityId: id,
+            metadata: { email: targetMember.email, role: targetMember.role },
+          });
+        }
+      })
+    );
 
     // Revalidate paths
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);

@@ -1,9 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireActionAuth, createAdminClient } from "@/utils/supabase/server";
+import { requireActionAuth, createAdminClient, createClient } from "@/utils/supabase/server";
 import { updateProfileSchema, type UpdateProfileInput } from "@/types/profile";
 import { updateProfile, deleteProfile, fetchProfileById } from "@/services/profile";
+import { logActivity } from "@/services/activity";
 
 export async function updateProfileAction(input: UpdateProfileInput) {
   const { user } = await requireActionAuth("You must be logged in to update your profile.");
@@ -13,7 +14,36 @@ export async function updateProfileAction(input: UpdateProfileInput) {
     throw new Error(validation.error.issues[0].message);
   }
 
+  // Fetch old profile to check if name changed
+  const oldProfile = await fetchProfileById(user.id);
+  const oldName = oldProfile?.name || "Unknown";
+
   const updatedProfile = await updateProfile(user.id, validation.data);
+
+  // If the name changed, log activity in all workspaces the user belongs to
+  if (validation.data.name && oldName !== validation.data.name) {
+    const supabase = await createClient();
+    
+    const { data: members } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", user.id);
+
+    if (members && members.length > 0) {
+      await Promise.all(
+        members.map((member) =>
+          logActivity(supabase, {
+            workspaceId: member.workspace_id,
+            actorId: user.id,
+            actionType: "member_renamed",
+            entityType: "member",
+            entityId: user.id,
+            metadata: { old_name: oldName, new_name: validation.data.name },
+          })
+        )
+      );
+    }
+  }
   revalidatePath("/", "layout");
   return updatedProfile;
 }

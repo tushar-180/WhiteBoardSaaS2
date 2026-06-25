@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { type Workspace, type WorkspaceRole, type WorkspaceMemberPreview } from "@/types/workspace";
 import { isValidUUID } from "@/lib/utils";
+import { logActivity } from "@/services/activity";
 
 interface WorkspaceMemberQueryRow {
   id: string;
@@ -212,6 +213,14 @@ export async function insertWorkspace(
     await supabase.from("workspaces").delete().eq("id", data.id);
     throw new Error(memberError.message);
   }
+
+  await logActivity(supabase, {
+    workspaceId: data.id,
+    actorId: ownerId,
+    actionType: "workspace_created",
+    entityType: "workspace",
+    entityId: data.id,
+  });
 
   return data;
 }

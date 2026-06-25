@@ -9,6 +9,8 @@ import { fetchPendingInvitesByWorkspace } from "@/services/invite";
 import { getUserSubscription } from "@/services/billing";
 import { hasManagePermission } from "@/lib/utils";
 import { WorkspaceDetailsClient } from "@/components/workspace/workspace-details-client";
+import { fetchWorkspaceActivities } from "@/services/activity";
+import { createClient } from "@/utils/supabase/server";
 
 export const revalidate = 0;
 
@@ -51,7 +53,8 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
     (workspace.owner_id === user.id ? "owner" : "viewer");
 
   // 3. Fetch boards, members, invites, and all user workspaces in parallel
-  const [boards, members, invites, workspaces, ownerSubscription] = await Promise.all([
+  const supabase = await createClient();
+  const [boards, members, invites, workspaces, ownerSubscription, initialActivities] = await Promise.all([
     fetchBoardsByWorkspace(workspaceId),
     fetchWorkspaceMembers(workspaceId),
     hasManagePermission(currentUserRole)
@@ -59,6 +62,7 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
       : Promise.resolve([]),
     fetchAllUserWorkspaces(user.id),
     getUserSubscription(workspace.owner_id),
+    fetchWorkspaceActivities(supabase, workspaceId),
   ]);
 
   const workspacePlan = ownerSubscription?.plan_type || "free";
@@ -74,6 +78,7 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
         userEmail={user.email || ""}
         initialWorkspaces={workspaces}
         workspacePlan={workspacePlan as "free" | "pro" | "ultra"}
+        initialActivities={initialActivities}
       />
     </div>
   );
