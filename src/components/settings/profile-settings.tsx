@@ -15,6 +15,7 @@ import { UserCircle, Loader2, Camera } from "lucide-react";
 import { updateProfileSchema } from "@/types/profile";
 import { getOptimizedAvatarUrl } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
+import { ImageCropperDialog } from "./image-cropper-dialog";
 
 export function ProfileSettings() {
   const { user } = useWorkspaceStore();
@@ -22,6 +23,8 @@ export function ProfileSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
   const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [unCroppedImage, setUnCroppedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof updateProfileSchema>>({
@@ -30,6 +33,15 @@ export function ProfileSettings() {
       name: user?.name || "",
     },
   });
+
+  useEffect(() => {
+    if (user?.name !== undefined) {
+      // Only reset if the form hasn't been modified yet
+      if (!form.formState.isDirty) {
+        form.reset({ name: user.name || "" });
+      }
+    }
+  }, [user?.name, form]);
 
   async function onSubmit(data: z.infer<typeof updateProfileSchema>) {
     try {
@@ -79,19 +91,31 @@ export function ProfileSettings() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Clean up previous preview
-    if (localPreview) {
-      URL.revokeObjectURL(localPreview);
-    }
-
-    // Show local preview only — upload happens on save
+    // Show cropper with uncropped image
     const objectUrl = URL.createObjectURL(file);
-    setLocalPreview(objectUrl);
-    setPendingAvatarFile(file);
+    setUnCroppedImage(objectUrl);
+    setCropperOpen(true);
 
     // Reset the input so the same file can be re-selected if needed
     e.target.value = "";
   }
+
+  function handleCropComplete(croppedFile: File) {
+    if (localPreview) {
+      URL.revokeObjectURL(localPreview);
+    }
+    const objectUrl = URL.createObjectURL(croppedFile);
+    setLocalPreview(objectUrl);
+    setPendingAvatarFile(croppedFile);
+  }
+
+  // Clean up uncropped object URL
+  useEffect(() => {
+    if (!cropperOpen && unCroppedImage) {
+      URL.revokeObjectURL(unCroppedImage);
+      setUnCroppedImage(null);
+    }
+  }, [cropperOpen, unCroppedImage]);
 
   // Clean up object URL when it changes or on unmount to prevent memory leaks
   useEffect(() => {
@@ -126,7 +150,7 @@ export function ProfileSettings() {
                   width={96}
                   height={96}
                   loading="lazy"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top"
                 />
               ) : (
                 <UserCircle className="w-12 h-12 text-muted-foreground" />
@@ -189,6 +213,16 @@ export function ProfileSettings() {
           </Button>
         </form>
       </div>
+
+      {/* Cropper Dialog */}
+      {unCroppedImage && (
+        <ImageCropperDialog
+          open={cropperOpen}
+          onOpenChange={setCropperOpen}
+          imageSrc={unCroppedImage}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }
