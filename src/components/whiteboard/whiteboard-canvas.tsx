@@ -69,14 +69,39 @@ function CanvasLoadingPlaceholder({ showTimeout, onRetry }: { showTimeout: boole
  * All loading states (sync connection, tldraw SDK) are consolidated here
  * to avoid multiple sequential loading spinners in the UI.
  */
-export default function WhiteboardCanvas({
+export default function WhiteboardCanvas(props: WhiteboardCanvasProps) {
+  const [fatalError, setFatalError] = useState(false);
+
+  if (fatalError) {
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 backdrop-blur-sm z-50">
+        <div className="flex flex-col items-center gap-2 text-center px-4">
+          <p className="text-sm font-semibold text-destructive">
+            Session Expired
+          </p>
+          <p className="text-xs text-muted-foreground max-w-[250px]">
+            Your session has expired or is invalid. Please refresh the page to securely reconnect.
+          </p>
+          <Button onClick={() => window.location.reload()} size="sm" variant="outline" className="mt-2 text-xs">
+            Refresh Session
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return <WhiteboardCanvasInner {...props} onFatalError={() => setFatalError(true)} />;
+}
+
+function WhiteboardCanvasInner({
   boardId,
   isReadonly,
   editorRef,
   currentUser,
   licenseKey,
-}: WhiteboardCanvasProps) {
-  const syncStore = useWhiteboardSync({ boardId });
+  onFatalError,
+}: WhiteboardCanvasProps & { onFatalError: () => void }) {
+  const syncStore = useWhiteboardSync({ boardId, onFatalError });
   const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { resolvedTheme } = useTheme();
@@ -125,6 +150,14 @@ export default function WhiteboardCanvas({
       editorRef.current.updateInstanceState({ isReadonly: !!isReadonly });
     }
   }, [isReadonly, editorRef]);
+
+  // Debug: Check if the component is unmounting unexpectedly
+  useEffect(() => {
+    console.log(`[Sync Debug] WhiteboardCanvasInner MOUNTED for board ${boardId}`);
+    return () => {
+      console.log(`[Sync Debug] WhiteboardCanvasInner UNMOUNTED for board ${boardId}`);
+    };
+  }, [boardId]);
 
   // Monitor connection loading duration to identify offline sync servers
   useEffect(() => {
