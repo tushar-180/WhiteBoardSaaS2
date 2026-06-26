@@ -195,6 +195,65 @@ Stores every individual purchase order (one-time payments via Razorpay).
 - `payments_user_id_idx` on `user_id`
 - `payments_order_id_idx` on `provider_order_id`
 
+## Table `board_messages`
+
+Per-board chat messages with reply-to threading. Added to Supabase Realtime publication for live broadcasting.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `uuid` | Primary Key, default `gen_random_uuid()` |
+| `board_id` | `uuid` | FK → `boards.id` ON DELETE CASCADE, Not Null |
+| `user_id` | `uuid` | FK → `profiles.id` ON DELETE CASCADE, Not Null |
+| `reply_to_message_id` | `uuid` | FK → `board_messages.id` ON DELETE SET NULL, Nullable |
+| `content` | `text` | Not Null |
+| `created_at` | `timestamptz` | Default `now()`, Not Null |
+
+**Realtime:** The table is added to the `supabase_realtime` publication to broadcast INSERT events to all connected clients.
+
+**Migration:** `supabase/migrations/20260625000000_create_board_messages.sql`
+
+## Table `workspace_activities`
+
+Audit log of all important events that occur within a workspace. Added to Supabase Realtime publication for live timeline updates.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `uuid` | Primary Key, default `gen_random_uuid()` |
+| `workspace_id` | `uuid` | FK → `workspaces.id` ON DELETE CASCADE, Not Null |
+| `actor_id` | `uuid` | FK → `profiles.id` ON DELETE CASCADE, Not Null |
+| `action_type` | `text` | Not Null (13 types: `workspace_created`, `workspace_renamed`, `board_created`, `board_renamed`, `board_deleted`, `member_invited`, `invite_rejected`, `invite_revoked`, `member_joined`, `member_removed`, `member_left`, `member_renamed`, `role_changed`) |
+| `entity_type` | `text` | Not Null (`workspace`, `board`, `member`, `invite`) |
+| `entity_id` | `uuid` | Nullable |
+| `metadata` | `jsonb` | Default `'{}'::jsonb` (stores context like `board_name`, `email`, `role`, `old_name`, `new_name`) |
+| `created_at` | `timestamptz` | Default `now()`, Not Null |
+
+**Indexes:**
+- `workspace_activities_workspace_id_idx` on `workspace_id` (optimizes fetching timeline per workspace).
+- `workspace_activities_created_at_idx` on `created_at DESC` (optimizes chronological sorting).
+
+**Realtime:** The table is added to the `supabase_realtime` publication with `REPLICA IDENTITY FULL` to broadcast INSERT events for live timeline updates.
+
+**Migration:** `supabase/migrations/20260625000100_create_workspace_activities.sql`
+
+**Logging pattern:** Activities are logged at the **Server Action level** (not service level) using the `logActivity(supabase, {...})` helper from `src/services/activity.ts`. The Supabase client instance is passed in to avoid creating a new server client. Logging fails silently to avoid breaking the main application flow.
+
+**Event types logged:**
+- Board create/rename/delete in `src/actions/board.ts`
+- Workspace rename in `src/actions/workspace.ts`
+- Member invite (single + bulk) in `src/actions/invite.ts`
+- Invite reject/revoke in `src/actions/invite.ts`
+- Member accept/join in `src/actions/invite.ts`
+- Member remove (single + bulk) in `src/actions/member.ts`
+- Member role change in `src/actions/member.ts`
+- Member leave in `src/actions/member.ts`
+- Profile rename (across all user's workspaces) in `src/actions/profile.ts`
+
+**UI:** Displayed as a vertical timeline (`WorkspaceTimeline` component in `src/components/workspace/activity/`) with color-coded icons, actor avatars, and human-readable messages. Accessible via the "Activity Timeline" tab on the workspace detail page.
+
 ---
 
 ## Current Implementation Notes
@@ -205,7 +264,7 @@ Stores every individual purchase order (one-time payments via Razorpay).
 - `canvas_data` is the single JSONB storage field for board drawing state.
 - `workspace_invites.inviter_seen` is used to track whether the inviter has seen the accepted invite notification (enables real-time notifications).
 - `workspace_invites.created_at` now has a proper `DEFAULT now()` constraint (added via migration `20260618160000`) and is guaranteed non-null.
-- Supabase Realtime is enabled for `workspace_invites` and `workspace_members` tables to support live notifications and access revocation detection.
+- Supabase Realtime is enabled for `workspace_invites`, `workspace_members`, `workspace_activities`, and `board_messages` tables to support live notifications, access revocation detection, live timeline updates, and real-time chat.
 - **Billing migration** `20260619000000_create_billing_tables.sql` adds `user_subscriptions` and `payments` tables with enums, RLS policies, and the auto-creation trigger.
 - The `user_subscriptions` table uses `user_id` as the primary key (one subscription per user).
 - The `payments` table has unique constraints on `provider_order_id` and `provider_payment_id` to prevent duplicate processing.

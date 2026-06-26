@@ -208,9 +208,21 @@ sequenceDiagram
   </tr>
   <tr>
     <td>
+      <h3>💬 Board Chat</h3>
+      <p>Real-time per-board chat with Supabase Realtime subscriptions. Send messages, reply to threads, @mention team members with auto-complete avatar picker, expand long messages, and auto-scroll to new messages — all on a shadcn sidebar.</p>
+    </td>
+    <td>
+      <h3>📋 Activity Timeline</h3>
+      <p>Chronological audit log of workspace events — board create/delete/rename, member invite/join/leave/remove, role changes, and profile updates. Vertical timeline UI with color-coded icons and real-time updates via Supabase Realtime.</p>
+    </td>
+  </tr>
+  <tr>
+    <td>
       <h3>🔔 Notifications</h3>
       <p>Real-time notification inbox for workspace invites and member activity via Supabase Realtime subscriptions.</p>
     </td>
+  </tr>
+  <tr>
     <td>
       <h3>⚙️ Settings</h3>
       <p>Comprehensive settings modal — profile, workspace management, billing, notifications, appearance (dark mode), account.</p>
@@ -241,7 +253,7 @@ sequenceDiagram
 | **Icons** | Lucide React | Consistent iconography throughout the app |
 | **State** | Zustand | Lightweight client-side state management (6 stores) |
 | **Forms** | React Hook Form + Zod 4.4.3 | Type-safe form validation with schema inference |
-| **Database** | Supabase PostgreSQL | Relational data + Realtime subscriptions (7 tables) |
+| **Database** | Supabase PostgreSQL | Relational data + Realtime subscriptions (9 tables: profiles, workspaces, workspace_members, workspace_invites, boards, user_subscriptions, payments, board_messages, workspace_activities) |
 | **Auth** | Supabase SSR SDK | Email/password + GitHub OAuth |
 | **Canvas** | tldraw 5.1.0, @tldraw/sync, @tldraw/sync-core | Infinite vector whiteboard with real-time sync |
 | **Payments** | Razorpay SDK v2.9.6 | Order creation, cryptographic signature verification, webhook processing |
@@ -261,12 +273,14 @@ erDiagram
     profiles ||--o{ workspaces : "owns"
     profiles ||--o{ workspace_members : "joins"
     profiles ||--o{ workspace_invites : "creates/accepts"
+    profiles ||--o{ workspace_activities : "performs"
     profiles ||--o{ boards : "creates"
     profiles ||--o| user_subscriptions : "has"
     profiles ||--o{ payments : "makes"
 
     workspaces ||--o{ workspace_members : "hosts"
     workspaces ||--o{ workspace_invites : "hosts"
+    workspaces ||--o{ workspace_activities : "tracks"
     workspaces ||--o{ boards : "contains"
 
     auth_users {
@@ -356,7 +370,9 @@ erDiagram
 - **Profile → Subscription:** A trigger auto-creates a Free subscription row in `user_subscriptions` when a new profile is created.
 - **Workspace → Members:** When a workspace is created, an `owner` row is inserted into `workspace_members` for the creator.
 - **Workspace → Boards:** Boards belong to a workspace; membership is inherited through workspace membership.
-- **Realtime Enabled:** `workspace_members` and `workspace_invites` tables have Supabase Realtime enabled for live notifications.
+- **Realtime Enabled:** `workspace_members`, `workspace_invites`, `workspace_activities`, and `board_messages` tables have Supabase Realtime enabled for live updates.
+- **Workspace Activities:** The `workspace_activities` table logs 13 event types across 4 entity types — logged at the Server Action level for all board, member, invite, and workspace mutations.
+- **Board Messages:** The `board_messages` table enables per-board real-time chat with reply-to threading and @mention support.
 
 ---
 

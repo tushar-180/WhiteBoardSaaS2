@@ -260,14 +260,91 @@ sync-server/              # Multiplayer WS Sync Server (Modular)
 └── server.ts             # Main entry point
 ```
 
+
+## 7. Board Chat Architecture
+
+The board chat system provides real-time per-board messaging using Supabase Realtime. It lives alongside the canvas as a shadcn `Sidebar` component on the right side.
+
+### Chat Data Flow
+
+```txt
+Mount:
+  useBoardChat(boardId, workspaceId)
+    → resetChat() (clear previous board's state)
+    → getBoardMessagesAction(boardId, workspaceId)  // initial fetch
+    → supabase.channel('board_messages:{boardId}')
+        .on('postgres_changes', INSERT)  // subscribe to new messages
+        .subscribe()
+
+Send:
+  sendBoardMessageAction(workspaceId, boardId, content, replyToMessageId)
+    → requireActionAuth()
+    → hasWorkspaceAccess(workspaceId, user.id)
+    → insertBoardMessage(boardId, user.id, content, replyToMessageId)
+    → INSERT row → Realtime broadcasts to all clients
+
+Realtime Reception:
+  INSERT payload received → re-fetch full message with profiles & reply_to
+    → addMessage(formattedMsg) to useChatStore
+    → Auto-scroll/fab logic in ChatMessageList
+    → Unread badge increment (if sidebar is collapsed)
+```
+
+### Key Files
+
+| Layer | File | Description |
+|:------|:-----|:------------|
+| Database | `supabase/migrations/20260625000000_create_board_messages.sql` | board_messages table + Realtime publication |
+| Types | `src/types/chat.ts` | BoardMessage, BoardMessageSender, BoardMessageReplyTo |
+| Service | `src/services/chat.ts` | fetchBoardMessages(), insertBoardMessage() |
+| Actions | `src/actions/chat.ts` | getBoardMessagesAction(), sendBoardMessageAction() |
+| Store | `src/store/use-chat-store.ts` | Zustand store (messages, isOpen, unreadCount, replyingTo, isLoading) |
+| Utility | `src/utils/chat.ts` | formatMessageTime() |
+| Hook | `src/components/whiteboard/hooks/use-board-chat.ts` | Initial fetch + Realtime subscription |
+| Sidebar | `src/components/whiteboard/chat/chat-panel.tsx` | ChatSidebar + SidebarClose components |
+| Input | `src/components/whiteboard/chat/chat-input.tsx` | Textarea + mention badges + reply-to bar |
+| Messages | `src/components/whiteboard/chat/chat-message-list.tsx` | Scrollable list + auto-scroll + FAB |
+| Message Item | `src/components/whiteboard/chat/chat-message-item.tsx` | Mention rendering + reply chain + read more |
+| Mention Picker | `src/components/whiteboard/chat/chat-mention-picker.tsx` | Member search with avatar + name + email |
+| Integration | `src/components/whiteboard/editor-header.tsx` | HeaderChatToggle with unread badge |
+
+### Features
+
+- **Real-time messaging:** Supabase Realtime broadcasts INSERT events to all clients viewing the same board.
+- **@Mentions:** Type `@` + name/email to bring up an inline member picker. Selected members appear as badges (chips with X button) in the input area.
+- **Reply-to threading:** Hover any message and click the reply icon. Shows a "Replying to..." bar above the input. Stored as `reply_to_message_id` self-reference.
+- **Mention rendering:** `@<email>` stored in DB is rendered as a styled `@DisplayName` chip by matching against `useMemberStore`.
+- **Unread counter:** Increments when new messages arrive while sidebar is collapsed. Cleared on open.
+- **Auto-scroll:** Scrolls to bottom on new messages if user is already near the bottom. Shows a scroll-to-bottom FAB with unread count when scrolled up.
+- **Long message expansion:** Messages longer than 300 characters or 6 lines show a "Read more" toggle.
+- **Optimistic send:** Input clears immediately on send; message appears via Realtime broadcast.
+- **Sidebar integration:** Uses shadcn `Sidebar` component with `collapsible="offcanvas"`. Toggle via header button, keyboard shortcut (`cmd+b`/`ctrl+b`), `SidebarRail`, or X close button.
+
+### Key Files
+
+| Layer | File | Description |
+|:------|:-----|:------------|
+| Database | `supabase/migrations/20260625000100_create_workspace_activities.sql` | workspace_activities table + indexes + Realtime |
+| Types | `src/types/activity.ts` | ActivityActionType (13 types), ActivityEntityType, WorkspaceActivity |
+| Service | `src/services/activity.ts` | logActivity(), fetchWorkspaceActivities() |
+| Store | `src/store/use-activity-store.ts` | Zustand store with addActivity (insert front + sort) |
+| Utils | `src/utils/activity-utils.tsx` | Icons, colors, human-readable message formatting |
+| UI | `src/components/workspace/activity/timeline-item.tsx` | Single timeline entry with color-coded icon |
+| UI | `src/components/workspace/activity/workspace-timeline.tsx` | Full timeline view with Realtime subscription |
+| Integration | `src/components/workspace/workspace-details-client.tsx` | "Activity Timeline" tab toggle |
+
+For full details, see the [Workspace Activity Timeline doc](workspace-timeline.md).
+
 ---
 
-## 7. Later / Optional
+## 8. Later / Optional
 
 These can be explored only after the core app is stable:
 
-- Realtime board chat (chat panel per board)
 - Comments
 - AI helpers
 - Recurring subscription billing (auto-renew)
 - Advanced deployment/scaling work
+- Chat file/image attachments
+- Chat message editing and deletion
+- Chat search

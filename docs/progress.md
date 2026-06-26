@@ -221,10 +221,62 @@ Stage 11 -> Payment/Subscription Billing with Razorpay
 - [x] Add `checkMemberInviteLimit()` call in `createInviteAction` and `bulkInviteUsersAction`.
 - [x] Pass `ownerSubscription` to `WorkspaceDetailsClient` for plan badge display.
 
+## Stage 12: Real-Time Board Chat & Workspace Activity Timeline
+
+### Real-Time Board Chat
+
+**Goal:** Enable real-time per-board chat with Supabase Realtime subscriptions, @mentions with auto-complete, reply-to threading, and a shadcn sidebar UI.
+
+- [x] Create `board_messages` database table with `reply_to_message_id` self-reference and Supabase Realtime publication.
+- [x] Define `BoardMessage`, `BoardMessageSender`, `BoardMessageReplyTo` types in `src/types/chat.ts`.
+- [x] Create chat service layer (`src/services/chat.ts`) with `fetchBoardMessages()` and `insertBoardMessage()`, both with joined profile and reply chain hydration.
+- [x] Create chat Server Actions (`src/actions/chat.ts`) with auth checks and workspace access verification.
+- [x] Create `useChatStore` Zustand store with messages, isOpen, unreadCount, replyingTo, and isLoading state, plus duplicate prevention and board-switch reset.
+- [x] Create `useBoardChat` hook with initial fetch and Realtime INSERT subscription for live message broadcasting.
+- [x] Build `ChatSidebar` — shadcn `Sidebar` component (`side="right"`, `collapsible="offcanvas"`, 350px width) with header, scrollable message list, and footer input area.
+- [x] Build `ChatInput` — auto-resizing textarea with mention badge system (chip/@Name + X button), inline `ChatMentionPicker` with avatar/name/email display, reply-to context bar, and optimistic UI clear on send.
+- [x] Build `ChatMessageList` — auto-scroll to bottom, scroll-to-bottom FAB with unread badge, loading spinner.
+- [x] Build `ChatMessageItem` — @mention rendering (`@<email>` → styled @DisplayName), reply chain preview, "Read more"/"Show less" for long messages (>300 chars or >6 lines).
+- [x] Build `ChatMentionPicker` — filters workspace members by name/email with avatar + name + email rows.
+- [x] Create `formatMessageTime` utility in `src/utils/chat.ts` for relative/today/date display.
+- [x] Integrate `ChatSidebar` into `WhiteboardEditor` via `SidebarProvider` with controlled open/close state.
+- [x] Add `HeaderChatToggle` button in `EditorHeader` with unread badge, using `useSidebar()` context.
+- [x] Wire mention picker to `useMemberStore` (populated via `getWorkspaceMembersAction` on chat mount).
+- [x] Set sidebar z-index to 100 to sit above tldraw canvas tools, and height to 100dvh to prevent footer clipping.
+
+### Workspace Activity Timeline
+
+**Goal:** Build an immutable audit log of workspace events with a real-time vertical timeline UI, color-coded icons, and human-readable event messages.
+
+- [x] Create `workspace_activities` database table with `action_type`, `entity_type`, `entity_id`, `metadata` (jsonb), and indexes on `workspace_id` and `created_at DESC`.
+- [x] Define `ActivityActionType` union (13 event types), `ActivityEntityType`, `WorkspaceActivity`, and `WorkspaceActivityWithProfile` types in `src/types/activity.ts`.
+- [x] Create activity service layer (`src/services/activity.ts`) with `logActivity()` (silent fail pattern) and `fetchWorkspaceActivities()` (joined with profiles, ordered by created_at DESC).
+- [x] Create `useActivityStore` Zustand store with activities list, loading state, and `addActivity` that inserts at front and sorts by created_at.
+- [x] Create `activity-utils.tsx` with `getActivityIcon()`, `getActivityColor()`, `formatActivityMessage()`, and `formatActivityTitle()` for UI rendering.
+- [x] Build `TimelineItem` component — vertical timeline entry with color-coded icon circle, actor avatar, title, human-readable message, and timestamp.
+- [x] Build `WorkspaceTimeline` component — full timeline view with centered vertical line, alternating layout (desktop), mobile-friendly stacked layout, color legend, empty state, and loading spinner.
+- [x] Add Realtime INSERT subscription to `WorkspaceTimeline` — fetches actor profile on new event and appends to the activity store.
+- [x] Hook activity logging into all relevant Server Actions:
+  - `board_created`, `board_renamed`, `board_deleted` in `src/actions/board.ts`
+  - `workspace_renamed` in `src/actions/workspace.ts`
+  - `member_invited` (single + bulk) in `src/actions/invite.ts`
+  - `invite_rejected`, `invite_revoked` in `src/actions/invite.ts`
+  - `member_joined` in `src/actions/invite.ts`
+  - `member_removed` (single + bulk) in `src/actions/member.ts`
+  - `role_changed` in `src/actions/member.ts`
+  - `member_left` in `src/actions/member.ts`
+  - `member_renamed` (across all user workspaces) in `src/actions/profile.ts`
+- [x] Add "Activity Timeline" tab toggle in `WorkspaceDetailsClient` alongside the existing "Boards" tab.
+- [x] Server-side hydration: fetch `initialActivities` in the workspace detail page and pass to `WorkspaceDetailsClient`.
+- [x] Add `REPLICA IDENTITY FULL` and add table to `supabase_realtime` publication for live broadcasting.
+
 ## Later / Optional
 
 - [ ] AI features.
 - [ ] Comments.
-- [ ] Realtime board chat (chat panel per board).
 - [ ] Recurring subscription billing (auto-renew with Razorpay Subscriptions API).
 - [ ] Advanced scaling infrastructure.
+- [ ] Chat file/image attachments.
+- [ ] Chat message editing and deletion.
+- [ ] Chat search.
+- [ ] RLS policies for board_messages and workspace_activities (currently omitted).
