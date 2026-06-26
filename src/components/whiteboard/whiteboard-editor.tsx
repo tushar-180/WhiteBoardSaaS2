@@ -11,6 +11,9 @@ import { type WhiteboardEditorProps } from "@/types/whiteboard";
 import { createClient } from "@/utils/supabase/client";
 import { KickedOverlay } from "./kicked-overlay";
 import { EditorHeader } from "./editor-header";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { ChatSidebar } from "./chat/chat-panel";
+import { useChatStore } from "@/store/use-chat-store";
 import posthog from "posthog-js";
 
 // Dynamically import the tldraw component with SSR disabled.
@@ -158,6 +161,9 @@ export default function WhiteboardEditor({
     };
   }, [board.workspace_id, currentUser.id, router]);
 
+  const isOpen = useChatStore((state) => state.isOpen);
+  const toggleChat = useChatStore((state) => state.toggleChat);
+
   // Clean up the store state on unmount
   useEffect(() => {
     return () => {
@@ -218,23 +224,37 @@ export default function WhiteboardEditor({
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden relative select-none">
-      {/* Top Header */}
-      <EditorHeader board={board} onSave={handleManualSave} currentUser={{ ...currentUser, role: localCurrentUserRole }} />
+    <SidebarProvider 
+      style={{ "--sidebar-width": "350px" } as React.CSSProperties} 
+      open={isOpen} 
+      onOpenChange={toggleChat} 
+      defaultOpen={false}
+    >
+      <div className="flex flex-col bg-background overflow-hidden select-none flex-1 relative">
+        {/* Top Header */}
+        <EditorHeader board={board} onSave={handleManualSave} currentUser={{ ...currentUser, role: localCurrentUserRole }} />
 
-      {/* Drawing Canvas Container */}
-      <main className="flex-1 w-full h-[calc(100vh-64px)] relative bg-muted/20">
-        <WhiteboardCanvas
-          key={`${board.id}-${localIsReadonly}`}
-          boardId={board.id}
-          workspaceId={board.workspace_id}
-          initialCanvasData={board.canvas_data}
-          editorRef={editorRef}
-          currentUser={currentUser}
-          licenseKey={licenseKey}
-          isReadonly={localIsReadonly}
-        />
-      </main>
-    </div>
+        {/* Drawing Canvas Container */}
+        <main className="flex-1 w-full h-[calc(100vh-64px)] relative bg-muted/20">
+          <WhiteboardCanvas
+            key={`${board.id}-${localIsReadonly}`}
+            boardId={board.id}
+            workspaceId={board.workspace_id}
+            initialCanvasData={board.canvas_data}
+            editorRef={editorRef}
+            currentUser={currentUser}
+            licenseKey={licenseKey}
+            isReadonly={localIsReadonly}
+          />
+        </main>
+      </div>
+
+      {/* Chat Sidebar — slides in from the right */}
+      <ChatSidebar 
+        boardId={board.id} 
+        workspaceId={board.workspace_id} 
+        currentUserId={currentUser.id} 
+      />
+    </SidebarProvider>
   );
 }

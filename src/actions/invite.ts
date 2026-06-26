@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { requireActionAuth } from "@/utils/supabase/server";
+import { requireActionAuth, createClient } from "@/utils/supabase/server";
 import { sendWorkspaceInviteEmail } from "@/services/email";
+import { logActivity } from "@/services/activity";
 import { getPostHogClient } from "@/lib/posthog-server";
 import {
   createWorkspaceInvite,
@@ -136,6 +137,16 @@ export async function createInviteAction(
       },
     });
 
+    const supabase = await createClient();
+    await logActivity(supabase, {
+      workspaceId,
+      actorId: user.id,
+      actionType: "member_invited",
+      entityType: "invite",
+      entityId: invite.id,
+      metadata: { email: trimmedEmail, role: validatedRole },
+    });
+
     // Revalidate paths
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
 
@@ -172,8 +183,26 @@ export async function revokeInviteAction(
       );
     }
 
-    // 2. Revoke invitation in database
+    const supabase = await createClient();
+
+    // 2. Fetch the invite email before revoking
+    const { data: inviteData } = await supabase
+      .from("workspace_invites")
+      .select("email")
+      .eq("id", inviteId)
+      .single();
+
+    // 3. Revoke invitation in database
     await revokeWorkspaceInvite(workspaceId, inviteId);
+
+    await logActivity(supabase, {
+      workspaceId,
+      actorId: user.id,
+      actionType: "invite_revoked",
+      entityType: "invite",
+      entityId: inviteId,
+      metadata: { email: inviteData?.email },
+    });
 
     // Revalidate paths
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
@@ -191,6 +220,12 @@ export async function rejectInviteAction(token: string): Promise<void> {
       "You must be logged in to reject invitations.",
     );
 
+    // Fetch invite first to get workspaceId
+    const invite = await fetchInviteByToken(token);
+    if (!invite) {
+      throw new Error("Invitation is invalid or has already been processed.");
+    }
+
     // Reject the invite
     await rejectWorkspaceInvite(token, user.id);
 
@@ -198,6 +233,16 @@ export async function rejectInviteAction(token: string): Promise<void> {
       distinctId: user.id,
       event: "workspace_invite_declined",
       properties: { invite_token: token },
+    });
+
+    const supabase = await createClient();
+    await logActivity(supabase, {
+      workspaceId: invite.workspace_id,
+      actorId: user.id,
+      actionType: "invite_rejected",
+      entityType: "invite",
+      entityId: invite.id,
+      metadata: { email: user.email },
     });
 
     // Revalidate workspaces list path
@@ -244,6 +289,15 @@ export async function acceptInviteAction(token: string): Promise<string> {
         invite_token: token,
         role: invite.role,
       },
+    });
+
+    const supabase = await createClient();
+    await logActivity(supabase, {
+      workspaceId,
+      actorId: user.id,
+      actionType: "member_joined",
+      entityType: "member",
+      metadata: { email: user.email, role: invite.role },
     });
 
     // Revalidate workspaces list path
@@ -388,6 +442,22 @@ export async function bulkInviteUsersAction(
       if (success) successfulEmails.push(invite.email);
       else failedEmails.push(invite.email);
     }));
+
+    if (successfulEmails.length > 0) {
+      const supabase = await createClient();
+      await Promise.all(
+        invites.map((invite) =>
+          logActivity(supabase, {
+            workspaceId,
+            actorId: user.id,
+            actionType: "member_invited",
+            entityType: "invite",
+            entityId: invite.id,
+            metadata: { email: invite.email, role: invite.role },
+          })
+        )
+      );
+    }
 
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
 

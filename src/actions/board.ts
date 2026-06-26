@@ -14,6 +14,8 @@ import { checkBoardCreationLimit } from "@/services/billing";
 import { type Board, boardSchema } from "@/types/workspace";
 import { ROUTES } from "@/lib/constants";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { logActivity } from "@/services/activity";
+import { fetchBoardById } from "@/services/board";
 
 /**
  * Retrieves all boards belonging to a workspace.
@@ -93,6 +95,15 @@ export async function createBoardAction(
       },
     });
 
+    await logActivity(supabase, {
+      workspaceId,
+      actorId: user.id,
+      actionType: "board_created",
+      entityType: "board",
+      entityId: board.id,
+      metadata: { board_name: board.name },
+    });
+
     // Revalidate the workspace details route
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
 
@@ -143,7 +154,23 @@ export async function updateBoardAction(
       throw new Error(`This board name is already taken. Please choose a different name.`);
     }
 
+    // Fetch old board to get the old name
+    const { data: oldBoard } = await supabase.from("boards").select("name").eq("id", boardId).single();
+    const oldName = oldBoard?.name || "Unknown";
+
     const board = await updateBoard(boardId, trimmedName, validatedDescription || null);
+
+    // Only log if the name actually changed
+    if (oldName !== board.name) {
+      await logActivity(supabase, {
+        workspaceId,
+        actorId: user.id,
+        actionType: "board_renamed",
+        entityType: "board",
+        entityId: board.id,
+        metadata: { old_name: oldName, new_name: board.name },
+      });
+    }
 
     // Revalidate the workspace details route
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);
@@ -169,7 +196,21 @@ export async function deleteBoardAction(
       throw new Error("You do not have access to modify this workspace.");
     }
 
+    const boardToDelete = await fetchBoardById(boardId);
+
     await deleteBoard(boardId);
+
+    if (boardToDelete) {
+      const supabase = await createClient();
+      await logActivity(supabase, {
+        workspaceId,
+        actorId: user.id,
+        actionType: "board_deleted",
+        entityType: "board",
+        entityId: boardId,
+        metadata: { board_name: boardToDelete.name },
+      });
+    }
 
     // Revalidate the workspace details route
     revalidatePath(`${ROUTES.WORKSPACES}/${workspaceId}`);

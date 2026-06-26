@@ -40,6 +40,7 @@ graph TD
     P8 --> P9[Phase 9: SEO + Accessibility]
     P9 --> P10[Phase 10: Codebase Audit + Polish]
     P10 --> P11[Phase 11: Payment/Subscription Billing]
+    P11 --> P12[Phase 12: Real-Time Board Chat]
 ```
 
 ---
@@ -209,11 +210,46 @@ erDiagram
 
 ---
 
+## Phase 12: Real-Time Board Chat & Workspace Activity Timeline ✅
+
+### Real-Time Board Chat
+
+**Goal:** Enable real-time per-board chat with Supabase Realtime subscriptions, @mentions with auto-complete, reply-to threading, and a shadcn sidebar UI.
+
+- **Database:** `board_messages` table with `reply_to_message_id` self-reference and Supabase Realtime publication.
+- **Types:** `BoardMessage`, `BoardMessageSender`, `BoardMessageReplyTo` in `src/types/chat.ts`.
+- **Service layer:** `fetchBoardMessages()`, `insertBoardMessage()` in `src/services/chat.ts` with joined profile and reply chain hydration.
+- **Server Actions:** `getBoardMessagesAction()`, `sendBoardMessageAction()` in `src/actions/chat.ts` with auth and workspace access checks.
+- **Zustand Store:** `useChatStore` handling `messages`, `isOpen`, `unreadCount`, `replyingTo`, `isLoading` with duplicate prevention and board-switch reset.
+- **Realtime Hook:** `useBoardChat` in `src/components/whiteboard/hooks/use-board-chat.ts` — fetches initial messages and subscribes to INSERTs.
+- **Sidebar UI:** shadcn `Sidebar` component (`side="right"`, `collapsible="offcanvas"`, 350px width) with header, scrollable messages (`ChatMessageList`), and footer input (`ChatInput`).
+- **Chat Input:** Auto-resizing textarea with mention badge system (chip/@Name + X), inline `ChatMentionPicker` (avatar + name + email), reply-to context bar, and optimistic UI clear.
+- **Message Display:** @mention rendering (`@<email>` → styled @DisplayName), reply chain preview, "Read more"/"Show less" for long messages.
+- **Mention Picker:** Filters workspace members by name or email.
+- **Integration:** `ChatSidebar` controlled via `SidebarProvider` in `WhiteboardEditor`; `HeaderChatToggle` in `EditorHeader` using `useSidebar()` context with unread badge.
+- **Styling:** z-index 100 (above canvas tools), full viewport height, sidebar width 350px.
+
+### Workspace Activity Timeline (Audit Log)
+
+**Goal:** Build an immutable audit log of workspace events with a real-time vertical timeline UI, color-coded icons, and human-readable event messages.
+
+- **Database:** `workspace_activities` table with `action_type`, `entity_type`, `entity_id`, `metadata` (jsonb), `REPLICA IDENTITY FULL`, indexes on `workspace_id` and `created_at DESC`, and Supabase Realtime publication.
+- **Types:** `ActivityActionType` (13 event types), `ActivityEntityType`, `WorkspaceActivity`, `WorkspaceActivityWithProfile` in `src/types/activity.ts`.
+- **Service layer:** `logActivity()` (silent-fail pattern), `fetchWorkspaceActivities()` (joined with profiles) in `src/services/activity.ts`.
+- **Zustand Store:** `useActivityStore` with `activities`, `isLoading`, `addActivity` (insert at front + sort by created_at).
+- **UI Utils:** `getActivityIcon()`, `getActivityColor()`, `formatActivityMessage()`, `formatActivityTitle()` in `src/utils/activity-utils.tsx` (uses `react-icons/fa` for icons).
+- **Components:** `TimelineItem` (color-coded icon + avatar + human-readable message) and `WorkspaceTimeline` (responsive vertical timeline with legend, real-time subscription, empty/loading states) in `src/components/workspace/activity/`.
+- **Integration:** Logging hooked into 9 Server Actions across board, workspace, invite, member, and profile domains. Timeline accessible via "Activity Timeline" tab toggle on workspace detail page.
+- **Server-side hydration:** `initialActivities` fetched in workspace detail page and passed to `WorkspaceDetailsClient`.
+
 ## Later / Optional
 
 These features can be revisited after the core product is working:
 
-- Realtime board chat (chat panel per board)
 - AI features
 - Recurring subscription billing (auto-renew with Razorpay Subscriptions API)
 - Advanced scaling infrastructure
+- Chat file/image attachments
+- Chat message editing and deletion
+- Chat search
+- RLS policies for `board_messages` (currently omitted)

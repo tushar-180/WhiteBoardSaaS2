@@ -73,6 +73,38 @@ AI, comments, large realtime collaboration, and advanced scaling are later ideas
 
 ---
 
+## Board Chat
+
+The board chat feature is a real-time per-board chat sidebar. Key patterns:
+
+### Architecture
+- **Database:** `board_messages` table in Supabase with Realtime enabled for live INSERT broadcasts.
+- **Service layer:** `src/services/chat.ts` — `fetchBoardMessages()`, `insertBoardMessage()`. Both join the `profiles` and `reply_to` chain for complete message hydration.
+- **Server Actions:** `src/actions/chat.ts` — `getBoardMessagesAction()`, `sendBoardMessageAction()`. Both verify workspace access via `hasWorkspaceAccess()`.
+- **Zustand store:** `src/store/use-chat-store.ts` — manages `messages`, `isOpen`, `unreadCount`, `replyingTo`, `isLoading`.
+
+### UI Structure
+- **ChatSidebar** (`chat-panel.tsx`): shadcn `Sidebar` component (`side="right"`, `collapsible="offcanvas"`, width 350px), controlled by `SidebarProvider` in `WhiteboardEditor`. Uses `useSidebar()` context for open/close state tied to `useChatStore`.
+- **ChatInput** (`chat-input.tsx`): Auto-resizing textarea with mention badges (chip/@Name + X button). `@mention` detection triggers an inline `ChatMentionPicker` popup. Reply-to context bar above the input. Optimistic UI clear on send.
+- **ChatMessageList** (`chat-message-list.tsx`): Auto-scroll to bottom on new messages, scroll-to-bottom FAB with unread count badge, loading spinner (uses `isLoading` from store).
+- **ChatMessageItem** (`chat-message-item.tsx`): @mention rendering (`@<email>` → styled @DisplayName), reply chain display, "Read more"/"Show less" for long messages (>300 chars or >6 lines).
+- **ChatMentionPicker** (`chat-mention-picker.tsx`): Filters workspace members by name or email, shows avatar + name + email, populates `selectedMembers` as badges.
+- **HeaderChatToggle** (`editor-header.tsx`): Toggle button in the editor header using `useSidebar()` context, shows unread badge when sidebar is collapsed.
+
+### Data Flow
+1. **Mount:** `useBoardChat` hook fetches initial messages via `getBoardMessagesAction()`, then subscribes to Realtime INSERT on `board_messages` filtered by `board_id`.
+2. **Send:** `sendBoardMessageAction()` auth → workspace access → `insertBoardMessage()` → DB insert → Realtime broadcasts to all clients.
+3. **Realtime:** On INSERT event, the full message (with profiles + reply_to) is re-fetched to ensure complete data, then added to the store.
+4. **Mentions:** Stored as `@<email>` in the DB. Rendered by splitting on the regex `/(@<[^>]+>)/g` and looking up the member name from `useMemberStore`.
+
+### Key Dependencies
+- `board_messages` migration: `supabase/migrations/20260625000000_create_board_messages.sql`
+- The table must be added to the `supabase_realtime` publication for real-time messaging.
+- Mention data comes from `useMemberStore`, populated on chat mount by `getWorkspaceMembersAction()`.
+- The shadcn `Sidebar` context (`useSidebar()`) manages open/close state across `ChatSidebar` and `HeaderChatToggle`.
+
+---
+
 ## Codebase Map
 
 ```txt
@@ -238,6 +270,19 @@ Examples:
 - Whiteboard hooks belong in `src/components/whiteboard/hooks/`.
 - Whiteboard utils belong in `src/components/whiteboard/utils/`.
 - Whiteboard UI/canvas belongs in `src/components/whiteboard/`.
+- **Board chat** UI belongs in `src/components/whiteboard/chat/` (ChatSidebar, ChatInput, ChatMessageItem, ChatMessageList, ChatMentionPicker).
+- **Board chat** hooks belong in `src/components/whiteboard/hooks/` (`use-board-chat.ts`).
+- **Board chat** types and schemas belong in `src/types/chat.ts`.
+- **Board chat** DB logic belongs in `src/services/chat.ts`.
+- **Board chat** mutations belong in `src/actions/chat.ts`.
+- **Board chat** client state belongs in `src/store/use-chat-store.ts`.
+- **Board chat** utility helpers belong in `src/utils/chat.ts` (`formatMessageTime`).
+- **Workspace activity** types and action enums belong in `src/types/activity.ts`.
+- **Workspace activity** DB logic belongs in `src/services/activity.ts` (`logActivity`, `fetchWorkspaceActivities`).
+- **Workspace activity** client state belongs in `src/store/use-activity-store.ts`.
+- **Workspace activity** utility helpers belong in `src/utils/activity-utils.tsx` (icons, colors, message formatting).
+- **Workspace activity** UI belongs in `src/components/workspace/activity/` (TimelineItem, WorkspaceTimeline).
+- **Workspace activity** is logged at the **Server Action level** (not service level) so the Supabase client is available — hook into existing actions like `createBoardAction`, `updateWorkspaceAction`, `removeMemberAction`, etc.
 
 ---
 
