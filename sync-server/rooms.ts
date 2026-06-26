@@ -91,7 +91,7 @@ export async function getOrCreateRoom(
     },
   });
 
-  // Set up debounced autosave (3-second debounce)
+  // Set up debounced autosave (30-second debounce)
   let saveTimeout: NodeJS.Timeout | null = null;
   const debouncedSave = () => {
     if (saveTimeout) clearTimeout(saveTimeout);
@@ -142,7 +142,7 @@ export async function getOrCreateRoom(
           }
         }
       }
-    }, 3000);
+    }, 30000);
   };
 
   // Listen for canvas document clock updates to trigger autosave

@@ -6,13 +6,14 @@ import { getSyncUri } from "../utils/sync-uri";
 
 interface UseWhiteboardSyncOptions {
   boardId: string;
+  onFatalError?: () => void;
 }
 
 /**
  * Custom hook to initialize the multiplayer synchronized store using @tldraw/sync,
  * handle custom messages from the sync server regarding autosave, and sync status to state.
  */
-export function useWhiteboardSync({ boardId }: UseWhiteboardSyncOptions) {
+export function useWhiteboardSync({ boardId, onFatalError }: UseWhiteboardSyncOptions) {
   const setSaveStatus = useWhiteboardStore((state) => state.setSaveStatus);
   const setLastSavedAt = useWhiteboardStore((state) => state.setLastSavedAt);
 
@@ -93,6 +94,29 @@ export function useWhiteboardSync({ boardId }: UseWhiteboardSyncOptions) {
       setSaveStatus("error");
     }
   }, [syncStore, setSaveStatus, setLastSavedAt, setIsOffline]);
+
+  // Detect infinite connection loops caused by token expiration or repeated 4999 errors
+  const errorCount = useRef(0);
+  const lastErrorTime = useRef(Date.now());
+
+  useEffect(() => {
+    if (syncStore.status === "error") {
+      const now = Date.now();
+      // If errors happen very quickly (less than 1.5 seconds apart), we are in an infinite reconnect loop
+      if (now - lastErrorTime.current < 1500) {
+        errorCount.current += 1;
+      } else {
+        errorCount.current = 1;
+      }
+      lastErrorTime.current = now;
+
+      // Unmount the component and show a fatal error screen after 5 rapid failures
+      if (errorCount.current > 5) {
+        console.warn("[Sync] Fatal reconnection loop detected. Halting sync.");
+        onFatalError?.();
+      }
+    }
+  }, [syncStore.status, onFatalError]);
 
   return syncStore;
 }

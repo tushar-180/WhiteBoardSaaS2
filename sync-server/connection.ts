@@ -92,6 +92,10 @@ export async function handleConnection(
       },
     });
 
+    socket.on("close", (code, reason) => {
+      console.log(`[Sync Server] Socket closed for session ${sessionId} (code: ${code}, reason: ${reason})`);
+    });
+
     // Replay any messages received during the asynchronous validation phase
     for (const msg of messageQueue) {
       room.handleSocketMessage(
